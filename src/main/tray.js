@@ -1,0 +1,107 @@
+const path = require('node:path');
+const { BrowserWindow, Tray, Menu, nativeImage, screen } = require('electron');
+
+const ICONS = path.join(__dirname, '..', '..', 'assets', 'generated');
+const PRELOAD = path.join(__dirname, '..', 'preload.js');
+const PANEL = { width: 380, height: 556 };
+
+function trayIcon() {
+  if (process.platform === 'darwin') {
+    const image = nativeImage.createFromPath(path.join(ICONS, 'trayTemplate.png'));
+    image.setTemplateImage(true);
+    return image;
+  }
+  return nativeImage.createFromPath(path.join(ICONS, 'tray.png'));
+}
+
+// Places the panel next to the tray icon, kept inside the screen's work area.
+function panelPosition(trayBounds) {
+  const display = screen.getDisplayNearestPoint({ x: trayBounds.x, y: trayBounds.y });
+  const area = display.workArea;
+  let x = Math.round(trayBounds.x + trayBounds.width / 2 - PANEL.width / 2);
+  // Tray at the top (macOS, some Linux) opens down, otherwise up.
+  let y = trayBounds.y < area.y + area.height / 2 ? area.y + 6 : area.y + area.height - PANEL.height - 6;
+  x = Math.min(Math.max(x, area.x + 6), area.x + area.width - PANEL.width - 6);
+  y = Math.min(Math.max(y, area.y), area.y + area.height - PANEL.height);
+  return { x, y };
+}
+
+class TrayUI {
+  constructor({ onAction }) {
+    this.onAction = onAction;
+    this.tray = new Tray(trayIcon());
+    this.tray.setToolTip('Stip');
+    this.panel = null;
+
+    const menu = Menu.buildFromTemplate([
+      { label: 'Open Stip', click: () => this.toggle() },
+      { label: 'Stand now', click: () => onAction('stand-now') },
+      { label: 'Log a sip', click: () => onAction('sip') },
+      { label: 'Pause for 1 hour', click: () => onAction('pause', { minutes: 60 }) },
+      { type: 'separator' },
+      { label: 'Settings', click: () => onAction('settings') },
+      { label: 'Quit Stip', click: () => onAction('quit') },
+    ]);
+
+    if (process.platform === 'linux') {
+      // Many Linux trays only support a menu, not click events.
+      this.tray.setContextMenu(menu);
+    } else {
+      this.tray.on('click', () => this.toggle());
+      this.tray.on('right-click', () => this.tray.popUpContextMenu(menu));
+    }
+  }
+
+  createPanel() {
+    this.panel = new BrowserWindow({
+      ...PANEL,
+      show: false,
+      frame: false,
+      resizable: false,
+      movable: false,
+      minimizable: false,
+      maximizable: false,
+      fullscreenable: false,
+      skipTaskbar: true,
+      alwaysOnTop: true,
+      transparent: true,
+      hasShadow: true,
+      webPreferences: { preload: PRELOAD, sandbox: true },
+    });
+    this.panel.loadFile(path.join(__dirname, '..', 'renderer', 'tray', 'index.html'));
+    this.panel.on('blur', () => this.panel.hide());
+  }
+
+  toggle() {
+    if (!this.panel) this.createPanel();
+    if (this.panel.isVisible()) {
+      this.panel.hide();
+      return;
+    }
+    const { x, y } = panelPosition(this.tray.getBounds());
+    this.panel.setPosition(x, y, false);
+    this.panel.show();
+    this.panel.focus();
+  }
+
+  open() {
+    if (!this.panel?.isVisible()) this.toggle();
+    return this.panel;
+  }
+
+  hide() {
+    this.panel?.hide();
+  }
+
+  // macOS shows the countdown right in the menu bar.
+  setTitle(text) {
+    if (process.platform === 'darwin') this.tray.setTitle(text, { fontType: 'monospacedDigit' });
+    this.tray.setToolTip(text ? `Stip · next stand in ${text}` : 'Stip');
+  }
+
+  send(state) {
+    if (this.panel?.isVisible()) this.panel.webContents.send('state', state);
+  }
+}
+
+module.exports = { TrayUI };

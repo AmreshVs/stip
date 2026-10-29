@@ -1,13 +1,123 @@
-const { app } = require('electron');
+const { app, ipcMain, powerMonitor } = require('electron');
+const { Settings, Stats } = require('./store');
+const { Scheduler } = require('./scheduler');
+const { Meeting } = require('./meeting');
+const { TrayUI } = require('./tray');
+const { snapshot, requestedView } = require('./snapshot');
+
+// Lets dev runs and snapshots keep their settings apart from the real ones.
+if (process.env.STIP_USER_DATA) app.setPath('userData', process.env.STIP_USER_DATA);
 
 // Stip lives in the tray, so make sure only one copy runs.
 if (!app.requestSingleInstanceLock()) {
   app.quit();
 }
 
+let settings;
+let stats;
+let scheduler;
+let meeting;
+let tray;
+
+function minutesUntilMidnight(now = new Date()) {
+  const midnight = new Date(now);
+  midnight.setHours(24, 0, 0, 0);
+  return Math.ceil((midnight - now) / 60000);
+}
+
+function state() {
+  const now = Date.now();
+  return {
+    settings: settings.get(),
+    status: scheduler.status(now),
+    today: stats.today(),
+    streak: stats.streak(),
+    meeting: { manual: meeting.manual(now), active: meeting.active(now) },
+    platform: process.platform,
+  };
+}
+
+function broadcast() {
+  tray.send(state());
+}
+
+function updateTrayTitle() {
+  const { status } = state();
+  if (status.pausedUntil) tray.setTitle('Paused');
+  else if (status.waitingForMeeting) tray.setTitle('Call');
+  else tray.setTitle(fmtClock(status.msToStand));
+}
+
+function fmtClock(ms) {
+  const total = Math.ceil(ms / 1000);
+  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
+}
+
+const actions = {
+  'stand-now': () => scheduler.startBreak(),
+  sip: () => {
+    stats.record('glasses');
+    scheduler.sipped(Date.now());
+  },
+  'meeting-toggle': () => meeting.setManual(!meeting.manual()),
+  pause: ({ minutes }) => {
+    scheduler.pause(Date.now(), minutes === 'day' ? minutesUntilMidnight() : Number(minutes));
+  },
+  resume: () => scheduler.resume(Date.now()),
+  settings: () => {},
+  quit: () => app.quit(),
+};
+
+function handleAction(name, payload = {}) {
+  const action = actions[name];
+  if (!action) return;
+  action(payload);
+  broadcast();
+}
+
 app.whenReady().then(() => {
   if (process.platform === 'darwin') app.dock.hide();
+
+  const dir = app.getPath('userData');
+  settings = new Settings(dir);
+  stats = new Stats(dir);
+  scheduler = new Scheduler(() => settings.get());
+  meeting = new Meeting();
+  meeting.start();
+  tray = new TrayUI({ onAction: handleAction });
+
+  ipcMain.handle('state', () => state());
+  ipcMain.on('act', (_event, name, payload) => handleAction(name, payload));
+
+  settings.on('change', () => {
+    scheduler.reschedule(Date.now());
+    broadcast();
+  });
+  stats.on('change', broadcast);
+
+  setInterval(() => {
+    const now = Date.now();
+    scheduler.tick(now, {
+      idleSec: powerMonitor.getSystemIdleTime(),
+      inMeeting: meeting.active(now),
+    });
+    updateTrayTitle();
+    broadcast();
+  }, 1000);
+  updateTrayTitle();
+  showRequestedView();
 });
+
+async function showRequestedView() {
+  const view = requestedView();
+  if (!view) return;
+  if (view.startsWith('theme-')) settings.set({ theme: view.split('-')[1] });
+  const win = tray.open();
+  if (process.env.STIP_SNAPSHOT) {
+    await snapshot(win, process.env.STIP_SNAPSHOT);
+    app.quit();
+  }
+}
 
 // Keep running in the tray when windows close.
 app.on('window-all-closed', () => {});

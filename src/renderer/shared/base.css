@@ -1,0 +1,110 @@
+@import url('../../../node_modules/@fontsource/bricolage-grotesque/500.css');
+@import url('../../../node_modules/@fontsource/bricolage-grotesque/800.css');
+@import url('../../../node_modules/@fontsource/dm-sans/400.css');
+@import url('../../../node_modules/@fontsource/dm-sans/500.css');
+@import url('../../../node_modules/@fontsource/dm-sans/700.css');
+@import url('../../../node_modules/@fontsource/instrument-serif/400.css');
+@import url('../../../node_modules/@fontsource/instrument-serif/400-italic.css');
+@import url('../../../node_modules/@fontsource/manrope/400.css');
+@import url('../../../node_modules/@fontsource/manrope/500.css');
+@import url('../../../node_modules/@fontsource/manrope/600.css');
+
+/* Flat is the default theme. */
+:root,
+[data-theme='flat'] {
+  --bg: #141414;
+  --surface: #1f1f1f;
+  --surface-2: #2a2a2a;
+  --paper: #f3f0e8;
+  --paper-2: #e7e3d9;
+  --ink: #141414;
+  --text: #f3f0e8;
+  --text-muted: #a8a29e;
+  --text-on-paper: #141414;
+  --muted-on-paper: #57534e;
+  --stand: #c6f35c;
+  --on-stand: #141414;
+  --water: #2f5ce8;
+  --water-light: #9db6ff;
+  --on-water: #ffffff;
+  --alert: #ff8a65;
+  --on-alert: #141414;
+  --display: 'Bricolage Grotesque', 'DM Sans', system-ui, sans-serif;
+  --display-weight: 800;
+  --display-tracking: -0.03em;
+  --body: 'DM Sans', system-ui, sans-serif;
+  --radius: 14px;
+}
+
+[data-theme='aurora'] {
+  --bg: #05070f;
+  --surface: rgba(15, 23, 42, 0.72);
+  --surface-2: rgba(255, 255, 255, 0.08);
+  --paper: rgba(15, 23, 42, 0.82);
+  --paper-2: rgba(255, 255, 255, 0.05);
+  --ink: #05070f;
+  --text: #eef2ff;
+  --text-muted: #94a3b8;
+  --text-on-paper: #eef2ff;
+  --muted-on-paper: #94a3b8;
+  --stand: #5eead4;
+  --on-stand: #042f2e;
+  --water: #38bdf8;
+  --water-light: #7dd3fc;
+  --on-water: #082f49;
+  --alert: #fda4af;
+  --on-alert: #4c0519;
+  --display: 'Instrument Serif', Georgia, serif;
+  --display-weight: 400;
+  --display-tracking: 0;
+  --body: 'Manrope', system-ui, sans-serif;
+  --radius: 14px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  font-family: var(--body);
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+  border: none;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--stand);
+  outline-offset: 2px;
+}
+
+.display {
+  font-family: var(--display);
+  font-weight: var(--display-weight);
+  letter-spacing: var(--display-tracking);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
