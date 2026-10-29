@@ -3,6 +3,7 @@ const { Settings, Stats } = require('./store');
 const { Scheduler } = require('./scheduler');
 const { Meeting } = require('./meeting');
 const { TrayUI } = require('./tray');
+const { BreakScreens } = require('./breaks');
 const { snapshot, requestedView } = require('./snapshot');
 
 // Lets dev runs and snapshots keep their settings apart from the real ones.
@@ -18,6 +19,7 @@ let stats;
 let scheduler;
 let meeting;
 let tray;
+let breaks;
 
 function minutesUntilMidnight(now = new Date()) {
   const midnight = new Date(now);
@@ -54,7 +56,11 @@ function fmtClock(ms) {
 }
 
 const actions = {
-  'stand-now': () => scheduler.startBreak(),
+  'stand-now': () => {
+    tray.hide();
+    scheduler.startBreak();
+  },
+  'break-finish': ({ how }) => breaks.finish(how),
   sip: () => {
     stats.record('glasses');
     scheduler.sipped(Date.now());
@@ -67,6 +73,23 @@ const actions = {
   settings: () => {},
   quit: () => app.quit(),
 };
+
+function onBreakFinished(how) {
+  const now = Date.now();
+  if (how === 'done') {
+    stats.record('breaks');
+    scheduler.breakDone(now);
+  } else if (how === 'snooze') {
+    scheduler.snooze(now, 5);
+  } else if (how === 'meeting') {
+    meeting.setManual(true);
+    scheduler.deferForMeeting();
+  } else {
+    stats.record('skipped');
+    scheduler.skip(now);
+  }
+  broadcast();
+}
 
 function handleAction(name, payload = {}) {
   const action = actions[name];
@@ -85,6 +108,8 @@ app.whenReady().then(() => {
   meeting = new Meeting();
   meeting.start();
   tray = new TrayUI({ onAction: handleAction });
+  breaks = new BreakScreens({ onFinish: onBreakFinished });
+  scheduler.on('stand', () => breaks.show(settings.get()));
 
   ipcMain.handle('state', () => state());
   ipcMain.on('act', (_event, name, payload) => handleAction(name, payload));
@@ -111,8 +136,15 @@ app.whenReady().then(() => {
 async function showRequestedView() {
   const view = requestedView();
   if (!view) return;
-  if (view.startsWith('theme-')) settings.set({ theme: view.split('-')[1] });
-  const win = tray.open();
+  const [name, theme] = view.split(':');
+  if (theme) settings.set({ theme });
+  let win;
+  if (name === 'break') {
+    scheduler.startBreak();
+    win = breaks.primary;
+  } else {
+    win = tray.open();
+  }
   if (process.env.STIP_SNAPSHOT) {
     await snapshot(win, process.env.STIP_SNAPSHOT);
     app.quit();

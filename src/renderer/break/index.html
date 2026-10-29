@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:">
+  <title>Stand break</title>
+  <link rel="stylesheet" href="../shared/base.css">
+  <link rel="stylesheet" href="memes.css">
+  <link rel="stylesheet" href="break.css">
+</head>
+<body>
+  <div class="glow" aria-hidden="true"><i></i><i></i><i></i></div>
+
+  <header class="top">
+    <div class="brand">
+      <svg viewBox="0 0 300 500" aria-hidden="true"><path class="brand-drop" d="M150 0C150 0 70 94 70 150a80 80 0 00160 0C230 94 150 0 150 0z"/><path class="brand-arrow" d="M150 465 L150 315 M70 390 L150 310 L230 390"/></svg>
+      <span class="display">stip</span>
+    </div>
+    <div class="chips">
+      <span class="chip" id="chip-count">Break 1 today</span>
+      <span class="chip" id="chip-sat">You focused for 40 min</span>
+    </div>
+  </header>
+
+  <!-- Primary display: timer, message and the ways out. -->
+  <main class="main-view" id="main-view" hidden>
+    <aside class="side side-left" id="meme-left"></aside>
+    <aside class="side side-right" id="meme-right"></aside>
+
+    <section class="center">
+      <div class="orb-wrap">
+        <div class="halo"></div>
+        <div class="orb"></div>
+        <svg class="ring" viewBox="0 0 300 300" aria-hidden="true">
+          <circle class="ring-track" cx="150" cy="150" r="146"></circle>
+          <circle class="ring-fill" id="ring" cx="150" cy="150" r="146"></circle>
+        </svg>
+        <div class="orb-text">
+          <div class="time display" id="time">1:00</div>
+          <div class="breath"><span class="in">Breathe in</span><span class="out">Breathe out</span></div>
+        </div>
+      </div>
+      <h1 class="display"><span id="lead">Keep calm and</span> <span class="accent" id="accent">stand up.</span></h1>
+      <p class="sub" id="sub">Your chair has filed a restraining order. Give it sixty seconds.</p>
+    </section>
+
+    <nav class="escape" aria-label="Break options">
+      <button class="meeting" data-finish="meeting">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="6" width="14" height="12" rx="3"></rect><path d="M16 10l6-3v10l-6-3"></path></svg>
+        I'm in a meeting
+      </button>
+      <button class="plain" id="snooze" data-finish="snooze">Snooze 5 min</button>
+      <button class="plain hold" id="skip" aria-describedby="skip-hint">
+        <span class="hold-ring">
+          <svg viewBox="0 0 32 32" aria-hidden="true"><circle class="hold-track" cx="16" cy="16" r="14"></circle><circle class="hold-fill" cx="16" cy="16" r="14"></circle></svg>
+          <span class="hold-key">esc</span>
+        </span>
+        <span id="skip-hint">Hold to skip</span>
+      </button>
+    </nav>
+
+    <div class="note" id="note"></div>
+  </main>
+
+  <!-- Other displays: a big meme and the same countdown. -->
+  <main class="meme-view" id="meme-view" hidden>
+    <div class="meme-stage" id="meme-big"></div>
+    <p class="meme-time"><span class="display" id="meme-time">1:00</span> · stand up, stretch, breathe</p>
+  </main>
+
+  <div class="done display" id="done" hidden>Nice. Back to it.</div>
+
+  <script src="../shared/format.js"></script>
+  <script src="memes.js"></script>
+  <script src="break.js"></script>
+</body>
+</html>
