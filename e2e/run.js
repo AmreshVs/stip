@@ -76,7 +76,10 @@ async function testTray(stip) {
   check(
     'tray shows meeting mode is on',
     await waitFor(() =>
-      js(panel, "document.getElementById('meeting').getAttribute('aria-pressed') === 'true' && document.getElementById('status-text').textContent === 'In a call'"),
+      js(
+        panel,
+        "document.getElementById('meeting').getAttribute('aria-pressed') === 'true' && document.getElementById('status-text').textContent === 'In a call' && document.getElementById('meeting-text').textContent.startsWith('End meeting mode · on until')",
+      ),
     ),
   );
   await click(panel, '#meeting');

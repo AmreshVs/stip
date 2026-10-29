@@ -38,7 +38,7 @@ You can also open any screen straight away with `--show`:
 STIP_USER_DATA=/tmp/stip-dev npm start -- --show=break:aurora
 ```
 
-Views are `tray`, `break`, `water`, `settings` and `settings.<page>` (for example `settings.stats`). Themes are `flat` and `aurora`.
+Views are `tray`, `tray.meeting` (tray with meeting mode on), `break`, `water`, `settings` and `settings.<page>` (for example `settings.stats`). Themes are `flat` and `aurora`.
 
 ## Before you open a pull request
 

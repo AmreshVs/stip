@@ -40,7 +40,7 @@ function state() {
     streak: stats.streak(),
     longestStreak: stats.longestStreak(),
     week: stats.week(),
-    meeting: { manual: meeting.manual(now), active: meeting.active(now) },
+    meeting: { manual: meeting.manual(now), active: meeting.active(now), until: meeting.manualUntil },
     platform: process.platform,
     version: app.getVersion(),
   };
@@ -214,6 +214,8 @@ async function showRequestedView() {
       });
     }
   } else {
+    // tray.meeting opens the tray with meeting mode on.
+    if (name === 'tray.meeting') meeting.setManual(true);
     win = tray.open();
   }
   if (process.env.STIP_SNAPSHOT) {
