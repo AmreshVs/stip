@@ -22,5 +22,46 @@
     "electron": "44.7.2",
     "electron-builder": "26.17.0",
     "sharp": "0.35.5"
+  },
+  "build": {
+    "appId": "dev.amreshvs.stip",
+    "productName": "Stip",
+    "files": [
+      "src/**/*",
+      "assets/generated/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "mac": {
+      "category": "public.app-category.healthcare-fitness",
+      "icon": "assets/generated/icon.png",
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "extendInfo": {
+        "LSUIElement": true
+      }
+    },
+    "win": {
+      "icon": "assets/generated/icon.png",
+      "target": [
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false
+    },
+    "linux": {
+      "icon": "assets/generated/icon.png",
+      "category": "Utility",
+      "target": [
+        "AppImage",
+        "deb"
+      ]
+    }
   }
 }
