@@ -145,7 +145,7 @@ const ready = app.whenReady().then(() => {
   scheduler = new Scheduler(() => settings.get());
   meeting = new Meeting();
   meeting.start();
-  tray = new TrayUI({ onAction: handleAction });
+  tray = new TrayUI({ onAction: handleAction, theme: settings.get().theme });
   breaks = new BreakScreens({ onFinish: onBreakFinished });
   water = new WaterReminder();
   settingsWindow = new SettingsWindow();
@@ -169,6 +169,7 @@ const ready = app.whenReady().then(() => {
   ipcMain.on('act', (_event, name, payload) => handleAction(name, payload));
 
   settings.on('change', (next) => {
+    tray.setTheme(next.theme);
     scheduler.reschedule(Date.now());
     applyLoginItem(next);
     broadcast();

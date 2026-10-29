@@ -1,20 +1,21 @@
 html,
 body {
-  background: transparent;
   overflow: hidden;
+  background: var(--paper);
+}
+
+[data-theme='aurora'] body {
+  background: #0c111e;
 }
 
 .panel {
   width: 100vw;
-  border-radius: 20px;
-  overflow: hidden;
   background: var(--paper);
   color: var(--text-on-paper);
 }
 
 [data-theme='aurora'] .panel {
-  background: rgba(12, 17, 30, 0.96);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #0c111e;
 }
 
 /* Header */
@@ -343,12 +344,13 @@ body {
 /* Actions */
 .actions {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
   padding: 0 12px 12px;
 }
 
 .act {
+  white-space: nowrap;
   height: 48px;
   border-radius: 14px;
   display: flex;
@@ -397,6 +399,7 @@ body {
 }
 
 .meeting {
+  grid-column: 1 / -1;
   padding: 0 14px;
   background: transparent;
   border: 2px solid var(--text-on-paper);

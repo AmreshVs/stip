@@ -5,6 +5,8 @@ const { HIDDEN } = require('./snapshot');
 const ICONS = path.join(__dirname, '..', '..', 'assets', 'generated');
 const PRELOAD = path.join(__dirname, '..', 'preload.js');
 const PANEL = { width: 380, height: 440 };
+// Solid window colours, matching each theme's panel background.
+const PANEL_BG = { flat: '#f3f0e8', aurora: '#0c111e' };
 
 function trayIcon() {
   if (process.platform === 'darwin') {
@@ -28,7 +30,8 @@ function panelPosition(trayBounds, height) {
 }
 
 class TrayUI {
-  constructor({ onAction }) {
+  constructor({ onAction, theme = 'flat' }) {
+    this.theme = theme;
     this.onAction = onAction;
     this.tray = new Tray(trayIcon());
     this.tray.setToolTip('Stip');
@@ -66,8 +69,8 @@ class TrayUI {
       fullscreenable: false,
       skipTaskbar: true,
       alwaysOnTop: true,
-      transparent: true,
       hasShadow: true,
+      backgroundColor: PANEL_BG[this.theme] || PANEL_BG.flat,
       webPreferences: { preload: PRELOAD, sandbox: true },
     });
     this.panel.loadFile(path.join(__dirname, '..', 'renderer', 'tray', 'index.html'));
@@ -89,6 +92,11 @@ class TrayUI {
     this.panel.setPosition(x, y, false);
     this.panel.show();
     this.panel.focus();
+  }
+
+  setTheme(theme) {
+    this.theme = theme;
+    this.panel?.setBackgroundColor(PANEL_BG[theme] || PANEL_BG.flat);
   }
 
   // The page reports its height so the window fits it exactly.
