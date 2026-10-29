@@ -6,6 +6,8 @@
 
 <p align="center"><strong>Stand. Sip. Ship.</strong><br>A small desktop app that gets you off your chair and drinking water, for people who forget to move.</p>
 
+<p align="center"><a href="https://amreshvs.github.io/stip">amreshvs.github.io/stip</a>: try a break right in your browser</p>
+
 <p align="center">
   <a href="https://github.com/AmreshVs/stip/actions/workflows/ci.yml"><img src="https://github.com/AmreshVs/stip/actions/workflows/ci.yml/badge.svg" alt="CI status"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-c6f35c" alt="MIT license"></a>
