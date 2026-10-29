@@ -83,7 +83,8 @@ function dayKey(date) {
   return `${y}-${m}-${d}`;
 }
 
-const EMPTY_DAY = { breaks: 0, skipped: 0, glasses: 0, hours: {} };
+const EMPTY_DAY = { breaks: 0, skipped: 0, snoozed: 0, glasses: 0, hours: {} };
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 class Stats extends EventEmitter {
   constructor(dir) {
@@ -119,6 +120,38 @@ class Stats extends EventEmitter {
       cursor.setDate(cursor.getDate() - 1);
     }
     return count;
+  }
+
+  longestStreak() {
+    let best = 0;
+    let run = 0;
+    let previous = null;
+    for (const key of Object.keys(this.days).sort()) {
+      if (!(this.days[key].breaks > 0)) continue;
+      const time = new Date(`${key}T12:00:00`).getTime();
+      run = previous !== null && Math.round((time - previous) / DAY_MS) === 1 ? run + 1 : 1;
+      previous = time;
+      best = Math.max(best, run);
+    }
+    return best;
+  }
+
+  // The last seven days, oldest first, with totals and the busiest hour.
+  week(now = new Date()) {
+    const days = [];
+    for (let i = 6; i >= 0; i -= 1) {
+      const date = new Date(now);
+      date.setDate(date.getDate() - i);
+      days.push({ date: dayKey(date), weekday: date.getDay(), ...EMPTY_DAY, ...this.days[dayKey(date)] });
+    }
+    const totals = { breaks: 0, skipped: 0, snoozed: 0, glasses: 0 };
+    const hours = {};
+    for (const day of days) {
+      for (const kind of Object.keys(totals)) totals[kind] += day[kind];
+      for (const [hour, count] of Object.entries(day.hours)) hours[hour] = (hours[hour] || 0) + count;
+    }
+    const best = Object.entries(hours).sort((a, b) => b[1] - a[1])[0];
+    return { days, totals, bestHour: best ? Number(best[0]) : null };
   }
 }
 

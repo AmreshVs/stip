@@ -38,6 +38,8 @@ function state() {
     status: scheduler.status(now),
     today: stats.today(),
     streak: stats.streak(),
+    longestStreak: stats.longestStreak(),
+    week: stats.week(),
     meeting: { manual: meeting.manual(now), active: meeting.active(now) },
     platform: process.platform,
   };
@@ -106,6 +108,7 @@ function onBreakFinished(how) {
     stats.record('breaks');
     scheduler.breakDone(now);
   } else if (how === 'snooze') {
+    stats.record('snoozed');
     scheduler.snooze(now, 5);
   } else if (how === 'meeting') {
     meeting.setManual(true);
