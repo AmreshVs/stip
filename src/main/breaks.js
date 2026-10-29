@@ -7,6 +7,13 @@ const PAGE = path.join(__dirname, '..', 'renderer', 'break', 'index.html');
 // If the page never reports back, close the break anyway.
 const FAILSAFE_MS = 5000;
 
+// Screenshot runs can ask for a fixed size (STIP_SNAPSHOT_SIZE=1600x900) so
+// pictures don't depend on the monitor they were taken on.
+function snapshotBounds(bounds) {
+  const match = /^(\d+)x(\d+)$/.exec(process.env.STIP_SNAPSHOT_SIZE || '');
+  return match ? { x: bounds.x, y: bounds.y, width: Number(match[1]), height: Number(match[2]) } : bounds;
+}
+
 // One full-screen window per display. The primary display gets the timer
 // and buttons; the others get a meme.
 class BreakScreens {
@@ -29,8 +36,9 @@ class BreakScreens {
     this.memeOffset += displays.length + 1;
 
     displays.forEach((display, index) => {
+      const bounds = snapshotBounds(display.bounds);
       const win = new BrowserWindow({
-        ...display.bounds,
+        ...bounds,
         show: false,
         frame: false,
         resizable: false,
@@ -46,7 +54,7 @@ class BreakScreens {
       // Sit above full-screen apps, the dock and the menu bar.
       win.setAlwaysOnTop(true, 'screen-saver');
       win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
-      win.setBounds(display.bounds);
+      win.setBounds(bounds);
 
       const isPrimary = display.id === primary.id;
       win.loadFile(PAGE);
