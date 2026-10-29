@@ -37,6 +37,7 @@ class TrayUI {
     const menu = Menu.buildFromTemplate([
       { label: 'Open Stip', click: () => this.toggle() },
       { label: 'Stand now', click: () => onAction('stand-now') },
+      { label: 'Water reminder now', click: () => onAction('water-now') },
       { label: 'Log a sip', click: () => onAction('sip') },
       { label: 'Pause for 1 hour', click: () => onAction('pause', { minutes: 60 }) },
       { type: 'separator' },

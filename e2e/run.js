@@ -135,6 +135,23 @@ async function testWater(stip) {
   check('In 10 min closes the reminder', await waitFor(() => !stip.water.win, 3000));
   const toWater = stip.scheduler.status(Date.now()).msToWater;
   check('In 10 min asks again in 10 min', toWater > 9.9 * MIN && toWater <= 10 * MIN, `${toWater} ms`);
+
+  const panel = stip.tray.open();
+  await isLoaded(panel);
+  await click(panel, '[data-act="water-now"]');
+  check('tray Water now shows the reminder', await waitFor(() => stip.water.win));
+  win = stip.water.win;
+  await isLoaded(win);
+  await waitFor(() => js(win, "document.getElementById('count').textContent !== ''"));
+  stip.water.hide();
+
+  const settingsWin = stip.settingsWindow.open('flat');
+  await isLoaded(settingsWin);
+  await click(settingsWin, '.nav[data-page="water"]');
+  await click(settingsWin, '[data-act="water-now"]');
+  check('settings Try a water reminder shows it', await waitFor(() => stip.water.win));
+  stip.water.hide();
+  settingsWin.close();
 }
 
 async function testTimers(stip) {

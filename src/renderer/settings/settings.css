@@ -611,6 +611,137 @@ input[type='time'] {
   margin-top: 8px;
 }
 
+/* Water preview */
+.water-preview {
+  gap: 14px;
+}
+
+.mini-orb {
+  width: 140px;
+  height: 150px;
+  animation: bob 5s ease-in-out infinite;
+}
+
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(2deg);
+  }
+}
+
+.mini-glass {
+  fill: #2a2a2a;
+}
+
+[data-theme='aurora'] .mini-glass {
+  fill: rgba(15, 23, 42, 0.8);
+  stroke: rgba(186, 230, 253, 0.45);
+  stroke-width: 1.5;
+}
+
+.mini-level {
+  transition: transform 0.8s cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+
+.mini-wave path {
+  fill: var(--water);
+}
+
+.mini-wave-back path {
+  fill: var(--water-light);
+}
+
+[data-theme='aurora'] .mini-wave-back path {
+  opacity: 0.5;
+}
+
+.mini-wave {
+  animation: miniWaveA 3.2s linear infinite;
+}
+
+.mini-wave-back {
+  animation: miniWaveB 4.6s linear infinite;
+}
+
+@keyframes miniWaveA {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-120px);
+  }
+}
+
+@keyframes miniWaveB {
+  from {
+    transform: translateX(-120px);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.mini-eye {
+  fill: #141414;
+}
+
+.mini-mouth {
+  fill: none;
+  stroke: #141414;
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+
+[data-theme='aurora'] .mini-eye {
+  fill: #082f49;
+}
+
+[data-theme='aurora'] .mini-mouth {
+  stroke: #082f49;
+}
+
+.mini-shine {
+  fill: none;
+  stroke: #f3f0e8;
+  stroke-width: 7;
+  stroke-linecap: round;
+}
+
+[data-theme='aurora'] .mini-shine {
+  stroke: #ffffff;
+  opacity: 0.6;
+}
+
+.preview-line .water-word {
+  color: var(--water-light);
+}
+
+.glass-dots {
+  display: flex;
+  gap: 5px;
+  margin-top: 12px;
+}
+
+.glass-dots span {
+  flex: 1;
+  height: 10px;
+  border-radius: 5px;
+  background: var(--paper-2);
+}
+
+.glass-dots span.full {
+  background: var(--water);
+}
+
+.glass-count {
+  font-size: 12px;
+  color: var(--muted-on-paper);
+  margin-top: 8px;
+}
+
 @media (max-width: 960px) {
   .side {
     display: none;

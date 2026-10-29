@@ -73,6 +73,20 @@ function render(state) {
   );
 
   $('preview-time').textContent = fmt.clock(settings.stand.breakSec * 1000);
+
+  // Water preview: same level rule as the real orb, which never looks empty.
+  const goal = settings.water.goalGlasses;
+  const fill = 0.32 + 0.68 * Math.min(1, today.glasses / goal);
+  $('preview-level').style.transform = `translateY(${244 - fill * 208}px)`;
+  $('glass-dots').replaceChildren(
+    ...Array.from({ length: goal }, (_, i) => {
+      const dot = document.createElement('span');
+      if (i < today.glasses) dot.className = 'full';
+      return dot;
+    }),
+  );
+  const litres = (today.glasses * settings.water.glassMl) / 1000;
+  $('glass-count').textContent = `${today.glasses} of ${goal} glasses · ${Number(litres.toFixed(2))} L`;
   $('streak').textContent = `${streak} ${streak === 1 ? 'day' : 'days'}`;
 
   const maxBreaks = Math.max(1, ...Object.values(today.hours));

@@ -73,6 +73,10 @@ const actions = {
     stats.record('glasses');
     scheduler.sipped(Date.now());
   },
+  'water-now': () => {
+    tray.hide();
+    if (!breaks.open) water.show();
+  },
   'water-hover': ({ over }) => water.setInteractive(over),
   'water-sipped': () => {
     stats.record('glasses');
@@ -193,8 +197,15 @@ async function showRequestedView() {
     win = breaks.primary;
   } else if (name === 'water') {
     win = water.show();
-  } else if (name === 'settings') {
+  } else if (name.startsWith('settings')) {
+    // settings.water opens straight on the Water page.
+    const page = name.split('.')[1];
     win = settingsWindow.open(settings.get().theme);
+    if (page) {
+      win.webContents.once('did-finish-load', () => {
+        win.webContents.executeJavaScript(`document.querySelector('.nav[data-page="${page}"]').click()`);
+      });
+    }
   } else {
     win = tray.open();
   }

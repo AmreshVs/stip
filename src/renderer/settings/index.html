@@ -119,6 +119,33 @@
             </div>
           </div>
         </div>
+
+        <aside class="side">
+          <div class="eyebrow">Live preview</div>
+          <div class="preview water-preview">
+            <svg class="mini-orb" viewBox="0 0 240 260" aria-hidden="true">
+              <defs><clipPath id="mini-clip"><circle cx="120" cy="140" r="104"></circle></clipPath></defs>
+              <circle class="mini-glass" cx="120" cy="140" r="104"></circle>
+              <g clip-path="url(#mini-clip)">
+                <g class="mini-level" id="preview-level">
+                  <g class="mini-wave-back"><path d="M0 0 Q30 -12 60 0 T120 0 T180 0 T240 0 T300 0 T360 0 T420 0 V200 H0 Z"></path></g>
+                  <g class="mini-wave"><path d="M0 8 Q30 -2 60 8 T120 8 T180 8 T240 8 T300 8 T360 8 T420 8 V200 H0 Z"></path></g>
+                </g>
+                <ellipse class="mini-eye" cx="100" cy="198" rx="6" ry="8"></ellipse>
+                <ellipse class="mini-eye" cx="140" cy="198" rx="6" ry="8"></ellipse>
+                <path class="mini-mouth" d="M110 214 Q120 223 130 214"></path>
+              </g>
+              <path class="mini-shine" d="M58 96 A72 72 0 0 1 100 56"></path>
+            </svg>
+            <div class="preview-line display">I'm running <span class="water-word">low.</span></div>
+          </div>
+          <button class="outline" data-act="water-now">Try a water reminder</button>
+          <div class="today">
+            <div class="today-title">Today</div>
+            <div class="glass-dots" id="glass-dots" aria-label="Glasses today"></div>
+            <div class="glass-count" id="glass-count"></div>
+          </div>
+        </aside>
       </section>
 
       <!-- Meetings -->

@@ -224,6 +224,11 @@ body {
   color: var(--on-stand);
 }
 
+.water-now {
+  background: var(--water);
+  color: var(--on-water);
+}
+
 .secondary {
   background: transparent;
   color: var(--text-on-paper);
