@@ -124,9 +124,9 @@ class TrayUI {
   }
 
   // macOS shows the countdown right in the menu bar.
-  setTitle(text) {
+  setTitle(text, tooltip = 'Stip') {
     if (process.platform === 'darwin') this.tray.setTitle(text, { fontType: 'monospacedDigit' });
-    this.tray.setToolTip(text ? `Stip · next stand in ${text}` : 'Stip');
+    this.tray.setToolTip(tooltip);
   }
 
   send(state) {

@@ -53,7 +53,10 @@ function render(state) {
     setStatus('call', 'In a call');
     $('next').textContent = status.waitingForMeeting ? 'Soon' : fmt.clock(status.msToStand);
     $('next-label').textContent = status.waitingForMeeting ? 'after the call' : 'to stand';
-    $('break-at').textContent = status.waitingForMeeting ? 'Break waits for your call' : `Break at ${timeOfDay(now + status.msToStand)}`;
+    // The timer keeps running in a call; only the break itself waits.
+    $('break-at').textContent = status.waitingForMeeting
+      ? 'Starts 30 s after the call'
+      : `Break at ${timeOfDay(now + status.msToStand)}, or after the call`;
   } else {
     setStatus('', 'Active');
     $('next').textContent = fmt.clock(status.msToStand);

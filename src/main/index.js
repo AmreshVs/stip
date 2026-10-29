@@ -55,11 +55,13 @@ function broadcast({ includeSettings = true } = {}) {
 }
 
 function updateTrayTitle() {
-  const { status } = state();
-  if (status.pausedUntil) tray.setTitle('Paused');
-  else if (status.offHours) tray.setTitle('');
-  else if (status.waitingForMeeting) tray.setTitle('Call');
-  else tray.setTitle(fmtClock(status.msToStand));
+  const { status, meeting: call } = state();
+  const clock = fmtClock(status.msToStand);
+  if (status.pausedUntil) tray.setTitle('Paused', 'Stip · paused');
+  else if (status.offHours) tray.setTitle('', 'Stip · outside working hours');
+  else if (status.waitingForMeeting) tray.setTitle('In call · break waiting', 'Stip · your break starts after the call');
+  else if (call.active) tray.setTitle(`In call · ${clock}`, `Stip · in a call, next stand in ${clock}`);
+  else tray.setTitle(clock, `Stip · next stand in ${clock}`);
 }
 
 function fmtClock(ms) {

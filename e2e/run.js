@@ -82,8 +82,14 @@ async function testTray(stip) {
       ),
     ),
   );
+  if (process.platform === 'darwin') {
+    check('menu bar shows the call', await waitFor(() => stip.tray.tray.getTitle().startsWith('In call · ')), stip.tray.tray.getTitle());
+  }
   await click(panel, '#meeting');
   check('meeting mode turns off', await waitFor(() => !stip.meeting.manual()));
+  if (process.platform === 'darwin') {
+    check('menu bar goes back to the countdown', await waitFor(() => /^\d+:\d\d$/.test(stip.tray.tray.getTitle())), stip.tray.tray.getTitle());
+  }
 
   stip.settings.set({ workHours: { enabled: true, days: [] } });
   check('tray says Off hours outside working hours', await waitFor(() => js(panel, "document.getElementById('status-text').textContent === 'Off hours'")));
