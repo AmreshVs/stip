@@ -1,5 +1,6 @@
 const path = require('node:path');
 const { app, BrowserWindow, screen } = require('electron');
+const { HIDDEN } = require('./snapshot');
 
 const PRELOAD = path.join(__dirname, '..', 'preload.js');
 const PAGE = path.join(__dirname, '..', 'renderer', 'break', 'index.html');
@@ -59,8 +60,7 @@ class BreakScreens {
           displayIndex: index + 1,
           displayCount: displays.length,
         });
-        // Snapshots render off screen so dev runs don't cover the display.
-        if (process.env.STIP_SNAPSHOT) return;
+        if (HIDDEN) return;
         win.showInactive();
         if (isPrimary) {
           // Tray apps aren't active by default; take focus so Esc reaches us.

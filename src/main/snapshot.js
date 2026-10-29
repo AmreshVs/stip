@@ -8,9 +8,13 @@ async function snapshot(win, file, delayMs = Number(process.env.STIP_SNAPSHOT_DE
   fs.writeFileSync(file, image.toPNG());
 }
 
+// Snapshots and end-to-end tests render windows without showing them, so
+// dev runs never cover the screen.
+const HIDDEN = Boolean(process.env.STIP_SNAPSHOT || process.env.STIP_HIDDEN);
+
 function requestedView() {
   const arg = process.argv.find((a) => a.startsWith('--show='));
   return arg ? arg.slice('--show='.length) : null;
 }
 
-module.exports = { snapshot, requestedView };
+module.exports = { snapshot, requestedView, HIDDEN };

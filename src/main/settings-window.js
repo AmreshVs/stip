@@ -1,5 +1,6 @@
 const path = require('node:path');
 const { app, BrowserWindow } = require('electron');
+const { HIDDEN } = require('./snapshot');
 
 const PRELOAD = path.join(__dirname, '..', 'preload.js');
 const PAGE = path.join(__dirname, '..', 'renderer', 'settings', 'index.html');
@@ -30,9 +31,9 @@ class SettingsWindow {
     this.win.loadFile(PAGE);
     // A tray app has no dock icon; show one while settings are open so the
     // window can be found with Cmd+Tab.
-    if (process.platform === 'darwin') app.dock.show();
+    if (process.platform === 'darwin' && !HIDDEN) app.dock.show();
     this.win.once('ready-to-show', () => {
-      if (!process.env.STIP_SNAPSHOT) this.win.show();
+      if (!HIDDEN) this.win.show();
     });
     this.win.on('closed', () => {
       this.win = null;

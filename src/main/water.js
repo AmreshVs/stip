@@ -1,5 +1,6 @@
 const path = require('node:path');
 const { BrowserWindow, screen } = require('electron');
+const { HIDDEN } = require('./snapshot');
 
 const PRELOAD = path.join(__dirname, '..', 'preload.js');
 const PAGE = path.join(__dirname, '..', 'renderer', 'water', 'index.html');
@@ -41,7 +42,7 @@ class WaterReminder {
     this.win.loadFile(PAGE);
     this.win.webContents.once('did-finish-load', () => {
       this.win.webContents.send('show', {});
-      if (!process.env.STIP_SNAPSHOT) this.win.showInactive();
+      if (!HIDDEN) this.win.showInactive();
     });
     this.win.on('closed', () => {
       this.win = null;
