@@ -3,9 +3,31 @@
   "productName": "Stip",
   "version": "0.1.0",
   "description": "Stand. Sip. Ship. A tiny desktop nudge to stand up and drink water.",
-  "main": "src/main/index.js",
+  "license": "MIT",
   "author": "Amresh Vs",
+  "homepage": "https://github.com/AmreshVs/stip#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AmreshVs/stip.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AmreshVs/stip/issues"
+  },
+  "keywords": [
+    "electron",
+    "break-reminder",
+    "stand-up",
+    "hydration",
+    "water-reminder",
+    "health",
+    "productivity",
+    "tray-app"
+  ],
+  "main": "src/main/index.js",
   "private": true,
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "start": "electron .",
     "test": "node --test",
