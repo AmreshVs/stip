@@ -68,7 +68,7 @@ function render(state) {
   $('summary').innerHTML = water.enabled ? `${breaks} · ${litres} L water · ${streakText}` : `${breaks} · ${streakText}`;
 
   $('meeting').setAttribute('aria-pressed', String(meeting.manual));
-  $('meeting').title = meeting.manual ? 'End meeting mode' : 'Meeting mode';
+  $('meeting').title = meeting.manual ? 'End meeting mode' : 'Hold breaks until your meeting ends';
 
   $('pause-label').textContent = paused ? `Paused until ${timeOfDay(status.pausedUntil)}` : 'Pause for';
   $('pause-row').hidden = paused;

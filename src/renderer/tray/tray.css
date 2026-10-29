@@ -343,7 +343,7 @@ body {
 /* Actions */
 .actions {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 48px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
   gap: 8px;
   padding: 0 12px 12px;
 }
@@ -397,6 +397,7 @@ body {
 }
 
 .meeting {
+  padding: 0 14px;
   background: transparent;
   border: 2px solid var(--text-on-paper);
   color: var(--text-on-paper);
@@ -408,11 +409,11 @@ body {
 }
 
 .meeting svg {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   fill: none;
   stroke: currentColor;
-  stroke-width: 2.2;
+  stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
