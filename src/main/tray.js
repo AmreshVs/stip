@@ -1,9 +1,10 @@
 const path = require('node:path');
 const { BrowserWindow, Tray, Menu, nativeImage, screen } = require('electron');
+const { HIDDEN } = require('./snapshot');
 
 const ICONS = path.join(__dirname, '..', '..', 'assets', 'generated');
 const PRELOAD = path.join(__dirname, '..', 'preload.js');
-const PANEL = { width: 380, height: 556 };
+const PANEL = { width: 380, height: 614 };
 
 function trayIcon() {
   if (process.platform === 'darwin') {
@@ -74,8 +75,13 @@ class TrayUI {
 
   toggle() {
     if (!this.panel) this.createPanel();
-    if (this.panel.isVisible()) {
-      this.panel.hide();
+    if (this.isOpen()) {
+      this.hide();
+      return;
+    }
+    // Snapshots and tests render the panel without showing it.
+    if (HIDDEN) {
+      this.panelOpen = true;
       return;
     }
     const { x, y } = panelPosition(this.tray.getBounds());
@@ -84,12 +90,17 @@ class TrayUI {
     this.panel.focus();
   }
 
+  isOpen() {
+    return Boolean(this.panel && (this.panel.isVisible() || this.panelOpen));
+  }
+
   open() {
-    if (!this.panel?.isVisible()) this.toggle();
+    if (!this.isOpen()) this.toggle();
     return this.panel;
   }
 
   hide() {
+    this.panelOpen = false;
     this.panel?.hide();
   }
 
@@ -100,7 +111,7 @@ class TrayUI {
   }
 
   send(state) {
-    if (this.panel?.isVisible()) this.panel.webContents.send('state', state);
+    if (this.isOpen()) this.panel.webContents.send('state', state);
   }
 }
 
