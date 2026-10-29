@@ -1,0 +1,35 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "radial-halo",
+        "value": "*",
+        "files": [
+          "/Users/amreshvs/Works/myWorks/stip/src/renderer/settings/index.html"
+        ],
+        "createdAt": "2026-10-29T16:08:46.316Z",
+        "reason": "Aurora theme previews: the user chose to keep the aurora gradient theme alongside flat"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "/Users/amreshvs/Works/myWorks/stip/src/renderer/settings/index.html"
+        ],
+        "createdAt": "2026-10-29T16:08:46.346Z",
+        "reason": "Preview card centres its content with a fixed 300px height; nothing touches its edges"
+      },
+      {
+        "rule": "cream-palette",
+        "value": "*",
+        "files": [
+          "/Users/amreshvs/Works/myWorks/stip/src/renderer/settings/index.html"
+        ],
+        "createdAt": "2026-10-29T16:09:19.318Z",
+        "reason": "Flat theme paper colour #f3f0e8: the user reviewed and approved the flat theme designs on the canvas"
+      }
+    ]
+  }
+}
