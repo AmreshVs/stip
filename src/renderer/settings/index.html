@@ -11,12 +11,31 @@
   <div class="window">
     <nav class="sidebar" aria-label="Settings sections">
       <div class="drag"></div>
-      <button class="nav on" data-page="stand"><i class="dot stand"></i>Stand breaks</button>
-      <button class="nav" data-page="water"><i class="dot water"></i>Water</button>
-      <button class="nav" data-page="meetings"><i class="dot alert"></i>Meetings and focus</button>
-      <button class="nav" data-page="general"><i class="dot"></i>General</button>
+      <button class="nav on" data-page="stand">
+        <svg class="i-stand" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="4.5" r="2"/><path d="M12 7v7M8 10l4-2 4 2M9.5 21l2.5-7 2.5 7"/></svg>
+        Stand breaks
+      </button>
+      <button class="nav" data-page="water">
+        <svg class="i-water" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3s-6 7-6 11a6 6 0 0012 0c0-4-6-11-6-11z"/></svg>
+        Water
+      </button>
+      <button class="nav" data-page="meetings">
+        <svg class="i-call" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="6" width="14" height="12" rx="3"/><path d="M16 10l6-3v10l-6-3"/></svg>
+        Meetings and focus
+      </button>
+      <button class="nav" data-page="stats">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V12M12 20V5M19 20v-9"/></svg>
+        Stats
+      </button>
+      <button class="nav" data-page="general">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>
+        General
+      </button>
       <div class="grow"></div>
-      <div class="streak"><div class="streak-num display" id="streak">0 days</div>stand streak. Your back says thanks.</div>
+      <div class="version">
+        <svg viewBox="0 0 300 500" aria-hidden="true"><path class="v-drop" d="M150 0C150 0 70 94 70 150a80 80 0 00160 0C230 94 150 0 150 0z"/><path class="v-arrow" d="M150 465 L150 315 M70 390 L150 310 L230 390"/></svg>
+        <span id="version">Stip</span>
+      </div>
     </nav>
 
     <main class="content">
@@ -28,60 +47,92 @@
             <p class="lede">How often you get nudged off your chair, and how hard.</p>
           </header>
 
-          <div class="field">
-            <div class="field-head">
-              <label for="every">Remind me every</label>
-              <span class="value display"><span id="every-out">40</span> <small>min</small></span>
+          <section>
+            <h2 class="group-title">Timing</h2>
+            <div class="group">
+              <div class="row slider-row">
+                <div class="row-head">
+                  <span><label for="every">Remind me every</label><small>30 to 45 minutes works for most people</small></span>
+                  <span class="value display"><span id="every-out">40</span> <small>min</small></span>
+                </div>
+                <div class="slider" data-ticks="30,40,45,60">
+                  <input id="every" type="range" min="15" max="90" step="5" data-key="stand.everyMin" data-num>
+                  <div class="ticks"></div>
+                </div>
+              </div>
+              <div class="row">
+                <span class="row-text"><strong>Break length</strong></span>
+                <div class="segmented" role="radiogroup" aria-label="Break length" data-key="stand.breakSec" data-num>
+                  <button role="radio" data-value="30">30 s</button>
+                  <button role="radio" data-value="60">60 s</button>
+                  <button role="radio" data-value="120">2 min</button>
+                </div>
+              </div>
             </div>
-            <input id="every" type="range" min="15" max="90" step="5" data-key="stand.everyMin" data-num>
-            <div class="scale"><span>15 min</span><span>Recommended 30 to 45</span><span>90 min</span></div>
-          </div>
+          </section>
 
-          <div class="field">
-            <div class="label">Break length</div>
-            <div class="segmented" role="radiogroup" aria-label="Break length" data-key="stand.breakSec" data-num>
-              <button role="radio" data-value="30">30 s</button>
-              <button role="radio" data-value="60">60 s</button>
-              <button role="radio" data-value="120">2 min</button>
-            </div>
-          </div>
-
-          <div class="field">
-            <div class="label">How strict</div>
+          <section>
+            <h2 class="group-title">How strict</h2>
             <div class="cards" role="radiogroup" aria-label="How strict" data-key="stand.strictness">
-              <button role="radio" data-value="gentle"><strong>Gentle</strong><span>Skip or snooze any time</span></button>
-              <button role="radio" data-value="balanced"><strong>Balanced</strong><span>Hold Esc 3 s to skip</span></button>
-              <button role="radio" data-value="strict"><strong>Strict</strong><span>Meetings only, no skip</span></button>
+              <button role="radio" data-value="gentle">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8.5 14s1.3 2 3.5 2 3.5-2 3.5-2M9 9.5h.01M15 9.5h.01"/></svg>
+                <strong>Gentle</strong><span>Skip or snooze any time</span>
+              </button>
+              <button role="radio" data-value="balanced">
+                <span class="key">esc</span>
+                <strong>Balanced</strong><span>Hold Esc 3 s to skip</span>
+              </button>
+              <button role="radio" data-value="strict">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg>
+                <strong>Strict</strong><span>Only calls can delay it</span>
+              </button>
             </div>
-          </div>
+          </section>
 
-          <div class="list">
-            <label class="row"><span><strong>Cover all displays</strong><small>Memes on the extra screens</small></span><input type="checkbox" class="switch" data-key="stand.coverAllDisplays"></label>
-            <label class="row"><span><strong>Reset the timer when I'm away</strong><small>No input for 5 min counts as a break</small></span><input type="checkbox" class="switch" data-key="stand.resetWhenAway"></label>
-            <label class="row"><span><strong>Working hours only</strong><small id="hours-summary">No reminders outside these</small></span><input type="checkbox" class="switch" data-key="workHours.enabled"></label>
-            <div class="row sub-row" id="hours-detail">
-              <div class="days" id="days" aria-label="Working days"></div>
-              <span class="times">
-                <input type="time" aria-label="Start" data-key="workHours.start">
-                <span>to</span>
-                <input type="time" aria-label="End" data-key="workHours.end">
-              </span>
+          <section>
+            <h2 class="group-title">When it appears</h2>
+            <div class="group">
+              <label class="row"><span class="row-text"><strong>Cover all displays</strong><small>Memes on the extra screens</small></span><input type="checkbox" class="switch" data-key="stand.coverAllDisplays"></label>
+              <div class="row">
+                <span class="row-text"><strong>Away time counts as a break</strong>
+                  <small>After
+                    <select aria-label="Minutes away" data-key="stand.awayMin" data-num>
+                      <option value="3">3 min</option><option value="5">5 min</option><option value="10">10 min</option><option value="15">15 min</option>
+                    </select>
+                    with no input</small>
+                </span>
+                <input type="checkbox" class="switch" aria-label="Away time counts as a break" data-key="stand.resetWhenAway">
+              </div>
+              <div class="row">
+                <span class="row-text"><strong>Working hours only</strong><small id="hours-summary"></small></span>
+                <button class="small" id="hours-edit" aria-expanded="false">Edit</button>
+                <input type="checkbox" class="switch" aria-label="Working hours only" data-key="workHours.enabled">
+              </div>
+              <div class="row detail" id="hours-detail" hidden>
+                <div class="days" id="days" aria-label="Working days"></div>
+                <span class="times">
+                  <input type="time" aria-label="Start" data-key="workHours.start">
+                  <span>to</span>
+                  <input type="time" aria-label="End" data-key="workHours.end">
+                </span>
+              </div>
             </div>
-          </div>
+          </section>
         </div>
 
         <aside class="side">
-          <div class="eyebrow">Live preview</div>
+          <h2 class="group-title">Preview</h2>
           <div class="preview">
+            <div class="preview-meme"><i></i><b></b><b></b></div>
             <div class="preview-orb display" id="preview-time">1:00</div>
             <div class="preview-line display">Keep calm and <span>stand up.</span></div>
+            <div class="preview-bar"><i></i><i></i><i></i></div>
           </div>
           <button class="outline" data-act="stand-now">Try a break now</button>
-          <div class="today">
-            <div class="today-title">Today</div>
-            <div class="bars" id="bars" aria-label="Breaks per hour today"></div>
-            <div class="bars-scale"><span>09</span><span>12</span><span>15</span><span>18</span></div>
-          </div>
+          <p class="tip">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 00-3.5 10.9c.6.4 1 1.1 1 1.9V16h5v-.2c0-.8.4-1.5 1-1.9A6 6 0 0012 3z"/></svg>
+            <span>In a call? Press "I'm in a meeting" on the break and it waits until you're done.</span>
+          </p>
         </aside>
       </section>
 
@@ -90,58 +141,74 @@
         <div class="col">
           <header>
             <h1 class="display">Water</h1>
-            <p class="lede">A little drop in the corner, every so often.</p>
+            <p class="lede">A drop runs down your screen and asks for a sip.</p>
           </header>
-          <div class="list">
-            <label class="row"><span><strong>Water reminders</strong><small>The drop and orb in the bottom corner</small></span><input type="checkbox" class="switch" data-key="water.enabled"></label>
-            <label class="row"><span><strong>Dim the screen</strong><small>Fade the rest of the screen while the reminder shows</small></span><input type="checkbox" class="switch" data-key="water.dimScreen"></label>
-          </div>
-          <div class="field">
-            <div class="field-head">
-              <label for="water-every">Remind me every</label>
-              <span class="value display"><span id="water-every-out">30</span> <small>min</small></span>
+
+          <section>
+            <h2 class="group-title">Reminders</h2>
+            <div class="group">
+              <label class="row"><span class="row-text"><strong>Water reminders</strong><small>The drop and orb in the bottom corner</small></span><input type="checkbox" class="switch" data-key="water.enabled"></label>
+              <label class="row"><span class="row-text"><strong>Dim the screen</strong><small>Fade the rest of the screen while it shows</small></span><input type="checkbox" class="switch" data-key="water.dimScreen"></label>
             </div>
-            <input id="water-every" type="range" min="15" max="120" step="5" data-key="water.everyMin" data-num>
-          </div>
-          <div class="field">
-            <div class="field-head">
-              <label for="goal">Daily goal</label>
-              <span class="value display"><span id="goal-out">8</span> <small>glasses</small></span>
+          </section>
+
+          <section>
+            <h2 class="group-title">Timing and goal</h2>
+            <div class="group">
+              <div class="row slider-row">
+                <div class="row-head">
+                  <span><label for="water-every">Remind me every</label></span>
+                  <span class="value display"><span id="water-every-out">30</span> <small>min</small></span>
+                </div>
+                <div class="slider" data-ticks="30,45,60,90">
+                  <input id="water-every" type="range" min="15" max="120" step="5" data-key="water.everyMin" data-num>
+                  <div class="ticks"></div>
+                </div>
+              </div>
+              <div class="row slider-row">
+                <div class="row-head">
+                  <span><label for="goal">Daily goal</label><small id="goal-litres"></small></span>
+                  <span class="value display"><span id="goal-out">8</span> <small>glasses</small></span>
+                </div>
+                <div class="slider" data-ticks="6,8,10">
+                  <input id="goal" type="range" min="4" max="14" step="1" data-key="water.goalGlasses" data-num>
+                  <div class="ticks"></div>
+                </div>
+              </div>
+              <div class="row">
+                <span class="row-text"><strong>Glass size</strong></span>
+                <div class="segmented" role="radiogroup" aria-label="Glass size" data-key="water.glassMl" data-num>
+                  <button role="radio" data-value="200">200 ml</button>
+                  <button role="radio" data-value="250">250 ml</button>
+                  <button role="radio" data-value="330">330 ml</button>
+                  <button role="radio" data-value="500">500 ml</button>
+                </div>
+              </div>
             </div>
-            <input id="goal" type="range" min="4" max="14" step="1" data-key="water.goalGlasses" data-num>
-          </div>
-          <div class="field">
-            <div class="label">Glass size</div>
-            <div class="segmented" role="radiogroup" aria-label="Glass size" data-key="water.glassMl" data-num>
-              <button role="radio" data-value="200">200 ml</button>
-              <button role="radio" data-value="250">250 ml</button>
-              <button role="radio" data-value="330">330 ml</button>
-              <button role="radio" data-value="500">500 ml</button>
-            </div>
-          </div>
+          </section>
         </div>
 
         <aside class="side">
-          <div class="eyebrow">Live preview</div>
-          <div class="preview water-preview">
+          <h2 class="group-title">Preview</h2>
+          <div class="preview">
             <svg class="mini-orb" viewBox="0 0 240 260" aria-hidden="true">
-              <defs><clipPath id="mini-clip"><circle cx="120" cy="140" r="104"></circle></clipPath></defs>
-              <circle class="mini-glass" cx="120" cy="140" r="104"></circle>
+              <defs><clipPath id="mini-clip"><circle cx="120" cy="140" r="104"/></clipPath></defs>
+              <circle class="mini-glass" cx="120" cy="140" r="104"/>
               <g clip-path="url(#mini-clip)">
                 <g class="mini-level" id="preview-level">
-                  <g class="mini-wave-back"><path d="M0 0 Q30 -12 60 0 T120 0 T180 0 T240 0 T300 0 T360 0 T420 0 V200 H0 Z"></path></g>
-                  <g class="mini-wave"><path d="M0 8 Q30 -2 60 8 T120 8 T180 8 T240 8 T300 8 T360 8 T420 8 V200 H0 Z"></path></g>
+                  <g class="mini-wave-back"><path d="M0 0 Q30 -12 60 0 T120 0 T180 0 T240 0 T300 0 T360 0 T420 0 V200 H0 Z"/></g>
+                  <g class="mini-wave"><path d="M0 8 Q30 -2 60 8 T120 8 T180 8 T240 8 T300 8 T360 8 T420 8 V200 H0 Z"/></g>
                 </g>
-                <ellipse class="mini-eye" cx="100" cy="198" rx="6" ry="8"></ellipse>
-                <ellipse class="mini-eye" cx="140" cy="198" rx="6" ry="8"></ellipse>
-                <path class="mini-mouth" d="M110 214 Q120 223 130 214"></path>
+                <ellipse class="mini-eye" cx="100" cy="198" rx="6" ry="8"/>
+                <ellipse class="mini-eye" cx="140" cy="198" rx="6" ry="8"/>
+                <path class="mini-mouth" d="M110 214 Q120 223 130 214"/>
               </g>
-              <path class="mini-shine" d="M58 96 A72 72 0 0 1 100 56"></path>
+              <path class="mini-shine" d="M58 96 A72 72 0 0 1 100 56"/>
             </svg>
             <div class="preview-line display">I'm running <span class="water-word">low.</span></div>
           </div>
           <button class="outline" data-act="water-now">Try a water reminder</button>
-          <div class="today">
+          <div class="today-card">
             <div class="today-title">Today</div>
             <div class="glass-dots" id="glass-dots" aria-label="Glasses today"></div>
             <div class="glass-count" id="glass-count"></div>
@@ -156,10 +223,60 @@
             <h1 class="display">Meetings and focus</h1>
             <p class="lede">Stip never covers your screen in the middle of a call.</p>
           </header>
-          <div class="list">
-            <label class="row"><span><strong>Wait while I'm on a call</strong><small>When meeting mode is on, or a Zoom call is running</small></span><input type="checkbox" class="switch" data-key="stand.waitDuringCalls"></label>
+          <section>
+            <h2 class="group-title">During calls</h2>
+            <div class="group">
+              <label class="row"><span class="row-text"><strong>Wait while I'm on a call</strong><small>When meeting mode is on, or a Zoom call is running</small></span><input type="checkbox" class="switch" data-key="stand.waitDuringCalls"></label>
+            </div>
+          </section>
+          <section>
+            <h2 class="group-title">How it works</h2>
+            <ol class="steps">
+              <li><b>1</b><span>Turn on meeting mode with the camera button in the tray, or press "I'm in a meeting" on a break.</span></li>
+              <li><b>2</b><span>Your break waits. The tray says "In a call" and nothing covers your screen.</span></li>
+              <li><b>3</b><span>When meeting mode goes off, the break starts 30 seconds later. Meeting mode turns itself off after 90 minutes.</span></li>
+            </ol>
+          </section>
+        </div>
+      </section>
+
+      <!-- Stats -->
+      <section class="page stats" id="page-stats" hidden>
+        <div class="col wide">
+          <header>
+            <h1 class="display">Stats</h1>
+            <p class="lede">How you've moved and sipped. Everything stays on this computer.</p>
+          </header>
+          <div class="tiles">
+            <div class="tile streak-tile">
+              <div class="tile-label">Stand streak</div>
+              <div class="tile-num display" id="t-streak">0 <small>days</small></div>
+              <div class="tile-sub" id="t-longest"></div>
+            </div>
+            <div class="tile">
+              <div class="tile-label">Breaks today</div>
+              <div class="tile-num display" id="t-breaks">0</div>
+              <div class="meter"><i id="t-breaks-bar"></i></div>
+            </div>
+            <div class="tile">
+              <div class="tile-label">Water today</div>
+              <div class="tile-num display" id="t-water">0 L</div>
+              <div class="meter water"><i id="t-water-bar"></i></div>
+            </div>
           </div>
-          <p class="note">Turn on meeting mode from the tray, or press "I'm in a meeting" on the break screen. The break then waits, and starts 30 seconds after you turn meeting mode off. Meeting mode switches itself off after 90 minutes.</p>
+          <div class="charts">
+            <section class="chart">
+              <div class="chart-head"><h2>Breaks today</h2><span>by hour</span></div>
+              <div class="bars" id="hour-bars" aria-label="Breaks per hour today"></div>
+              <div class="axis" id="hour-axis"></div>
+            </section>
+            <section class="chart">
+              <div class="chart-head"><h2>Water this week</h2><span id="goal-label"></span></div>
+              <div class="bars week" id="week-bars" aria-label="Water per day this week"><div class="goal-line" id="goal-line"></div></div>
+              <div class="axis" id="week-axis"></div>
+            </section>
+          </div>
+          <div class="chips" id="week-chips"></div>
         </div>
       </section>
 
@@ -170,17 +287,26 @@
             <h1 class="display">General</h1>
             <p class="lede">How Stip looks and behaves.</p>
           </header>
-          <div class="field">
-            <div class="label">Theme</div>
+          <section>
+            <h2 class="group-title">Look</h2>
             <div class="cards themes" role="radiogroup" aria-label="Theme" data-key="theme">
-              <button role="radio" data-value="flat"><i class="swatch flat"></i><strong>Flat</strong><span>Bold and solid</span></button>
-              <button role="radio" data-value="aurora"><i class="swatch aurora"></i><strong>Aurora</strong><span>Calm, glowing night</span></button>
+              <button role="radio" data-value="flat">
+                <span class="theme-shot flat"><i></i><b></b></span>
+                <strong>Flat</strong><span>Bold and solid</span>
+              </button>
+              <button role="radio" data-value="aurora">
+                <span class="theme-shot aurora"><i></i><b></b></span>
+                <strong>Aurora</strong><span>Calm, glowing night</span>
+              </button>
             </div>
-          </div>
-          <div class="list">
-            <label class="row"><span><strong>Sound</strong><small>A soft chime when a break ends</small></span><input type="checkbox" class="switch" data-key="sound"></label>
-            <label class="row"><span><strong>Open at login</strong><small>Start Stip when you log in</small></span><input type="checkbox" class="switch" data-key="launchAtLogin"></label>
-          </div>
+          </section>
+          <section>
+            <h2 class="group-title">Behaviour</h2>
+            <div class="group">
+              <label class="row"><span class="row-text"><strong>Sound</strong><small>A soft chime when a break ends</small></span><input type="checkbox" class="switch" data-key="sound"></label>
+              <label class="row"><span class="row-text"><strong>Open at login</strong><small>Start Stip when you log in</small></span><input type="checkbox" class="switch" data-key="launchAtLogin"></label>
+            </div>
+          </section>
         </div>
       </section>
     </main>

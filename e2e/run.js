@@ -195,6 +195,27 @@ async function testSettings(stip) {
   await click(win, '[data-key="stand.breakSec"] [data-value="120"]');
   check('break length can be changed', await waitFor(() => stip.settings.get().stand.breakSec === 120));
 
+  await click(win, '#hours-edit');
+  check('Edit shows the working days and times', await waitFor(() => js(win, "!document.getElementById('hours-detail').hidden")));
+  await click(win, '#days button:nth-child(6)');
+  check('a working day can be toggled', await waitFor(() => stip.settings.get().workHours.days.includes(6)));
+
+  await js(
+    win,
+    `(() => { const el = document.querySelector('select[data-key="stand.awayMin"]'); el.value = '10'; el.dispatchEvent(new Event('change')); })()`,
+  );
+  check('away time can be changed', await waitFor(() => stip.settings.get().stand.awayMin === 10));
+
+  await click(win, '.nav[data-page="stats"]');
+  check('stats page opens', await js(win, "!document.getElementById('page-stats').hidden"));
+  const statsShown = await js(
+    win,
+    "document.querySelectorAll('#hour-bars span').length === 10 && document.querySelectorAll('#week-bars span').length === 7",
+  );
+  check('stats page shows hourly and weekly charts', statsShown);
+  const breaksTile = await js(win, "document.getElementById('t-breaks').textContent");
+  check('stats page counts today\'s breaks', breaksTile.startsWith(String(stip.stats.today().breaks)), breaksTile);
+
   await click(win, '.nav[data-page="general"]');
   check('sidebar switches pages', await js(win, "!document.getElementById('page-general').hidden"));
   await click(win, '[data-key="theme"] [data-value="aurora"]');

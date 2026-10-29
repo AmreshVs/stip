@@ -42,6 +42,7 @@ function state() {
     week: stats.week(),
     meeting: { manual: meeting.manual(now), active: meeting.active(now) },
     platform: process.platform,
+    version: app.getVersion(),
   };
 }
 
