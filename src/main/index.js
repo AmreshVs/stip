@@ -1,4 +1,4 @@
-const { app, ipcMain, powerMonitor } = require('electron');
+const { app, ipcMain, powerMonitor, Notification } = require('electron');
 const { Settings, Stats } = require('./store');
 const { Scheduler } = require('./scheduler');
 const { Meeting } = require('./meeting');
@@ -143,6 +143,14 @@ app.whenReady().then(() => {
   scheduler.on('stand', () => {
     water.hide();
     breaks.show(settings.get());
+  });
+  scheduler.on('stand-waiting', () => {
+    if (!Notification.isSupported()) return;
+    new Notification({
+      title: 'Stand break is waiting for you',
+      body: "You're on a call, so it starts 30 seconds after the call ends.",
+      silent: true,
+    }).show();
   });
   scheduler.on('water', () => {
     if (!breaks.open) water.show();
