@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stip: stand up, sip water, then ship</title>
+  <meta name="description" content="Stip is a free, open-source desktop app that covers your screens with a one-minute stand break every 40 minutes and reminds you to drink water.">
+  <meta property="og:title" content="Stip: stand up, sip water, then ship">
+  <meta property="og:description" content="A free desktop app that gets you off your chair and drinking water.">
+  <meta property="og:image" content="https://amreshvs.github.io/stip/screenshots/break-flat.png">
+  <meta name="theme-color" content="#2f5ce8">
+  <link rel="icon" href="icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=DM+Sans:wght@400;500;700&display=swap">
+  <link rel="stylesheet" href="site.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="hero" id="top">
+    <div class="top">
+      <a class="mark" href="#top" aria-label="Stip home">
+        <svg viewBox="0 0 300 500" aria-hidden="true"><path class="mark-drop" d="M150 0C150 0 70 94 70 150a80 80 0 00160 0C230 94 150 0 150 0z"/><path class="mark-arrow" d="M150 465 L150 315 M70 390 L150 310 L230 390"/></svg>
+        <span>stip</span>
+      </a>
+      <nav class="links" aria-label="Page">
+        <a href="#fits">Features</a>
+        <a href="#faq">Questions</a>
+        <a href="https://github.com/AmreshVs/stip">GitHub</a>
+      </nav>
+    </div>
+
+    <h1 class="stack" aria-label="Stand. Sip.">
+      <span class="line"><span class="line-in light">Stand.</span></span>
+      <span class="line"><span class="line-in dark">Sip.</span></span>
+    </h1>
+
+    <div class="hero-foot">
+      <p class="lede">Stip is a free desktop app that covers your screens with a one-minute stand break every 40 minutes, and nudges you to drink water.</p>
+      <div class="hero-actions">
+        <button class="button lime" type="button" data-try-break>Try a break now</button>
+        <a class="text-link" href="https://github.com/AmreshVs/stip">Get it on GitHub</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <figure class="bleed shot-break reveal">
+      <img src="screenshots/break-flat.png" width="1600" height="900" alt="Stip's break screen: a lime breathing timer reading 0:59, the words Keep calm and stand up, and two memes on the sides">
+      <figcaption>The break, on your main screen. Your other monitors get memes.</figcaption>
+    </figure>
+
+    <section class="compare" aria-labelledby="compare-title">
+      <div class="compare-head reveal">
+        <h2 id="compare-title">Forty, then one</h2>
+        <p>Forty minutes sitting, then one minute standing. That's the whole deal. Stip counts down quietly in your menu bar, then takes over every display for sixty seconds with a breathing timer, so you actually get up instead of swatting a notification away.</p>
+      </div>
+      <div class="specimens">
+        <div class="specimen reveal">
+          <p class="specimen-num" aria-label="40 minutes sitting">40:00</p>
+        </div>
+        <div class="specimen reveal">
+          <p class="specimen-num" aria-label="1 minute standing">1:00</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="fits" id="fits" aria-labelledby="fits-title">
+      <h2 class="fits-title reveal" id="fits-title">It fits around your day</h2>
+      <ul class="bands">
+        <li class="band lime" data-on="true">
+          <div class="band-text">
+            <p class="band-line">Cover every screen I have</p>
+            <p class="band-more">Two monitors, two screens of break. The second one gets a meme.</p>
+          </div>
+          <button class="switch" type="button" role="switch" aria-checked="true" aria-label="Cover every screen I have" data-ui><i></i></button>
+        </li>
+        <li class="band coral" data-on="true">
+          <div class="band-text">
+            <p class="band-line">Wait until my call is over</p>
+            <p class="band-more">Breaks hold during Zoom calls and meeting mode, then start 30 seconds after.</p>
+          </div>
+          <button class="switch" type="button" role="switch" aria-checked="true" aria-label="Wait until my call is over" data-ui><i></i></button>
+        </li>
+        <li class="band blue" data-on="false">
+          <div class="band-text">
+            <p class="band-line">Count my coffee run as a break</p>
+            <p class="band-more">Five minutes away from the keyboard resets the timer. So does sleep.</p>
+          </div>
+          <button class="switch" type="button" role="switch" aria-checked="false" aria-label="Count my coffee run as a break" data-ui><i></i></button>
+        </li>
+        <li class="band ink" data-on="false">
+          <div class="band-text">
+            <p class="band-line">Dim the screen when it's water time</p>
+            <p class="band-more">The screen fades while a drop falls into an orb that shows today's glasses.</p>
+          </div>
+          <button class="switch" type="button" role="switch" aria-checked="false" aria-label="Dim the screen when it's water time" data-ui><i></i></button>
+        </li>
+        <li class="band paper" data-on="false">
+          <div class="band-text">
+            <p class="band-line">Leave me alone after six</p>
+            <p class="band-more">Working hours only: no breaks outside 09:00 to 18:00, Monday to Friday.</p>
+          </div>
+          <button class="switch" type="button" role="switch" aria-checked="false" aria-label="Leave me alone after six" data-ui><i></i></button>
+        </li>
+      </ul>
+    </section>
+
+    <section class="corner" aria-labelledby="corner-title">
+      <div class="corner-text reveal">
+        <h2 id="corner-title">Small when it should be</h2>
+        <p>The rest of the time Stip stays in your menu bar or tray: the countdown, today's water, and one button for meetings.</p>
+        <p>Every half hour a drop runs down the edge of your screen into an orb in the corner. Its water level is how much you've had today. Clicks pass straight through to your work.</p>
+      </div>
+      <figure class="corner-tray reveal">
+        <img src="screenshots/tray-flat.png" width="476" height="522" loading="lazy" alt="The Stip tray panel: a countdown ring at 39:59, 4 of 8 glasses of water, and Stand now, Water now and Meeting mode buttons">
+        <figcaption>The tray</figcaption>
+      </figure>
+      <figure class="corner-water reveal">
+        <img src="screenshots/water-flat.png" width="1100" height="640" loading="lazy" alt="The water reminder: a blue orb with a sleepy face in the bottom corner of a dimmed screen, and a card saying Your brain is a grape right now">
+        <figcaption>The water reminder</figcaption>
+      </figure>
+    </section>
+
+    <section class="ask" aria-labelledby="ask-title">
+      <h2 class="ask-title reveal" id="ask-title">When will it ask?</h2>
+      <label class="visually-hidden" for="interval">How often should Stip remind you to stand?</label>
+      <input class="ask-input" id="interval" type="text" value="every 40 minutes" autocomplete="off" spellcheck="false" data-ui>
+      <div class="ask-answer" aria-live="polite" data-ui>
+        <p class="ask-summary" id="ask-summary"></p>
+        <ol class="ask-times" id="ask-times"></ol>
+      </div>
+      <div class="ask-examples" aria-label="Try another interval">
+        <button type="button" data-example="every 30 minutes">every 30 minutes</button>
+        <button type="button" data-example="every 45 min">every 45 min</button>
+        <button type="button" data-example="every hour">every hour</button>
+      </div>
+    </section>
+
+    <section class="week" aria-labelledby="week-title">
+      <div class="week-text reveal">
+        <h2 id="week-title">See your week</h2>
+        <p>Settings are plain and quick: how often, how long, how strict. The Stats page shows your stand streak, breaks by hour and water over the last seven days. All of it stays on your computer.</p>
+      </div>
+      <figure class="week-settings reveal">
+        <img src="screenshots/settings-flat.png" width="1120" height="760" loading="lazy" alt="Stip settings for stand breaks: a 40 minute slider, break length, three strictness choices and display options">
+        <figcaption>Settings</figcaption>
+      </figure>
+      <figure class="week-stats reveal">
+        <img src="screenshots/stats-flat.png" width="1120" height="760" loading="lazy" alt="The Stats page: a 7-day stand streak, breaks today, water today, and charts by hour and by day">
+        <figcaption>Stats</figcaption>
+      </figure>
+    </section>
+
+    <section class="aurora" aria-labelledby="aurora-title">
+      <h2 class="reveal" id="aurora-title">Or the calm one</h2>
+      <p class="reveal">Prefer something softer? The Aurora theme turns the break into a glowing night sky. Switch any time in settings.</p>
+      <figure class="aurora-shot reveal">
+        <img src="screenshots/break-aurora.png" width="1600" height="900" loading="lazy" alt="The break screen in the Aurora theme: a glowing teal orb on a dark night sky with the words Keep calm and stand up">
+      </figure>
+    </section>
+
+    <section class="faq" id="faq" aria-labelledby="faq-title">
+      <h2 class="reveal" id="faq-title">Questions</h2>
+      <div class="faq-text">
+        <p><strong>Is it free?</strong> Yes. Stip is open source under the MIT licence, with no account, no ads and no paid tier.</p>
+        <p><strong>Which computers does it run on?</strong> macOS, Windows and Linux. On macOS the countdown also sits right in the menu bar.</p>
+        <p><strong>Does it send my data anywhere?</strong> No. Stip makes no network requests. Settings and stats are small files on your own computer.</p>
+        <p><strong>What if I'm in a meeting?</strong> Press "I'm in a meeting" on the break, or turn on meeting mode from the tray. Zoom calls are spotted on their own. The break waits and starts 30 seconds after the call.</p>
+        <p><strong>Can I skip a break?</strong> Yes, by holding Esc for three seconds, so you can't skip by reflex. Gentle mode lets you skip with one press; strict mode doesn't let you skip at all.</p>
+        <p><strong>Will it bother me at night?</strong> Not if you set working hours. Outside them the tray just says when it'll be back.</p>
+        <p><strong>Where do the memes come from?</strong> Every one was written for Stip. "spine.exe is not responding" is a house favourite.</p>
+        <p><strong>How do I install it?</strong> There's no packaged release yet. Clone the repository, run npm install, then npm start. It takes a few minutes.</p>
+        <p><strong>Can I help?</strong> Please do. Bug reports, new memes and pull requests are welcome; the contributing guide explains how.</p>
+      </div>
+    </section>
+
+    <section class="close" aria-labelledby="close-title">
+      <h2 class="close-title" id="close-title"><span class="line"><span class="line-in">Stand up.</span></span><span class="line"><span class="line-in">Then ship.</span></span></h2>
+      <div class="close-foot">
+        <p>Free, open source, and running on your machine in about four minutes.</p>
+        <a class="button lime big" href="https://github.com/AmreshVs/stip">Get Stip on GitHub</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-cols">
+      <div><p class="footer-head">Stip</p><p>Stand. Sip. Ship.</p><p>Made with Claude</p></div>
+      <div><p class="footer-head">Project</p><a href="https://github.com/AmreshVs/stip">Source code</a><a href="https://github.com/AmreshVs/stip/blob/main/CHANGELOG.md">Changelog</a><a href="https://github.com/AmreshVs/stip/blob/main/CONTRIBUTING.md">Contributing</a></div>
+      <div><p class="footer-head">Help</p><a href="https://github.com/AmreshVs/stip/issues">Report a bug</a><a href="https://github.com/AmreshVs/stip/blob/main/SECURITY.md">Security</a></div>
+      <div><p class="footer-head">Licence</p><a href="https://github.com/AmreshVs/stip/blob/main/LICENSE">MIT</a><p>No tracking on this page or in the app.</p></div>
+    </div>
+    <svg class="wordmark" viewBox="0 0 600 190" role="img" aria-label="stip"><text x="0" y="160">stip</text></svg>
+    <p class="legal">© 2026 Amresh Vs · MIT licence</p>
+  </footer>
+
+  <!-- The live break: the real Stip break screen, in the browser. -->
+  <div class="demo" id="demo" role="dialog" aria-modal="true" aria-labelledby="demo-title" hidden>
+    <aside class="demo-meme" aria-hidden="true">
+      <div class="meme-bar"><span>spine.exe</span><span class="meme-dots"><i></i><i></i></span></div>
+      <p class="meme-head">spine.exe is not responding</p>
+      <p class="meme-body">It has been in the same position for 40 minutes.</p>
+      <p class="meme-buttons"><span>Wait for it</span><span class="go">Stand to restart</span></p>
+    </aside>
+    <div class="demo-center">
+      <div class="orb-wrap">
+        <div class="halo"></div>
+        <div class="orb"></div>
+        <div class="orb-text"><span class="orb-time" id="demo-time">0:20</span><span class="orb-breath" id="demo-breath">Breathe in</span></div>
+      </div>
+      <p class="demo-title" id="demo-title">Keep calm and stand up.</p>
+      <p class="demo-sub" id="demo-sub">This is a 20-second taste. The real one lasts a minute.</p>
+    </div>
+    <div class="demo-escape">
+      <button type="button" class="esc-meeting" data-demo-close="meeting">I'm in a meeting</button>
+      <button type="button" class="esc-plain" data-demo-close="snooze">Snooze 5 min</button>
+      <button type="button" class="esc-plain esc-hold" id="demo-hold"><span class="hold-ring"><svg viewBox="0 0 32 32" aria-hidden="true"><circle class="hold-track" cx="16" cy="16" r="14"/><circle class="hold-fill" cx="16" cy="16" r="14"/></svg><span class="hold-key">esc</span></span>Hold to skip</button>
+    </div>
+  </div>
+
+  <script src="site.js"></script>
+</body>
+</html>

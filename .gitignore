@@ -8,3 +8,5 @@ out/
 .ignore
 .impeccable/
 graft/
+.claude/
+.taste-skill/
