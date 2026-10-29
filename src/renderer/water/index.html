@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:">
+  <title>Time for a sip</title>
+  <link rel="stylesheet" href="../shared/base.css">
+  <link rel="stylesheet" href="water.css">
+</head>
+<body>
+  <div class="trail" aria-hidden="true"></div>
+  <svg class="drop" viewBox="0 0 17 24" aria-hidden="true"><path d="M8.5 0C8.5 0 0 10 0 15.5a8.5 8.5 0 0017 0C17 10 8.5 0 8.5 0z"></path></svg>
+  <div class="splash" aria-hidden="true"></div>
+
+  <div class="orb-wrap interactive" id="orb">
+    <svg viewBox="0 0 240 260" role="img" aria-label="Water today">
+      <defs>
+        <clipPath id="orb-clip"><circle cx="120" cy="140" r="104"></circle></clipPath>
+        <linearGradient id="liquid" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" class="liquid-top"></stop>
+          <stop offset="1" class="liquid-bottom"></stop>
+        </linearGradient>
+      </defs>
+      <circle class="glass" cx="120" cy="140" r="104"></circle>
+      <g clip-path="url(#orb-clip)">
+        <g class="level" id="level">
+          <g class="wave-back"><path d="M0 0 Q30 -12 60 0 T120 0 T180 0 T240 0 T300 0 T360 0 T420 0 V200 H0 Z"></path></g>
+          <g class="wave-front"><path d="M0 8 Q30 -2 60 8 T120 8 T180 8 T240 8 T300 8 T360 8 T420 8 V200 H0 Z"></path></g>
+        </g>
+        <g class="face" id="face">
+          <g class="eyes-open">
+            <ellipse class="eye" cx="100" cy="198" rx="6" ry="8"></ellipse>
+            <ellipse class="eye" cx="140" cy="198" rx="6" ry="8"></ellipse>
+          </g>
+          <path class="eyes-happy" d="M93 199 Q100 191 107 199 M133 199 Q140 191 147 199"></path>
+          <circle class="cheek" cx="84" cy="212" r="6"></circle>
+          <circle class="cheek" cx="156" cy="212" r="6"></circle>
+          <path class="mouth" d="M110 214 Q120 223 130 214"></path>
+          <path class="mouth-happy" d="M108 212 Q120 230 132 212 Z"></path>
+        </g>
+      </g>
+      <circle class="rim" cx="120" cy="140" r="104"></circle>
+      <path class="shine" d="M58 96 A72 72 0 0 1 100 56"></path>
+    </svg>
+    <div class="plus display" id="plus">+250 ml</div>
+  </div>
+
+  <section class="card interactive" id="card" aria-live="polite">
+    <div class="card-top">
+      <span class="eyebrow">Glug o'clock</span>
+      <span class="since" id="since"></span>
+    </div>
+    <p class="line display" id="line">I'm running <em>low.</em> So are you.</p>
+    <div class="dots" id="dots"></div>
+    <div class="count" id="count"></div>
+    <div class="buttons">
+      <button class="sipped" id="sipped">I sipped</button>
+      <button class="later" id="later">In 10 min</button>
+    </div>
+  </section>
+
+  <script src="../shared/format.js"></script>
+  <script src="water.js"></script>
+</body>
+</html>

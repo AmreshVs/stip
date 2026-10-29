@@ -4,6 +4,7 @@ const { Scheduler } = require('./scheduler');
 const { Meeting } = require('./meeting');
 const { TrayUI } = require('./tray');
 const { BreakScreens } = require('./breaks');
+const { WaterReminder } = require('./water');
 const { snapshot, requestedView } = require('./snapshot');
 
 // Lets dev runs and snapshots keep their settings apart from the real ones.
@@ -20,6 +21,7 @@ let scheduler;
 let meeting;
 let tray;
 let breaks;
+let water;
 
 function minutesUntilMidnight(now = new Date()) {
   const midnight = new Date(now);
@@ -65,6 +67,16 @@ const actions = {
     stats.record('glasses');
     scheduler.sipped(Date.now());
   },
+  'water-hover': ({ over }) => water.setInteractive(over),
+  'water-sipped': () => {
+    stats.record('glasses');
+    scheduler.sipped(Date.now());
+  },
+  'water-later': () => {
+    scheduler.waterLater(Date.now(), 10);
+    water.hide();
+  },
+  'water-close': () => water.hide(),
   'meeting-toggle': () => meeting.setManual(!meeting.manual()),
   pause: ({ minutes }) => {
     scheduler.pause(Date.now(), minutes === 'day' ? minutesUntilMidnight() : Number(minutes));
@@ -109,7 +121,14 @@ app.whenReady().then(() => {
   meeting.start();
   tray = new TrayUI({ onAction: handleAction });
   breaks = new BreakScreens({ onFinish: onBreakFinished });
-  scheduler.on('stand', () => breaks.show(settings.get()));
+  water = new WaterReminder();
+  scheduler.on('stand', () => {
+    water.hide();
+    breaks.show(settings.get());
+  });
+  scheduler.on('water', () => {
+    if (!breaks.open) water.show();
+  });
 
   ipcMain.handle('state', () => state());
   ipcMain.on('act', (_event, name, payload) => handleAction(name, payload));
@@ -142,6 +161,8 @@ async function showRequestedView() {
   if (name === 'break') {
     scheduler.startBreak();
     win = breaks.primary;
+  } else if (name === 'water') {
+    win = water.show();
   } else {
     win = tray.open();
   }

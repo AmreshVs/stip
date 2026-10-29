@@ -1,0 +1,440 @@
+html,
+body {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: transparent;
+}
+
+:root {
+  /* Centre of the orb, measured from the window's left edge. */
+  --orb-x: 568px;
+  --orb-top: calc(100vh - 256px);
+}
+
+/* 1. The drop runs down the screen edge. */
+.trail {
+  position: absolute;
+  left: calc(var(--orb-x) - 1.5px);
+  top: 0;
+  width: 3px;
+  height: var(--orb-top);
+  background: var(--water-light);
+  opacity: 0.45;
+  transform-origin: top;
+  transform: scaleY(0);
+  animation: grow 2.2s cubic-bezier(0.55, 0, 0.9, 0.6) forwards;
+}
+
+[data-theme='aurora'] .trail {
+  background: linear-gradient(180deg, rgba(125, 211, 252, 0), rgba(125, 211, 252, 0.45));
+  opacity: 1;
+}
+
+@keyframes grow {
+  to {
+    transform: scaleY(1);
+  }
+}
+
+.drop {
+  position: absolute;
+  left: calc(var(--orb-x) - 8.5px);
+  top: -30px;
+  width: 17px;
+  height: 24px;
+  fill: var(--water);
+  animation: fall 2.2s cubic-bezier(0.55, 0, 0.9, 0.6) forwards;
+}
+
+[data-theme='aurora'] .drop {
+  fill: #7dd3fc;
+}
+
+@keyframes fall {
+  85% {
+    opacity: 1;
+    transform: translateY(calc(var(--orb-top) + 12px)) scaleY(1.25);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(calc(var(--orb-top) + 20px)) scaleY(0.2);
+  }
+}
+
+.splash {
+  position: absolute;
+  left: calc(var(--orb-x) - 40px);
+  top: calc(var(--orb-top) - 6px);
+  width: 80px;
+  height: 24px;
+  border-radius: 50%;
+  border: 3px solid var(--water);
+  opacity: 0;
+  animation: splash 0.7s ease-out 2s forwards;
+}
+
+[data-theme='aurora'] .splash {
+  border-color: #7dd3fc;
+  border-width: 2px;
+}
+
+@keyframes splash {
+  0% {
+    opacity: 1;
+    transform: scale(0.2);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.8);
+  }
+}
+
+/* 2. The orb wakes up. */
+.orb-wrap {
+  position: absolute;
+  right: 32px;
+  bottom: 32px;
+  width: 240px;
+  height: 260px;
+  transform-origin: 50% 54%;
+  transform: scale(0);
+  animation: pop 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.3) 1.95s forwards, bob 5s ease-in-out 2.6s infinite;
+}
+
+@keyframes pop {
+  to {
+    transform: scale(1);
+  }
+}
+
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(2deg);
+  }
+}
+
+.orb-wrap svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.glass {
+  fill: var(--ink);
+}
+
+[data-theme='aurora'] .glass {
+  fill: rgba(15, 23, 42, 0.75);
+}
+
+.liquid-top {
+  stop-color: var(--water);
+}
+
+.liquid-bottom {
+  stop-color: var(--water);
+}
+
+[data-theme='aurora'] .liquid-top {
+  stop-color: #38bdf8;
+}
+
+[data-theme='aurora'] .liquid-bottom {
+  stop-color: #1d4ed8;
+}
+
+.level {
+  transition: transform 1.2s cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+
+.wave-back path {
+  fill: var(--water-light);
+}
+
+[data-theme='aurora'] .wave-back path {
+  fill: #0ea5e9;
+  opacity: 0.55;
+}
+
+.wave-front path {
+  fill: url(#liquid);
+}
+
+.wave-back {
+  animation: waveB 4.6s linear infinite;
+}
+
+.wave-front {
+  animation: waveA 3.2s linear infinite;
+}
+
+@keyframes waveA {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-120px);
+  }
+}
+
+@keyframes waveB {
+  from {
+    transform: translateX(-120px);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.eye {
+  fill: var(--ink);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: blink 4s infinite;
+}
+
+[data-theme='aurora'] .eye {
+  fill: #082f49;
+}
+
+@keyframes blink {
+  0%,
+  94%,
+  100% {
+    transform: scaleY(1);
+  }
+  97% {
+    transform: scaleY(0.1);
+  }
+}
+
+.cheek {
+  fill: var(--alert);
+}
+
+[data-theme='aurora'] .cheek {
+  fill: #f9a8d4;
+  opacity: 0.55;
+}
+
+.mouth,
+.eyes-happy {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+
+.mouth-happy {
+  fill: var(--ink);
+}
+
+[data-theme='aurora'] .mouth,
+[data-theme='aurora'] .eyes-happy {
+  stroke: #082f49;
+}
+
+[data-theme='aurora'] .mouth-happy {
+  fill: #082f49;
+}
+
+.eyes-happy,
+.mouth-happy {
+  display: none;
+}
+
+.happy .eyes-open,
+.happy .mouth {
+  display: none;
+}
+
+.happy .eyes-happy,
+.happy .mouth-happy {
+  display: inline;
+}
+
+.rim {
+  fill: none;
+  stroke: transparent;
+}
+
+[data-theme='aurora'] .rim {
+  stroke: rgba(186, 230, 253, 0.45);
+  stroke-width: 1.5;
+}
+
+.shine {
+  fill: none;
+  stroke: var(--paper);
+  stroke-width: 7;
+  stroke-linecap: round;
+}
+
+[data-theme='aurora'] .shine {
+  stroke: #ffffff;
+  stroke-width: 6;
+  opacity: 0.6;
+}
+
+.plus {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -10px;
+  text-align: center;
+  font-size: 30px;
+  color: var(--water);
+  opacity: 0;
+}
+
+[data-theme='aurora'] .plus {
+  color: #7dd3fc;
+}
+
+.happy .plus {
+  animation: floatUp 1.6s ease-out forwards;
+}
+
+@keyframes floatUp {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-40px);
+  }
+}
+
+/* 3. The card asks for a sip. */
+.card {
+  position: absolute;
+  right: 300px;
+  bottom: 110px;
+  width: 340px;
+  padding: 22px;
+  border-radius: 24px 24px 6px 24px;
+  background: var(--ink);
+  color: var(--text);
+  opacity: 0;
+  transform: translateX(30px);
+  animation: cardIn 0.7s cubic-bezier(0.2, 0.9, 0.3, 1.2) 2.4s forwards;
+}
+
+[data-theme='aurora'] .card {
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(125, 211, 252, 0.22);
+  color: #e0f2fe;
+}
+
+@keyframes cardIn {
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.leaving .card,
+.leaving .orb-wrap {
+  animation: leave 0.5s ease-in forwards;
+}
+
+@keyframes leave {
+  to {
+    opacity: 0;
+    transform: translateY(30px) scale(0.9);
+  }
+}
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--water-light);
+}
+
+.since {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.line {
+  margin: 10px 0 0;
+  font-size: 34px;
+  line-height: 1.04;
+  color: #ffffff;
+}
+
+.line em {
+  font-style: normal;
+  color: var(--water-light);
+}
+
+[data-theme='aurora'] .line em {
+  font-style: italic;
+}
+
+.dots {
+  display: flex;
+  gap: 6px;
+  margin-top: 16px;
+}
+
+.dots span {
+  flex: 1;
+  height: 10px;
+  border-radius: 5px;
+  background: var(--surface-2);
+}
+
+.dots span.full {
+  background: var(--water);
+}
+
+.count {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 8px;
+}
+
+.buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.buttons button {
+  height: 48px;
+  border-radius: 14px;
+  font-size: 15px;
+}
+
+.sipped {
+  flex: 1;
+  background: var(--water);
+  color: var(--on-water);
+  font-weight: 700;
+}
+
+.later {
+  padding: 0 18px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-weight: 500;
+}
