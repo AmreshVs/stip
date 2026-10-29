@@ -31,7 +31,8 @@ function render(state) {
   $('water-row').hidden = !settings.water.enabled;
   $('glasses').textContent = `${today.glasses} of ${goal} glasses`;
   $('water-next').textContent = `Next sip in ${fmt.minutes(status.msToWater)}`;
-  const level = Math.min(1, today.glasses / goal);
+  // Like the big orb, the bead never looks completely empty.
+  const level = 0.2 + 0.8 * Math.min(1, today.glasses / goal);
   $('bead-water').setAttribute('y', String(36 - level * 32));
 
   $('stat-breaks').textContent = String(today.breaks);
