@@ -1,0 +1,25 @@
+{
+  "name": "stip",
+  "productName": "Stip",
+  "version": "0.1.0",
+  "description": "Stand. Sip. Ship. A tiny desktop nudge to stand up and drink water.",
+  "main": "src/main/index.js",
+  "author": "Amresh Vs",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test test/",
+    "icons": "node scripts/build-icons.js",
+    "dist": "electron-builder"
+  },
+  "dependencies": {
+    "@fontsource/bricolage-grotesque": "5.3.0",
+    "@fontsource/dm-sans": "5.3.0",
+    "@fontsource/instrument-serif": "5.3.0",
+    "@fontsource/manrope": "5.3.0"
+  },
+  "devDependencies": {
+    "electron": "44.7.2",
+    "electron-builder": "26.17.0"
+  }
+}
