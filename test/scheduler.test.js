@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { Scheduler, inWorkHours, MEETING_GRACE_MS } = require('../src/main/scheduler');
+const { Scheduler, inWorkHours, nextWorkStart, MEETING_GRACE_MS } = require('../src/main/scheduler');
 const { DEFAULTS, merge } = require('../src/main/store');
 
 const MIN = 60 * 1000;
@@ -123,4 +123,13 @@ test('work hours', () => {
   assert.equal(inWorkHours(hours, new Date(2026, 9, 29, 18, 0)), false);
   assert.equal(inWorkHours(hours, new Date(2026, 9, 31, 10, 0)), false); // Saturday
   assert.equal(inWorkHours({ ...hours, enabled: false }, new Date(2026, 9, 31, 3, 0)), true);
+});
+
+test('next start of working hours', () => {
+  const hours = { enabled: true, days: [1, 2, 3, 4, 5], start: '09:00', end: '18:00' };
+  const thursdayEvening = new Date(2026, 9, 29, 21, 0);
+  assert.equal(nextWorkStart(hours, thursdayEvening), new Date(2026, 9, 30, 9, 0).getTime());
+  const fridayEvening = new Date(2026, 9, 30, 21, 0);
+  assert.equal(nextWorkStart(hours, fridayEvening), new Date(2026, 10, 2, 9, 0).getTime(), 'skips the weekend');
+  assert.equal(nextWorkStart({ ...hours, days: [] }, fridayEvening), null);
 });

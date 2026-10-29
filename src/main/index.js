@@ -57,6 +57,7 @@ function broadcast({ includeSettings = true } = {}) {
 function updateTrayTitle() {
   const { status } = state();
   if (status.pausedUntil) tray.setTitle('Paused');
+  else if (status.offHours) tray.setTitle('');
   else if (status.waitingForMeeting) tray.setTitle('Call');
   else tray.setTitle(fmtClock(status.msToStand));
 }

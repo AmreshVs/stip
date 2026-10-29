@@ -16,6 +16,18 @@ function inWorkHours(workHours, date) {
   return now >= minutesOfDay(workHours.start) && now < minutesOfDay(workHours.end);
 }
 
+// When working hours next begin, as a timestamp.
+function nextWorkStart(workHours, date) {
+  const [h, m] = workHours.start.split(':').map(Number);
+  for (let i = 0; i <= 7; i += 1) {
+    const day = new Date(date);
+    day.setDate(day.getDate() + i);
+    day.setHours(h, m, 0, 0);
+    if (day > date && workHours.days.includes(day.getDay())) return day.getTime();
+  }
+  return null;
+}
+
 // Pure timing logic. The caller feeds it the clock, idle time and meeting
 // state on every tick, so it can be tested without Electron.
 //
@@ -167,7 +179,11 @@ class Scheduler extends EventEmitter {
   }
 
   status(now) {
+    const { workHours } = this.getSettings();
+    const offHours = !inWorkHours(workHours, new Date(now));
     return {
+      offHours,
+      resumesAt: offHours ? nextWorkStart(workHours, new Date(now)) : 0,
       msToStand: Math.max(0, this.standDueAt - now),
       standEveryMs: this.standEvery(),
       sittingMs: now - this.lastBreakAt,
@@ -179,4 +195,4 @@ class Scheduler extends EventEmitter {
   }
 }
 
-module.exports = { Scheduler, inWorkHours, MEETING_GRACE_MS };
+module.exports = { Scheduler, inWorkHours, nextWorkStart, MEETING_GRACE_MS };

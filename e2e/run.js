@@ -81,6 +81,16 @@ async function testTray(stip) {
   );
   await click(panel, '#meeting');
   check('meeting mode turns off', await waitFor(() => !stip.meeting.manual()));
+
+  stip.settings.set({ workHours: { enabled: true, days: [] } });
+  check('tray says Off hours outside working hours', await waitFor(() => js(panel, "document.getElementById('status-text').textContent === 'Off hours'")));
+  stip.settings.set({ workHours: { enabled: false, days: [1, 2, 3, 4, 5] } });
+
+  stip.settings.set({ water: { enabled: false } });
+  await waitFor(() => js(panel, "document.getElementById('water-now').hidden"));
+  const fullWidth = await js(panel, "document.querySelector('.stand').offsetWidth > document.querySelector('.actions').offsetWidth * 0.8");
+  check('Stand now fills the row when water is off', fullWidth);
+  stip.settings.set({ water: { enabled: true } });
   stip.tray.hide();
 }
 

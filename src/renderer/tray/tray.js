@@ -1,6 +1,14 @@
 const $ = (id) => document.getElementById(id);
 const RING = 314;
 
+// "today", "tomorrow" or a weekday name.
+function dayName(ms) {
+  const days = Math.round((new Date(ms).setHours(0, 0, 0, 0) - new Date().setHours(0, 0, 0, 0)) / 86400000);
+  if (days === 0) return 'today';
+  if (days === 1) return 'tomorrow';
+  return `on ${new Date(ms).toLocaleDateString([], { weekday: 'long' })}`;
+}
+
 const timeOfDay = (ms) => new Date(ms).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
 document.addEventListener('click', (event) => {
@@ -36,6 +44,11 @@ function render(state) {
     $('next').textContent = timeOfDay(status.pausedUntil);
     $('next-label').textContent = 'paused until';
     $('break-at').textContent = 'Reminders are off';
+  } else if (status.offHours) {
+    setStatus('paused', 'Off hours');
+    $('next').textContent = status.resumesAt ? timeOfDay(status.resumesAt) : '--:--';
+    $('next-label').textContent = 'back at';
+    $('break-at').textContent = status.resumesAt ? `Working hours resume ${dayName(status.resumesAt)}` : 'No working days set';
   } else if (status.waitingForMeeting || meeting.active) {
     setStatus('call', 'In a call');
     $('next').textContent = status.waitingForMeeting ? 'Soon' : fmt.clock(status.msToStand);
@@ -49,7 +62,8 @@ function render(state) {
   }
   $('sitting').textContent = `Sitting ${fmt.minutes(status.sittingMs)}`;
 
-  const progress = paused || status.waitingForMeeting ? 1 : 1 - status.msToStand / status.standEveryMs;
+  const idle = paused || status.offHours;
+  const progress = idle ? 0 : status.waitingForMeeting ? 1 : 1 - status.msToStand / status.standEveryMs;
   $('ring').style.strokeDashoffset = String(RING * (1 - Math.min(1, Math.max(0, progress))));
 
   const water = settings.water;
