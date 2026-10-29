@@ -148,6 +148,17 @@ class Scheduler extends EventEmitter {
     this.emit('status');
   }
 
+  // After sleep or a locked screen the user was away, so start fresh
+  // instead of firing an overdue break the moment they come back.
+  restart(now) {
+    if (this.onBreak) return;
+    this.lastBreakAt = now;
+    this.standDueAt = now + this.standEvery();
+    this.waterDueAt = now + this.waterEvery();
+    this.waitingForMeeting = false;
+    this.emit('status');
+  }
+
   // Settings changed: re-arm the timers from the last break.
   reschedule(now) {
     this.standDueAt = Math.max(now, this.lastBreakAt + this.standEvery());

@@ -107,6 +107,16 @@ test('nothing fires while paused, and timers restart after', () => {
   assert.deepEqual(events, ['water']);
 });
 
+test('waking from sleep starts fresh instead of firing at once', () => {
+  const { scheduler, events } = setup({ water: { enabled: false } });
+  scheduler.restart(300 * MIN);
+  scheduler.tick(300 * MIN);
+  assert.deepEqual(events, []);
+  assert.equal(scheduler.status(300 * MIN).sittingMs, 0);
+  scheduler.tick(340 * MIN);
+  assert.deepEqual(events, ['stand']);
+});
+
 test('work hours', () => {
   const hours = { enabled: true, days: [1, 2, 3, 4, 5], start: '09:00', end: '18:00' };
   assert.equal(inWorkHours(hours, new Date(2026, 9, 29, 10, 0)), true); // Thursday

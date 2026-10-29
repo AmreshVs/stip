@@ -165,6 +165,9 @@ app.whenReady().then(() => {
     broadcast();
   });
   stats.on('change', broadcast);
+  for (const event of ['resume', 'unlock-screen']) {
+    powerMonitor.on(event, () => scheduler.restart(Date.now()));
+  }
 
   setInterval(() => {
     const now = Date.now();
