@@ -66,7 +66,8 @@ class Scheduler extends EventEmitter {
     }
 
     if (now >= this.standDueAt) {
-      if (inMeeting && settings.stand.waitDuringCalls) {
+      // Saying "I'm in a meeting" always waits, even with auto-waiting off.
+      if (inMeeting && (settings.stand.waitDuringCalls || this.waitingForMeeting)) {
         if (!this.waitingForMeeting) {
           this.waitingForMeeting = true;
           this.emit('stand-waiting');

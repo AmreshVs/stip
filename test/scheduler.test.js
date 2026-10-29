@@ -64,6 +64,17 @@ test('breaks in a call when waiting is turned off', () => {
   assert.deepEqual(events, ['stand']);
 });
 
+test("I'm in a meeting waits even when auto-waiting is off", () => {
+  const { scheduler, events } = setup({ water: { enabled: false }, stand: { waitDuringCalls: false } });
+  scheduler.tick(40 * MIN);
+  scheduler.deferForMeeting();
+  scheduler.tick(45 * MIN, { inMeeting: true });
+  assert.deepEqual(events, ['stand']);
+  scheduler.tick(50 * MIN);
+  scheduler.tick(50 * MIN + MEETING_GRACE_MS);
+  assert.deepEqual(events, ['stand', 'stand']);
+});
+
 test('being away counts as a break', () => {
   const { scheduler, events } = setup({ water: { enabled: false } });
   scheduler.tick(30 * MIN, { idleSec: 5 * 60 });
