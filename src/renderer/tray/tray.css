@@ -481,3 +481,8 @@ body {
   font-size: 13px;
   font-weight: 700;
 }
+
+/* With water reminders off, Stand now takes the whole row. */
+.actions:has(#water-now[hidden]) .stand {
+  grid-column: 1 / -1;
+}
