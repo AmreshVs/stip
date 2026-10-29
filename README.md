@@ -45,6 +45,12 @@ npm test
 
 The timing logic in `src/main/scheduler.js` is plain JavaScript and fully covered by tests that don't need Electron.
 
+The end-to-end test starts the real app with its windows hidden, clicks the real buttons, holds Esc, and checks the tray, breaks, water reminder and settings:
+
+```bash
+npm run e2e
+```
+
 ### Icons
 
 The icons are drawn as SVG in `assets/`. After changing one, render the PNGs again:

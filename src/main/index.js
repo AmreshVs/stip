@@ -127,7 +127,7 @@ function handleAction(name, payload = {}) {
   broadcast();
 }
 
-app.whenReady().then(() => {
+const ready = app.whenReady().then(() => {
   if (process.platform === 'darwin') app.dock.hide();
 
   const dir = app.getPath('userData');
@@ -206,3 +206,8 @@ async function showRequestedView() {
 
 // Keep running in the tray when windows close.
 app.on('window-all-closed', () => {});
+
+// The end-to-end test drives the running app through these.
+module.exports = {
+  ready: ready.then(() => ({ settings, stats, scheduler, meeting, tray, breaks, water, settingsWindow, handleAction })),
+};

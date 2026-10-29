@@ -10,7 +10,8 @@
     "start": "electron .",
     "test": "node --test",
     "icons": "node scripts/build-icons.js",
-    "dist": "electron-builder"
+    "dist": "electron-builder",
+    "e2e": "electron e2e/run.js"
   },
   "dependencies": {
     "@fontsource/bricolage-grotesque": "5.3.0",
