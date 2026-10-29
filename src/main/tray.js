@@ -4,7 +4,7 @@ const { HIDDEN } = require('./snapshot');
 
 const ICONS = path.join(__dirname, '..', '..', 'assets', 'generated');
 const PRELOAD = path.join(__dirname, '..', 'preload.js');
-const PANEL = { width: 380, height: 614 };
+const PANEL = { width: 380, height: 440 };
 
 function trayIcon() {
   if (process.platform === 'darwin') {
@@ -16,14 +16,14 @@ function trayIcon() {
 }
 
 // Places the panel next to the tray icon, kept inside the screen's work area.
-function panelPosition(trayBounds) {
+function panelPosition(trayBounds, height) {
   const display = screen.getDisplayNearestPoint({ x: trayBounds.x, y: trayBounds.y });
   const area = display.workArea;
   let x = Math.round(trayBounds.x + trayBounds.width / 2 - PANEL.width / 2);
   // Tray at the top (macOS, some Linux) opens down, otherwise up.
-  let y = trayBounds.y < area.y + area.height / 2 ? area.y + 6 : area.y + area.height - PANEL.height - 6;
+  let y = trayBounds.y < area.y + area.height / 2 ? area.y + 6 : area.y + area.height - height - 6;
   x = Math.min(Math.max(x, area.x + 6), area.x + area.width - PANEL.width - 6);
-  y = Math.min(Math.max(y, area.y), area.y + area.height - PANEL.height);
+  y = Math.min(Math.max(y, area.y), area.y + area.height - height);
   return { x, y };
 }
 
@@ -85,10 +85,20 @@ class TrayUI {
       this.panelOpen = true;
       return;
     }
-    const { x, y } = panelPosition(this.tray.getBounds());
+    const { x, y } = panelPosition(this.tray.getBounds(), this.panel.getBounds().height);
     this.panel.setPosition(x, y, false);
     this.panel.show();
     this.panel.focus();
+  }
+
+  // The page reports its height so the window fits it exactly.
+  resize(height) {
+    if (!this.panel || !height) return;
+    const bounds = this.panel.getBounds();
+    if (bounds.height === height) return;
+    // A panel that opens upward keeps its bottom edge in place.
+    const opensUp = this.panel.isVisible() && bounds.y > screen.getDisplayMatching(bounds).workArea.y + 20;
+    this.panel.setBounds({ ...bounds, height, y: opensUp ? bounds.y + bounds.height - height : bounds.y });
   }
 
   isOpen() {

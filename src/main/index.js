@@ -75,6 +75,7 @@ const actions = {
     stats.record('glasses');
     scheduler.sipped(Date.now());
   },
+  'tray-size': ({ height }) => tray.resize(height),
   'water-now': () => {
     tray.hide();
     if (!breaks.open) water.show();

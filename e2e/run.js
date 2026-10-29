@@ -60,11 +60,13 @@ async function testTray(stip) {
   await waitFor(() => js(panel, "document.getElementById('next').textContent !== '--:--'"));
   check('tray shows the countdown', /^\d+:\d\d$/.test(await js(panel, "document.getElementById('next').textContent")));
 
-  await click(panel, '[data-act="sip"]');
-  check('tray + Sip logs a glass', await waitFor(() => stip.stats.today().glasses === 1));
+  check('tray status says Active', (await js(panel, "document.getElementById('status-text').textContent")) === 'Active');
+  const height = stip.tray.panel.getBounds().height;
+  check('tray window fits its content', height > 300 && height < 440, `${height} px`);
 
   await click(panel, '[data-act="pause"][data-min="30"]');
   check('pause 30 min pauses reminders', await waitFor(() => stip.scheduler.status(Date.now()).pausedUntil > 0));
+  check('tray status says Paused', await waitFor(() => js(panel, "document.getElementById('status-text').textContent === 'Paused'")));
   check('resume button appears', await waitFor(() => js(panel, "!document.getElementById('resume').hidden")));
   await click(panel, '#resume');
   check('resume unpauses', await waitFor(() => stip.scheduler.status(Date.now()).pausedUntil === 0));
@@ -72,8 +74,10 @@ async function testTray(stip) {
   await click(panel, '#meeting');
   check('meeting mode turns on', await waitFor(() => stip.meeting.manual()));
   check(
-    'tray button shows meeting mode is on',
-    await waitFor(() => js(panel, "document.getElementById('meeting').textContent === 'End meeting mode'")),
+    'tray shows meeting mode is on',
+    await waitFor(() =>
+      js(panel, "document.getElementById('meeting').getAttribute('aria-pressed') === 'true' && document.getElementById('status-text').textContent === 'In a call'"),
+    ),
   );
   await click(panel, '#meeting');
   check('meeting mode turns off', await waitFor(() => !stip.meeting.manual()));
