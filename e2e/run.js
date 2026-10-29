@@ -143,7 +143,17 @@ async function testWater(stip) {
   win = stip.water.win;
   await isLoaded(win);
   await waitFor(() => js(win, "document.getElementById('count').textContent !== ''"));
+  const dimmed = await js(win, "getComputedStyle(document.querySelector('.dim')).display !== 'none'");
+  check('the screen dims behind the reminder', dimmed);
   stip.water.hide();
+
+  stip.settings.set({ water: { dimScreen: false } });
+  win = stip.water.show();
+  await isLoaded(win);
+  await waitFor(() => js(win, "document.body.classList.contains('no-dim')"));
+  check('dimming can be turned off', await js(win, "getComputedStyle(document.querySelector('.dim')).display === 'none'"));
+  stip.water.hide();
+  stip.settings.set({ water: { dimScreen: true } });
 
   const settingsWin = stip.settingsWindow.open('flat');
   await isLoaded(settingsWin);

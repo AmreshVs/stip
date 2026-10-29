@@ -17,6 +17,7 @@ const DEFAULTS = {
   },
   water: {
     enabled: true,
+    dimScreen: true,
     everyMin: 30,
     goalGlasses: 8,
     glassMl: 250,

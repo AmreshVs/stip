@@ -7,9 +7,9 @@ const PAGE = path.join(__dirname, '..', 'renderer', 'water', 'index.html');
 const WIDTH = 720;
 const CLICK_THROUGH = process.platform !== 'linux';
 
-// A transparent strip down the right edge of the main display: the drop runs
-// down it and lands in the orb at the bottom. It never takes focus, and mouse
-// clicks pass through everywhere except the orb and its card.
+// A transparent window over the main display: the screen dims, a drop runs
+// down the right edge and lands in the orb at the bottom. It never takes
+// focus, and mouse clicks pass through everywhere except the orb and its card.
 class WaterReminder {
   constructor() {
     this.win = null;
@@ -18,13 +18,14 @@ class WaterReminder {
   show() {
     if (this.win) return this.win;
     const area = screen.getPrimaryDisplay().workArea;
-    // Linux can't pass clicks through a window, so there it only covers the
-    // bottom corner and the drop falls a shorter way.
+    // The window covers the whole screen so it can dim it. Linux can't pass
+    // clicks through a window, so there it only covers the bottom corner.
+    const width = CLICK_THROUGH ? area.width : WIDTH;
     const height = CLICK_THROUGH ? area.height : Math.min(area.height, 460);
     this.win = new BrowserWindow({
-      x: area.x + area.width - WIDTH,
+      x: area.x + area.width - width,
       y: area.y + area.height - height,
-      width: WIDTH,
+      width,
       height,
       show: false,
       frame: false,

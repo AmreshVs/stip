@@ -44,6 +44,7 @@ function close(action) {
 async function init() {
   const state = await window.stip.getState();
   applyTheme(state.settings.theme);
+  document.body.classList.toggle('no-dim', !state.settings.water.dimScreen);
   glasses = state.today.glasses;
   goal = state.settings.water.goalGlasses;
   const ml = state.settings.water.glassMl;

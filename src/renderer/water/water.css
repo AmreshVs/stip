@@ -8,8 +8,40 @@ body {
 
 :root {
   /* Centre of the orb, measured from the window's left edge. */
-  --orb-x: 568px;
+  --orb-x: calc(100vw - 152px);
   --orb-top: calc(100vh - 256px);
+}
+
+/* 0. The screen dims a little, so the reminder stands out. */
+.dim {
+  position: fixed;
+  inset: 0;
+  background: #000000;
+  opacity: 0;
+  animation: dimIn 0.8s ease forwards;
+}
+
+@keyframes dimIn {
+  to {
+    opacity: 0.4;
+  }
+}
+
+.no-dim .dim {
+  display: none;
+}
+
+.leaving .dim {
+  animation: dimOut 0.5s ease forwards;
+}
+
+@keyframes dimOut {
+  from {
+    opacity: 0.4;
+  }
+  to {
+    opacity: 0;
+  }
 }
 
 /* 1. The drop runs down the screen edge. */
