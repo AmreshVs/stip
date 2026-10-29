@@ -103,6 +103,7 @@ npm test                  # unit tests for the timing rules and stats
 npm run e2e               # end-to-end test: drives the real app with hidden windows
 npm run screenshots       # refresh the screenshots in docs/
 npm run icons             # render the icon PNGs from the SVGs in assets/
+npm run site              # preview the landing page at http://localhost:4173
 ```
 
 The [contributing guide](CONTRIBUTING.md) explains fast test timings, previewing any screen with `--show`, and how the code is laid out.
@@ -112,6 +113,7 @@ src/main/          Electron main process: scheduler, stats, tray and windows
 src/renderer/      One folder per window: break, water, tray, settings
 src/preload.js     The small API the windows use to talk to the main process
 assets/            Icon sources and generated PNGs
+docs/              The landing page, served by GitHub Pages
 e2e/               End-to-end test
 test/              Unit tests
 ```

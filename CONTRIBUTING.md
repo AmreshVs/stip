@@ -40,6 +40,16 @@ STIP_USER_DATA=/tmp/stip-dev npm start -- --show=break:aurora
 
 Views are `tray`, `tray.meeting` (tray with meeting mode on), `break`, `water`, `settings` and `settings.<page>` (for example `settings.stats`). Themes are `flat` and `aurora`.
 
+## The landing page
+
+The website at [amreshvs.github.io/stip](https://amreshvs.github.io/stip) lives in `docs/` and is plain HTML, CSS and JavaScript. Preview it with:
+
+```bash
+npm run site
+```
+
+Then open http://localhost:4173. If that port is taken, use another one: `PORT=4174 npm run site`.
+
 ## Before you open a pull request
 
 1. Run the unit tests: `npm test`
