@@ -1,0 +1,55 @@
+name: Bug report
+description: Something in Stip doesn't work the way it should
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you expect, and what did Stip do instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open the tray
+        2. Click Water now
+        3. ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Stip version
+      description: Shown at the bottom of the settings sidebar.
+      placeholder: 0.1.0
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - macOS
+        - Windows
+        - Linux
+    validations:
+      required: true
+  - type: input
+    id: displays
+    attributes:
+      label: How many displays?
+      placeholder: "2"
+  - type: dropdown
+    id: theme
+    attributes:
+      label: Theme
+      options:
+        - Flat
+        - Aurora
+  - type: textarea
+    id: extra
+    attributes:
+      label: Screenshots or anything else
