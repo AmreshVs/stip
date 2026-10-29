@@ -86,9 +86,9 @@ async function main() {
     .png()
     .toFile(out('water-flat.png'));
 
-  await sharp(capture('settings', 'flat')).png().toFile(out('settings-flat.png'));
+  await sharp(capture('settings.stand', 'flat')).png().toFile(out('settings-flat.png'));
   await sharp(capture('settings.stats', 'flat')).png().toFile(out('stats-flat.png'));
-  await sharp(capture('settings', 'aurora')).png().toFile(out('settings-aurora.png'));
+  await sharp(capture('settings.stand', 'aurora')).png().toFile(out('settings-aurora.png'));
 
   fs.rmSync(tmp, { recursive: true, force: true });
   console.log(`Screenshots saved to ${path.relative(root, outDir)}`);

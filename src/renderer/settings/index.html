@@ -11,7 +11,11 @@
   <div class="window">
     <nav class="sidebar" aria-label="Settings sections">
       <div class="drag"></div>
-      <button class="nav on" data-page="stand">
+      <button class="nav on" data-page="general">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>
+        General
+      </button>
+      <button class="nav" data-page="stand">
         <svg class="i-stand" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="4.5" r="2"/><path d="M12 7v7M8 10l4-2 4 2M9.5 21l2.5-7 2.5 7"/></svg>
         Stand breaks
       </button>
@@ -27,10 +31,6 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V12M12 20V5M19 20v-9"/></svg>
         Stats
       </button>
-      <button class="nav" data-page="general">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>
-        General
-      </button>
       <div class="grow"></div>
       <div class="version">
         <svg viewBox="0 0 300 500" aria-hidden="true"><path class="v-drop" d="M150 0C150 0 70 94 70 150a80 80 0 00160 0C230 94 150 0 150 0z"/><path class="v-arrow" d="M150 465 L150 315 M70 390 L150 310 L230 390"/></svg>
@@ -40,7 +40,7 @@
 
     <main class="content">
       <!-- Stand breaks -->
-      <section class="page" id="page-stand">
+      <section class="page" id="page-stand" hidden>
         <div class="col">
           <header>
             <h1 class="display">Stand breaks</h1>
@@ -281,7 +281,7 @@
       </section>
 
       <!-- General -->
-      <section class="page" id="page-general" hidden>
+      <section class="page" id="page-general">
         <div class="col">
           <header>
             <h1 class="display">General</h1>
