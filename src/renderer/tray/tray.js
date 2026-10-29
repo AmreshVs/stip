@@ -8,7 +8,7 @@ document.addEventListener('click', (event) => {
 });
 
 function render(state) {
-  const { settings, status, today, streak, meeting, platform } = state;
+  const { settings, status, today, streak, meeting } = state;
   applyTheme(settings.theme);
 
   const paused = status.pausedUntil > 0;
@@ -46,7 +46,6 @@ function render(state) {
   $('pause-label').textContent = paused ? 'Reminders are paused' : 'Pause reminders';
   $('pause-row').hidden = paused;
   $('resume').hidden = !paused;
-  $('settings-key').textContent = platform === 'darwin' ? '⌘ ,' : 'Ctrl ,';
 }
 
 window.stip.onState(render);

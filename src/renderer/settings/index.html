@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:">
+  <title>Stip settings</title>
+  <link rel="stylesheet" href="../shared/base.css">
+  <link rel="stylesheet" href="settings.css">
+</head>
+<body>
+  <div class="window">
+    <nav class="sidebar" aria-label="Settings sections">
+      <div class="drag"></div>
+      <button class="nav on" data-page="stand"><i class="dot stand"></i>Stand breaks</button>
+      <button class="nav" data-page="water"><i class="dot water"></i>Water</button>
+      <button class="nav" data-page="meetings"><i class="dot alert"></i>Meetings and focus</button>
+      <button class="nav" data-page="general"><i class="dot"></i>General</button>
+      <div class="grow"></div>
+      <div class="streak"><div class="streak-num display" id="streak">0 days</div>stand streak. Your back says thanks.</div>
+    </nav>
+
+    <main class="content">
+      <!-- Stand breaks -->
+      <section class="page" id="page-stand">
+        <div class="col">
+          <header>
+            <h1 class="display">Stand breaks</h1>
+            <p class="lede">How often you get nudged off your chair, and how hard.</p>
+          </header>
+
+          <div class="field">
+            <div class="field-head">
+              <label for="every">Remind me every</label>
+              <span class="value display"><span id="every-out">40</span> <small>min</small></span>
+            </div>
+            <input id="every" type="range" min="15" max="90" step="5" data-key="stand.everyMin" data-num>
+            <div class="scale"><span>15 min</span><span>Recommended 30 to 45</span><span>90 min</span></div>
+          </div>
+
+          <div class="field">
+            <div class="label">Break length</div>
+            <div class="segmented" role="radiogroup" aria-label="Break length" data-key="stand.breakSec" data-num>
+              <button role="radio" data-value="30">30 s</button>
+              <button role="radio" data-value="60">60 s</button>
+              <button role="radio" data-value="120">2 min</button>
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="label">How strict</div>
+            <div class="cards" role="radiogroup" aria-label="How strict" data-key="stand.strictness">
+              <button role="radio" data-value="gentle"><strong>Gentle</strong><span>Skip or snooze any time</span></button>
+              <button role="radio" data-value="balanced"><strong>Balanced</strong><span>Hold Esc 3 s to skip</span></button>
+              <button role="radio" data-value="strict"><strong>Strict</strong><span>Meetings only, no skip</span></button>
+            </div>
+          </div>
+
+          <div class="list">
+            <label class="row"><span><strong>Cover all displays</strong><small>Memes on the extra screens</small></span><input type="checkbox" class="switch" data-key="stand.coverAllDisplays"></label>
+            <label class="row"><span><strong>Reset the timer when I'm away</strong><small>No input for 5 min counts as a break</small></span><input type="checkbox" class="switch" data-key="stand.resetWhenAway"></label>
+            <label class="row"><span><strong>Working hours only</strong><small id="hours-summary">No reminders outside these</small></span><input type="checkbox" class="switch" data-key="workHours.enabled"></label>
+            <div class="row sub-row" id="hours-detail">
+              <div class="days" id="days" aria-label="Working days"></div>
+              <span class="times">
+                <input type="time" aria-label="Start" data-key="workHours.start">
+                <span>to</span>
+                <input type="time" aria-label="End" data-key="workHours.end">
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <aside class="side">
+          <div class="eyebrow">Live preview</div>
+          <div class="preview">
+            <div class="preview-orb display" id="preview-time">1:00</div>
+            <div class="preview-line display">Keep calm and <span>stand up.</span></div>
+          </div>
+          <button class="outline" data-act="stand-now">Try a break now</button>
+          <div class="today">
+            <div class="today-title">Today</div>
+            <div class="bars" id="bars" aria-label="Breaks per hour today"></div>
+            <div class="bars-scale"><span>09</span><span>12</span><span>15</span><span>18</span></div>
+          </div>
+        </aside>
+      </section>
+
+      <!-- Water -->
+      <section class="page" id="page-water" hidden>
+        <div class="col">
+          <header>
+            <h1 class="display">Water</h1>
+            <p class="lede">A little drop in the corner, every so often.</p>
+          </header>
+          <div class="list">
+            <label class="row"><span><strong>Water reminders</strong><small>The drop and orb in the bottom corner</small></span><input type="checkbox" class="switch" data-key="water.enabled"></label>
+          </div>
+          <div class="field">
+            <div class="field-head">
+              <label for="water-every">Remind me every</label>
+              <span class="value display"><span id="water-every-out">30</span> <small>min</small></span>
+            </div>
+            <input id="water-every" type="range" min="15" max="120" step="5" data-key="water.everyMin" data-num>
+          </div>
+          <div class="field">
+            <div class="field-head">
+              <label for="goal">Daily goal</label>
+              <span class="value display"><span id="goal-out">8</span> <small>glasses</small></span>
+            </div>
+            <input id="goal" type="range" min="4" max="14" step="1" data-key="water.goalGlasses" data-num>
+          </div>
+          <div class="field">
+            <div class="label">Glass size</div>
+            <div class="segmented" role="radiogroup" aria-label="Glass size" data-key="water.glassMl" data-num>
+              <button role="radio" data-value="200">200 ml</button>
+              <button role="radio" data-value="250">250 ml</button>
+              <button role="radio" data-value="330">330 ml</button>
+              <button role="radio" data-value="500">500 ml</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Meetings -->
+      <section class="page" id="page-meetings" hidden>
+        <div class="col">
+          <header>
+            <h1 class="display">Meetings and focus</h1>
+            <p class="lede">Stip never covers your screen in the middle of a call.</p>
+          </header>
+          <div class="list">
+            <label class="row"><span><strong>Wait while I'm on a call</strong><small>When meeting mode is on, or a Zoom call is running</small></span><input type="checkbox" class="switch" data-key="stand.waitDuringCalls"></label>
+          </div>
+          <p class="note">Turn on meeting mode from the tray, or press "I'm in a meeting" on the break screen. The break then waits, and starts 30 seconds after you turn meeting mode off. Meeting mode switches itself off after 90 minutes.</p>
+        </div>
+      </section>
+
+      <!-- General -->
+      <section class="page" id="page-general" hidden>
+        <div class="col">
+          <header>
+            <h1 class="display">General</h1>
+            <p class="lede">How Stip looks and behaves.</p>
+          </header>
+          <div class="field">
+            <div class="label">Theme</div>
+            <div class="cards themes" role="radiogroup" aria-label="Theme" data-key="theme">
+              <button role="radio" data-value="flat"><i class="swatch flat"></i><strong>Flat</strong><span>Bold and solid</span></button>
+              <button role="radio" data-value="aurora"><i class="swatch aurora"></i><strong>Aurora</strong><span>Calm, glowing night</span></button>
+            </div>
+          </div>
+          <div class="list">
+            <label class="row"><span><strong>Sound</strong><small>A soft chime when a break ends</small></span><input type="checkbox" class="switch" data-key="sound"></label>
+            <label class="row"><span><strong>Open at login</strong><small>Start Stip when you log in</small></span><input type="checkbox" class="switch" data-key="launchAtLogin"></label>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script src="../shared/format.js"></script>
+  <script src="settings.js"></script>
+</body>
+</html>

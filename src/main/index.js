@@ -5,6 +5,7 @@ const { Meeting } = require('./meeting');
 const { TrayUI } = require('./tray');
 const { BreakScreens } = require('./breaks');
 const { WaterReminder } = require('./water');
+const { SettingsWindow } = require('./settings-window');
 const { snapshot, requestedView } = require('./snapshot');
 
 // Lets dev runs and snapshots keep their settings apart from the real ones.
@@ -22,6 +23,7 @@ let meeting;
 let tray;
 let breaks;
 let water;
+let settingsWindow;
 
 function minutesUntilMidnight(now = new Date()) {
   const midnight = new Date(now);
@@ -41,8 +43,12 @@ function state() {
   };
 }
 
-function broadcast() {
-  tray.send(state());
+// The tray gets every tick; the settings window only real changes, so it
+// doesn't redraw under the user's pointer every second.
+function broadcast({ includeSettings = true } = {}) {
+  const current = state();
+  tray.send(current);
+  if (includeSettings) settingsWindow.send(current);
 }
 
 function updateTrayTitle() {
@@ -82,7 +88,11 @@ const actions = {
     scheduler.pause(Date.now(), minutes === 'day' ? minutesUntilMidnight() : Number(minutes));
   },
   resume: () => scheduler.resume(Date.now()),
-  settings: () => {},
+  settings: () => {
+    tray.hide();
+    settingsWindow.open(settings.get().theme);
+  },
+  'settings-set': (patch) => settings.set(patch),
   quit: () => app.quit(),
 };
 
@@ -101,6 +111,13 @@ function onBreakFinished(how) {
     scheduler.skip(now);
   }
   broadcast();
+}
+
+function applyLoginItem(next) {
+  if (process.env.STIP_USER_DATA) return;
+  if (app.getLoginItemSettings().openAtLogin !== next.launchAtLogin) {
+    app.setLoginItemSettings({ openAtLogin: next.launchAtLogin });
+  }
 }
 
 function handleAction(name, payload = {}) {
@@ -122,6 +139,7 @@ app.whenReady().then(() => {
   tray = new TrayUI({ onAction: handleAction });
   breaks = new BreakScreens({ onFinish: onBreakFinished });
   water = new WaterReminder();
+  settingsWindow = new SettingsWindow();
   scheduler.on('stand', () => {
     water.hide();
     breaks.show(settings.get());
@@ -133,8 +151,9 @@ app.whenReady().then(() => {
   ipcMain.handle('state', () => state());
   ipcMain.on('act', (_event, name, payload) => handleAction(name, payload));
 
-  settings.on('change', () => {
+  settings.on('change', (next) => {
     scheduler.reschedule(Date.now());
+    applyLoginItem(next);
     broadcast();
   });
   stats.on('change', broadcast);
@@ -146,7 +165,7 @@ app.whenReady().then(() => {
       inMeeting: meeting.active(now),
     });
     updateTrayTitle();
-    broadcast();
+    broadcast({ includeSettings: false });
   }, 1000);
   updateTrayTitle();
   showRequestedView();
@@ -163,6 +182,8 @@ async function showRequestedView() {
     win = breaks.primary;
   } else if (name === 'water') {
     win = water.show();
+  } else if (name === 'settings') {
+    win = settingsWindow.open(settings.get().theme);
   } else {
     win = tray.open();
   }

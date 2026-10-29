@@ -5,6 +5,7 @@ const { EventEmitter } = require('node:events');
 const DEFAULTS = {
   theme: 'flat',
   sound: true,
+  launchAtLogin: false,
   stand: {
     everyMin: 40,
     breakSec: 60,
