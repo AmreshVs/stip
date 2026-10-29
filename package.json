@@ -8,7 +8,7 @@
   "private": true,
   "scripts": {
     "start": "electron .",
-    "test": "node --test test/",
+    "test": "node --test",
     "icons": "node scripts/build-icons.js",
     "dist": "electron-builder"
   },
