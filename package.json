@@ -37,7 +37,8 @@
     "screenshots": "node scripts/screenshots.js",
     "site": "node scripts/serve-site.js",
     "dist:mac": "electron-builder --mac --publish never",
-    "dist:linux": "electron-builder --linux --publish never"
+    "dist:linux": "electron-builder --linux --publish never",
+    "bump": "node scripts/bump.js"
   },
   "dependencies": {
     "@fontsource/bricolage-grotesque": "5.3.0",

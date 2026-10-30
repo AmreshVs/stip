@@ -1,19 +1,96 @@
 name: Release
 
-# Builds the macOS DMG and the Linux AppImage and .deb.
-# Push a tag like v1.0.0 to build them and publish a GitHub release.
-# Run it by hand from the Actions tab to build without releasing.
+# Builds the macOS DMG and the Linux AppImage and .deb, and publishes them as
+# a GitHub release.
+#
+# From the Actions tab ("Run workflow"):
+#   Bump the version   none, patch, minor or major. Updates package.json and
+#                      CHANGELOG.md and commits that to main.
+#   Publish a release  Tags the version and publishes a GitHub release with
+#                      the installers and that version's changelog notes.
+#                      Unticked, it only builds them.
+#
+# Pushing a tag like v1.0.0 also builds and publishes a release.
 on:
   push:
     tags: ['v*']
   workflow_dispatch:
+    inputs:
+      bump:
+        description: Bump the version
+        type: choice
+        options: [none, patch, minor, major]
+        default: none
+      release:
+        description: Tag this version and publish a GitHub release
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 jobs:
+  prepare:
+    name: Prepare version
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      sha: ${{ steps.version.outputs.sha }}
+      publish: ${{ steps.version.outputs.publish }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Bump the version
+        if: github.event_name == 'workflow_dispatch' && inputs.bump != 'none'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          node scripts/bump.js "${{ inputs.bump }}"
+          git push origin HEAD:main
+
+      - name: Work out the version
+        id: version
+        shell: bash
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+          if [ "$GITHUB_EVENT_NAME" = "push" ]; then
+            if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+              echo "::error::Tag $GITHUB_REF_NAME doesn't match package.json version $version"
+              exit 1
+            fi
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          elif [ "${{ inputs.release }}" = "true" ]; then
+            if git ls-remote --exit-code --tags origin "refs/tags/v$version" > /dev/null; then
+              echo "::error::v$version is already released. Run again with a bump."
+              exit 1
+            fi
+            if ! grep -q "## \[$version\]" CHANGELOG.md; then
+              echo "::error::CHANGELOG.md has no section for $version."
+              exit 1
+            fi
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "Version $version"
+
   build:
     name: Build (${{ matrix.name }})
+    needs: prepare
     runs-on: ${{ matrix.os }}
     env:
       # Whether the Apple signing secrets have been added to the repository.
@@ -33,20 +110,12 @@ jobs:
               dist/*.deb
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-
-      - name: Check the tag matches package.json
-        if: startsWith(github.ref, 'refs/tags/v')
-        shell: bash
-        run: |
-          version="$(node -p "require('./package.json').version")"
-          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
-            echo "Tag $GITHUB_REF_NAME doesn't match package.json version $version"
-            exit 1
-          fi
 
       - run: npm ci
       - run: npm test
@@ -83,17 +152,25 @@ jobs:
 
   release:
     name: Publish release
-    needs: build
-    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [prepare, build]
+    if: needs.prepare.outputs.publish == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.sha }}
+      - name: Release notes from the changelog
+        run: node scripts/release-notes.js "${{ needs.prepare.outputs.version }}" > release-notes.md
       - uses: actions/download-artifact@v4
         with:
           path: dist
           merge-multiple: true
       - uses: softprops/action-gh-release@v2
         with:
+          tag_name: v${{ needs.prepare.outputs.version }}
+          target_commitish: ${{ needs.prepare.outputs.sha }}
+          name: Stip ${{ needs.prepare.outputs.version }}
+          body_path: release-notes.md
           files: dist/*
-          generate_release_notes: true
