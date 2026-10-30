@@ -135,7 +135,7 @@ async function testBreak(stip) {
 
   stip.settings.set({ stand: { breakSec: 3 } });
   await openBreak(stip);
-  check('break ends by itself when time is up', await waitFor(() => !stip.breaks.open, 8000));
+  check('break ends by itself when time is up', await waitFor(() => !stip.breaks.open, 18000));
   check('finished break is counted', stip.stats.today().breaks === 1);
   check('timer restarts after a break', stip.scheduler.status(Date.now()).sittingMs < 5000);
 

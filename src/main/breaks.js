@@ -6,6 +6,8 @@ const PRELOAD = path.join(__dirname, '..', 'preload.js');
 const PAGE = path.join(__dirname, '..', 'renderer', 'break', 'index.html');
 // If the page never reports back, close the break anyway.
 const FAILSAFE_MS = 5000;
+// A moment to push the chair back and stand before the timer starts.
+const GET_UP_MS = 10 * 1000;
 
 // Screenshot runs can ask for a fixed size (STIP_SNAPSHOT_SIZE=1600x900) so
 // pictures don't depend on the monitor they were taken on.
@@ -32,7 +34,8 @@ class BreakScreens {
     if (this.open) return;
     const primary = screen.getPrimaryDisplay();
     const displays = settings.stand.coverAllDisplays ? screen.getAllDisplays() : [primary];
-    const endsAt = Date.now() + settings.stand.breakSec * 1000;
+    const startsAt = Date.now() + GET_UP_MS;
+    const endsAt = startsAt + settings.stand.breakSec * 1000;
     this.memeOffset += displays.length + 1;
 
     displays.forEach((display, index) => {
@@ -61,6 +64,7 @@ class BreakScreens {
       win.webContents.once('did-finish-load', () => {
         win.webContents.send('show', {
           role: isPrimary ? 'main' : 'meme',
+          startsAt,
           endsAt,
           breakSec: settings.stand.breakSec,
           strictness: settings.stand.strictness,

@@ -50,7 +50,13 @@ function chime() {
 }
 
 function tick() {
-  const remaining = show.endsAt - Date.now();
+  // First a few seconds to get up: the timer waits, full, until then.
+  const toStart = show.startsAt - Date.now();
+  const gettingUp = toStart > 0;
+  document.body.classList.toggle('getting-up', gettingUp);
+  if (gettingUp) $('get-up').textContent = `Stand up · ${Math.ceil(toStart / 1000)}`;
+
+  const remaining = gettingUp ? show.breakSec * 1000 : show.endsAt - Date.now();
   const text = fmt.clock(remaining);
   $('time').textContent = text;
   $('meme-time').textContent = text;

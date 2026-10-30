@@ -566,3 +566,22 @@ h1 {
     opacity: 1;
   }
 }
+
+/* The first seconds: time to get up before the timer runs. */
+.breath .up {
+  display: none;
+}
+
+.getting-up .breath .in,
+.getting-up .breath .out {
+  display: none;
+}
+
+.getting-up .breath .up {
+  display: block;
+  white-space: nowrap;
+}
+
+.getting-up .time {
+  opacity: 0.55;
+}
