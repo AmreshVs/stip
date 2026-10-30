@@ -38,7 +38,8 @@
     "site": "node scripts/serve-site.js",
     "dist:mac": "electron-builder --mac --publish never",
     "dist:linux": "electron-builder --linux --publish never",
-    "bump": "node scripts/bump.js"
+    "bump": "node scripts/bump.js",
+    "dmg-background": "electron scripts/build-dmg-background.js"
   },
   "dependencies": {
     "@fontsource/bricolage-grotesque": "5.3.0",
@@ -103,6 +104,28 @@
       "synopsis": "Stand up and drink water: a calm break reminder"
     },
     "artifactName": "Stip-${version}-${arch}.${ext}",
-    "publish": null
+    "publish": null,
+    "dmg": {
+      "title": "Stip ${version}",
+      "background": "build/background.png",
+      "iconSize": 96,
+      "window": {
+        "width": 540,
+        "height": 380
+      },
+      "contents": [
+        {
+          "x": 140,
+          "y": 196,
+          "type": "file"
+        },
+        {
+          "x": 400,
+          "y": 196,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    }
   }
 }
