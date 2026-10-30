@@ -11,3 +11,4 @@ const section = changelog.match(new RegExp(`## \\[${escaped}\\][^\\n]*\\n([\\s\\
 const notes = section ? section[1].trim() : '';
 console.log(notes || `Stip ${version}.`);
 console.log(`\n**Download:** the \`.dmg\` for macOS (\`arm64\` for Apple silicon, \`x64\` for Intel), the \`.AppImage\` or \`.deb\` for Linux, or the \`.exe\` for Windows (unsigned for now: on first run choose More info, then Run anyway).`);
+console.log(`\n**Windows:** Stip is also on the [Microsoft Store](https://apps.microsoft.com/detail/9MSN24PF9CD5), where it installs without a warning and updates itself.`);
