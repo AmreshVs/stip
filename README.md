@@ -82,7 +82,7 @@ You need Node.js 20 or newer.
 
 - **Tray:** click the Stip icon in the menu bar or system tray for the countdown, today's water, and the Stand now, Water now and meeting mode buttons. On macOS the countdown also shows right in the menu bar.
 - **During a break:** stand, stretch and breathe with the orb. If you can't right now, use "I'm in a meeting", "Snooze 5 min", or hold Esc for 3 seconds to skip.
-- **Water:** tap "I sipped" when you drink, or "In 10 min" to be asked again later. The orb disappears on its own after 20 seconds.
+- **Water:** tap "I sipped" when you drink, or "In 10 min" to be asked again later. The orb waits a minute, and stays put while your pointer is on it.
 - **Settings:** open them from the tray to change the timing, strictness, water goal, working hours and theme.
 
 ## Privacy

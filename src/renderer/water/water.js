@@ -1,6 +1,8 @@
 const $ = (id) => document.getElementById(id);
-// If nobody answers, tuck the orb away and ask again later.
-const IGNORE_AFTER_MS = 20000;
+// If nobody answers, tuck the orb away and ask again later. The clock stops
+// while the pointer is on the orb or card, and gives time again after.
+const IGNORE_AFTER_MS = 60000;
+const AFTER_LEAVE_MS = 20000;
 
 // Our own copy; the <em> marks the highlighted word.
 const LINES = [
@@ -56,7 +58,12 @@ async function init() {
   renderDots(glasses);
   setLevel(glasses);
 
-  const ignoreTimer = setTimeout(() => close('water-later'), IGNORE_AFTER_MS);
+  let ignoreTimer = setTimeout(() => close('water-later'), IGNORE_AFTER_MS);
+  const holdOpen = () => clearTimeout(ignoreTimer);
+  const letGo = () => {
+    clearTimeout(ignoreTimer);
+    ignoreTimer = setTimeout(() => close('water-later'), AFTER_LEAVE_MS);
+  };
 
   $('sipped').addEventListener('click', () => {
     if (answered) return;
@@ -77,8 +84,14 @@ async function init() {
 
   // Let clicks through the transparent parts of the window.
   document.querySelectorAll('.interactive').forEach((el) => {
-    el.addEventListener('mouseenter', () => window.stip.act('water-hover', { over: true }));
-    el.addEventListener('mouseleave', () => window.stip.act('water-hover', { over: false }));
+    el.addEventListener('mouseenter', () => {
+      holdOpen();
+      window.stip.act('water-hover', { over: true });
+    });
+    el.addEventListener('mouseleave', () => {
+      if (!answered) letGo();
+      window.stip.act('water-hover', { over: false });
+    });
   });
 }
 
