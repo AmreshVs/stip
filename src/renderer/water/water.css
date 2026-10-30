@@ -455,6 +455,28 @@ body {
   height: 48px;
   border-radius: 14px;
   font-size: 15px;
+  cursor: pointer;
+  transition: transform 0.15s ease, filter 0.15s ease, background-color 0.15s ease;
+}
+
+.buttons button:hover {
+  transform: translateY(-1px);
+}
+
+.buttons button:active {
+  transform: translateY(0) scale(0.97);
+}
+
+.sipped:hover {
+  filter: brightness(1.12);
+}
+
+.later:hover {
+  background: #3a3a3a;
+}
+
+[data-theme='aurora'] .later:hover {
+  background: rgba(255, 255, 255, 0.16);
 }
 
 .sipped {
