@@ -202,3 +202,187 @@
   font-size: 0.8em;
   color: #57534e;
 }
+
+/* Setup, then the punchline a few seconds later */
+.meme-joke {
+  padding: 20px;
+}
+
+.m-setup {
+  margin: 0;
+  font-size: 1em;
+  line-height: 1.4;
+}
+
+.m-punch {
+  margin: 12px 0 0;
+  font-family: var(--display);
+  font-weight: var(--display-weight);
+  font-size: 1.45em;
+  line-height: 1.1;
+  letter-spacing: var(--display-tracking);
+  animation: punch 0.5s ease 3s both;
+}
+
+@keyframes punch {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* A two-line chat */
+.meme-chat {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+}
+
+.m-say {
+  max-width: 85%;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 14px 14px 14px 4px;
+  background: #e7e3d9;
+  font-size: 0.9em;
+  line-height: 1.35;
+}
+
+.m-say b {
+  display: block;
+  font-size: 0.8em;
+  color: #57534e;
+}
+
+.m-say.m-right {
+  align-self: flex-end;
+  border-radius: 14px 14px 4px 14px;
+  background: #c6f35c;
+}
+
+[data-theme='aurora'] .m-say.m-right {
+  background: #ccfbf1;
+}
+
+/* A drawn scene with a caption */
+.m-art {
+  padding: 14px 14px 0;
+}
+
+.m-art svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  background: #e7e3d9;
+}
+
+.m-thin {
+  stroke-width: 2;
+}
+
+.m-thick {
+  stroke-width: 6;
+}
+
+.m-code,
+.m-code-dark,
+.m-window,
+.m-tabs {
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.m-code {
+  stroke: #c6f35c;
+}
+
+.m-code-dark {
+  stroke: #a8a29e;
+}
+
+.m-window {
+  stroke: #c6f35c;
+}
+
+.m-tabs {
+  stroke: #57534e;
+  stroke-width: 4;
+}
+
+.m-bubble {
+  fill: #ffffff;
+  stroke: #141414;
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.m-flame {
+  fill: #ff8a65;
+}
+
+.m-steam {
+  stroke-width: 2;
+  animation: steam 2s ease-in-out infinite;
+}
+
+@keyframes steam {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.m-glass {
+  fill: rgba(91, 140, 255, 0.18);
+  stroke: #141414;
+  stroke-width: 4;
+}
+
+.m-night {
+  fill: #141414;
+}
+
+.m-planet {
+  fill: #5b8cff;
+}
+
+.m-ring {
+  fill: none;
+  stroke: #c6f35c;
+  stroke-width: 3;
+}
+
+.m-star {
+  fill: #f3f0e8;
+}
+
+.m-white {
+  fill: #ffffff;
+  stroke: #141414;
+  stroke-width: 2;
+}
+
+.m-svgtext {
+  font-family: var(--body);
+  font-size: 8px;
+  font-weight: 700;
+  fill: #141414;
+}
+
+.m-svgtext.m-big {
+  font-size: 20px;
+}
+
+.m-svgtext.m-onnight {
+  fill: #f3f0e8;
+}
