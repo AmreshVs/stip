@@ -5,8 +5,11 @@ const { DEFAULTS, merge } = require('../src/main/store');
 
 const MIN = 60 * 1000;
 
+// Pinned timings, so the tests don't change when the defaults do.
+const BASE = { stand: { everyMin: 40, breakSec: 60, awayMin: 5 }, water: { everyMin: 30 } };
+
 function setup(patch = {}) {
-  const settings = merge(DEFAULTS, patch);
+  const settings = merge(merge(DEFAULTS, BASE), patch);
   const scheduler = new Scheduler(() => settings, 0);
   const events = [];
   for (const name of ['stand', 'stand-waiting', 'water']) {
@@ -132,4 +135,39 @@ test('next start of working hours', () => {
   const fridayEvening = new Date(2026, 9, 30, 21, 0);
   assert.equal(nextWorkStart(hours, fridayEvening), new Date(2026, 10, 2, 9, 0).getTime(), 'skips the weekend');
   assert.equal(nextWorkStart({ ...hours, days: [] }, fridayEvening), null);
+});
+
+test('snoozes run out after the limit, and a finished break resets them', () => {
+  const { scheduler } = setup({ water: { enabled: false }, stand: { maxSnoozes: 2 } });
+  assert.equal(scheduler.snoozesLeft(), 2);
+  scheduler.tick(40 * MIN);
+  scheduler.snooze(40 * MIN, 5);
+  scheduler.tick(45 * MIN);
+  scheduler.snooze(45 * MIN, 5);
+  assert.equal(scheduler.snoozesLeft(), 0);
+  scheduler.skip(50 * MIN);
+  assert.equal(scheduler.snoozesLeft(), 0, 'skipping is not a finished break');
+  scheduler.breakDone(90 * MIN);
+  assert.equal(scheduler.snoozesLeft(), 2);
+});
+
+test('away time also resets the snooze count', () => {
+  const { scheduler } = setup({ water: { enabled: false } });
+  scheduler.tick(40 * MIN);
+  scheduler.snooze(40 * MIN, 5);
+  scheduler.tick(44 * MIN, { idleSec: 5 * 60 });
+  assert.equal(scheduler.snoozesLeft(), 2);
+});
+
+test('no snooze limit when it is set to 0', () => {
+  const { scheduler } = setup({ stand: { maxSnoozes: 0 } });
+  for (let i = 0; i < 5; i += 1) scheduler.snooze(i * MIN, 5);
+  assert.equal(scheduler.snoozesLeft(), null);
+});
+
+test('defaults: 30 minutes sitting, 2 minute breaks, 3 minutes away, 2 snoozes', () => {
+  assert.equal(DEFAULTS.stand.everyMin, 30);
+  assert.equal(DEFAULTS.stand.breakSec, 120);
+  assert.equal(DEFAULTS.stand.awayMin, 3);
+  assert.equal(DEFAULTS.stand.maxSnoozes, 2);
 });

@@ -7,13 +7,15 @@ const DEFAULTS = {
   sound: true,
   launchAtLogin: false,
   stand: {
-    everyMin: 40,
-    breakSec: 60,
+    everyMin: 30,
+    breakSec: 120,
     strictness: 'balanced',
     coverAllDisplays: true,
     waitDuringCalls: true,
     resetWhenAway: true,
-    awayMin: 5,
+    awayMin: 3,
+    // Snoozes in a row before the break can't be put off. 0 means no limit.
+    maxSnoozes: 2,
   },
   water: {
     enabled: true,

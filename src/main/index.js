@@ -154,7 +154,7 @@ const ready = app.whenReady().then(() => {
   settingsWindow = new SettingsWindow();
   scheduler.on('stand', () => {
     water.hide();
-    breaks.show(settings.get());
+    breaks.show(settings.get(), scheduler.status(Date.now()));
   });
   scheduler.on('stand-waiting', () => {
     if (!Notification.isSupported()) return;

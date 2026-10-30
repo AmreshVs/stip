@@ -28,7 +28,7 @@ class BreakScreens {
     return this.windows.length > 0;
   }
 
-  show(settings) {
+  show(settings, { snoozesLeft = null } = {}) {
     if (this.open) return;
     const primary = screen.getPrimaryDisplay();
     const displays = settings.stand.coverAllDisplays ? screen.getAllDisplays() : [primary];
@@ -64,6 +64,7 @@ class BreakScreens {
           endsAt,
           breakSec: settings.stand.breakSec,
           strictness: settings.stand.strictness,
+          snoozesLeft,
           memeIndex: this.memeOffset + index,
           displayIndex: index + 1,
           displayCount: displays.length,

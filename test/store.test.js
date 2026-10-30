@@ -12,11 +12,11 @@ function tempDir() {
 test('settings merge with defaults and persist', () => {
   const dir = tempDir();
   const settings = new Settings(dir);
-  assert.equal(settings.get().stand.everyMin, 40);
-  settings.set({ stand: { everyMin: 30 } });
+  assert.equal(settings.get().stand.everyMin, 30);
+  settings.set({ stand: { everyMin: 45 } });
   const reloaded = new Settings(dir);
-  assert.equal(reloaded.get().stand.everyMin, 30);
-  assert.equal(reloaded.get().stand.breakSec, 60, 'untouched keys keep defaults');
+  assert.equal(reloaded.get().stand.everyMin, 45);
+  assert.equal(reloaded.get().stand.breakSec, 120, 'untouched keys keep defaults');
 });
 
 test('stats count today and the streak', () => {

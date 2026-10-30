@@ -44,6 +44,7 @@ class Scheduler extends EventEmitter {
     this.onBreak = false;
     this.waitingForMeeting = false;
     this.meetingEndedAt = 0;
+    this.snoozeCount = 0;
   }
 
   standEvery() {
@@ -74,6 +75,7 @@ class Scheduler extends EventEmitter {
       this.lastBreakAt = now;
       this.standDueAt = now + this.standEvery();
       this.waitingForMeeting = false;
+      this.snoozeCount = 0;
       this.emit('status');
     }
 
@@ -110,6 +112,7 @@ class Scheduler extends EventEmitter {
 
   breakDone(now) {
     this.onBreak = false;
+    this.snoozeCount = 0;
     this.lastBreakAt = now;
     this.standDueAt = now + this.standEvery();
     this.emit('status');
@@ -125,6 +128,7 @@ class Scheduler extends EventEmitter {
 
   snooze(now, minutes) {
     this.onBreak = false;
+    this.snoozeCount += 1;
     this.waitingForMeeting = false;
     this.standDueAt = now + minutes * MIN;
     this.emit('status');
@@ -168,7 +172,14 @@ class Scheduler extends EventEmitter {
     this.standDueAt = now + this.standEvery();
     this.waterDueAt = now + this.waterEvery();
     this.waitingForMeeting = false;
+    this.snoozeCount = 0;
     this.emit('status');
+  }
+
+  // How many more snoozes are allowed in a row, or null for no limit.
+  snoozesLeft() {
+    const max = this.getSettings().stand.maxSnoozes;
+    return max ? Math.max(0, max - this.snoozeCount) : null;
   }
 
   // Settings changed: re-arm the timers from the last break.
@@ -191,6 +202,7 @@ class Scheduler extends EventEmitter {
       pausedUntil: this.isPaused(now) ? this.pausedUntil : 0,
       waitingForMeeting: this.waitingForMeeting,
       onBreak: this.onBreak,
+      snoozesLeft: this.snoozesLeft(),
     };
   }
 }
