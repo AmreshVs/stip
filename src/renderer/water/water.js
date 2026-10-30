@@ -36,11 +36,14 @@ function renderDots(count) {
   dots.setAttribute('aria-label', `${count} of ${goal} glasses today`);
 }
 
+// Matches --leave in water.css: the window closes once the exit has played.
+const LEAVE_MS = 700;
+
 function close(action) {
   if (answered) return;
   answered = true;
   document.body.classList.add('leaving');
-  setTimeout(() => window.stip.act(action), 500);
+  setTimeout(() => window.stip.act(action), LEAVE_MS + 50);
 }
 
 async function init() {

@@ -13,6 +13,11 @@ body {
 }
 
 /* 0. The screen dims a little, so the reminder stands out. */
+:root {
+  --dim: 0.8;
+  --leave: 0.7s;
+}
+
 .dim {
   position: fixed;
   inset: 0;
@@ -23,7 +28,7 @@ body {
 
 @keyframes dimIn {
   to {
-    opacity: 0.8;
+    opacity: var(--dim);
   }
 }
 
@@ -32,12 +37,12 @@ body {
 }
 
 .leaving .dim {
-  animation: dimOut 0.5s ease forwards;
+  animation: dimOut var(--leave) ease-in-out forwards;
 }
 
 @keyframes dimOut {
   from {
-    opacity: 0.4;
+    opacity: var(--dim);
   }
   to {
     opacity: 0;
@@ -131,7 +136,7 @@ body {
   height: 260px;
   transform-origin: 50% 54%;
   transform: scale(0);
-  animation: pop 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.3) 1.95s forwards, bob 5s ease-in-out 2.6s infinite;
+  animation: pop 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.3) 1.95s forwards;
 }
 
 @keyframes pop {
@@ -154,6 +159,9 @@ body {
   width: 100%;
   height: 100%;
   overflow: visible;
+  /* The bob lives on the inner layer so the exit can play over it. */
+  transform-origin: 50% 54%;
+  animation: bob 5s ease-in-out 2.6s infinite;
 }
 
 .glass {
@@ -374,15 +382,51 @@ body {
   }
 }
 
-.leaving .card,
-.leaving .orb-wrap {
-  animation: leave 0.5s ease-in forwards;
+/* 4. Leaving: every animation starts from where things are now, so
+   nothing snaps. The card slides away, the orb gulps and sinks into the
+   corner, the dim fades. */
+.leaving .card {
+  animation: cardOut 0.4s cubic-bezier(0.4, 0, 1, 1) forwards;
 }
 
-@keyframes leave {
+@keyframes cardOut {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
   to {
     opacity: 0;
-    transform: translateY(30px) scale(0.9);
+    transform: translateX(24px) scale(0.96);
+  }
+}
+
+.leaving .orb-wrap {
+  animation: orbOut var(--leave) cubic-bezier(0.5, 0, 0.75, 0) forwards;
+}
+
+@keyframes orbOut {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  22% {
+    opacity: 1;
+    transform: scale(1.06, 0.94);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(70px) scale(0.35);
+  }
+}
+
+.leaving .trail,
+.leaving .drop {
+  animation: fadeAway 0.3s ease forwards;
+}
+
+@keyframes fadeAway {
+  to {
+    opacity: 0;
   }
 }
 
