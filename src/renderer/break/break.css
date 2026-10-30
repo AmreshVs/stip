@@ -318,10 +318,26 @@ h1 {
 }
 
 .sub {
-  margin: 18px 0 0;
-  font-size: 19px;
-  color: var(--text-muted);
-  max-width: 640px;
+  margin: 20px 0 0;
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--text);
+  max-width: 680px;
+}
+
+.sub.fresh {
+  animation: taskIn 0.6s ease both;
+}
+
+@keyframes taskIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 [data-theme='aurora'] .sub {

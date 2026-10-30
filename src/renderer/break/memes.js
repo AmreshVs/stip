@@ -17,7 +17,7 @@ window.MEMES = [
     kind: 'dialog',
     title: 'spine.exe',
     heading: 'spine.exe is not responding',
-    body: 'It has been in the same position for 40 minutes.',
+    body: 'It has been in the same position for 30 minutes.',
     buttons: ['Wait for it', 'Stand to restart'],
   },
   {

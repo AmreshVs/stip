@@ -139,6 +139,21 @@ async function testBreak(stip) {
   stip.meeting.setManual(false);
   stip.scheduler.restart(Date.now());
   stip.settings.set({ stand: { strictness: 'balanced' } });
+
+  // Two snoozes in a row, then the third break can't be snoozed.
+  stip.settings.set({ stand: { maxSnoozes: 2 } });
+  win = await openBreak(stip);
+  check('break shows a task to do', (await js(win, "document.getElementById('sub').textContent")).length > 10);
+  check('snooze says how many are left', (await js(win, "document.getElementById('snooze').textContent")).includes('2 left'));
+  await click(win, '#snooze');
+  await waitFor(() => !stip.breaks.open);
+  win = await openBreak(stip);
+  await click(win, '#snooze');
+  await waitFor(() => !stip.breaks.open);
+  win = await openBreak(stip);
+  check('snooze is gone after 2 in a row', await js(win, "document.getElementById('snooze').hidden"));
+  stip.breaks.finish('done');
+  check('a finished break gives the snoozes back', stip.scheduler.snoozesLeft() === 2);
 }
 
 async function testWater(stip) {

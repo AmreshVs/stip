@@ -2,13 +2,26 @@ const $ = (id) => document.getElementById(id);
 const HOLD_MS = 3000;
 
 const MESSAGES = [
-  ['Keep calm and', 'stand up.', 'Your chair has filed a restraining order. Give it sixty seconds.'],
-  ['Time to', 'unsit.', 'Your spine is buffering. Stand up to let it load.'],
-  ['Up you', 'get.', 'Stretch tall, roll your shoulders, look at something far away.'],
-  ['Legs:', 'deployed.', 'Sixty seconds of standing. Production can wait.'],
-  ['Stand up,', 'hero.', 'Your code reads better from a different angle.'],
-  ['Hydrate, then', 'elevate.', 'Grab some water while you are up.'],
+  ['Keep calm and', 'stand up.'],
+  ['Time to', 'unsit.'],
+  ['Up you', 'get.'],
+  ['Legs:', 'deployed.'],
+  ['Stand up,', 'hero.'],
+  ['Hydrate, then', 'elevate.'],
 ];
+
+// Something to do with the break. A new one every 40 seconds.
+const TASKS = [
+  'Stand up and take five slow, deep breaths.',
+  'Look at something 20 feet away for 20 seconds.',
+  'Go and drink a glass of water.',
+  'Do three slow shoulder rolls, then three backwards.',
+  'Reach for the ceiling, then let your arms hang loose.',
+  'Walk to the window and back.',
+  'Turn your head slowly left, then right. Twice.',
+  'Stretch your wrists: palms out, then palms in.',
+];
+const TASK_MS = 40000;
 
 let show = null;
 let finished = false;
@@ -55,6 +68,31 @@ function tick() {
 
 // Skipping needs a deliberate hold of Esc (or the button) unless the user
 // picked the gentle mode. Strict mode only allows the meeting escape.
+function startTasks(seed) {
+  let i = seed % TASKS.length;
+  const task = $('sub');
+  task.textContent = TASKS[i];
+  setInterval(() => {
+    i = (i + 1) % TASKS.length;
+    task.classList.remove('fresh');
+    void task.offsetWidth;
+    task.textContent = TASKS[i];
+    task.classList.add('fresh');
+  }, TASK_MS);
+}
+
+// After the allowed snoozes in a row, the break can't be put off again.
+function setupSnooze(strictness, left) {
+  const snooze = $('snooze');
+  if (strictness === 'strict') return;
+  if (left === 0) {
+    snooze.hidden = true;
+    $('note').textContent = 'No snoozes left. Time to stand.';
+    return;
+  }
+  if (left !== null) snooze.textContent = `Snooze 5 min · ${left} left`;
+}
+
 function setupSkip(strictness) {
   const skip = $('skip');
   if (strictness === 'strict') {
@@ -98,15 +136,16 @@ async function init(data) {
   $('chip-sat').textContent = `You focused for ${fmt.minutes(state.status.sittingMs)}`;
 
   if (data.role === 'main') {
-    const [lead, accent, sub] = MESSAGES[data.memeIndex % MESSAGES.length];
+    const [lead, accent] = MESSAGES[data.memeIndex % MESSAGES.length];
     $('lead').textContent = lead;
     $('accent').textContent = accent;
-    $('sub').textContent = sub;
+    startTasks(data.memeIndex);
     $('meme-left').innerHTML = memeAt(data.memeIndex);
     $('meme-right').innerHTML = memeAt(data.memeIndex + 1);
     $('note').textContent =
       data.displayCount > 1 ? `More memes on your other ${data.displayCount > 2 ? 'screens' : 'screen'}` : '';
     $('main-view').hidden = false;
+    setupSnooze(data.strictness, data.snoozesLeft);
     setupSkip(data.strictness);
     document.querySelectorAll('[data-finish]').forEach((button) => {
       button.addEventListener('click', () => finish(button.dataset.finish));
