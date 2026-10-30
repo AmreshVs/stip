@@ -94,6 +94,10 @@ Releases are built and published by GitHub Actions. Before a release, list the c
 
 Pushing a tag such as `v1.0.0` from your machine also builds and publishes a release. To bump locally instead of in CI, run `npm run bump -- patch` (or `minor`, `major`, or an exact version).
 
+### Microsoft Store
+
+Each release build also makes `Stip-<version>-x64.appx`, the Microsoft Store package for **Stip: Stand and Sip**. Download it from the run's page (Actions → Release → the run → Artifacts → `stip-Windows`), then upload it in Partner Center as a new submission. The Store signs it, so Store installs show no warning. The package identity is set under `build.appx` in `package.json`, and the tile images are made by `npm run icons`.
+
 ### Signing and notarizing for macOS
 
 The workflow signs the Mac app with a Developer ID certificate and notarizes it with Apple when these repository secrets exist (Settings → Secrets and variables → Actions). Without them, it falls back to an ad-hoc signature.

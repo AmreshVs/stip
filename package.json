@@ -40,7 +40,8 @@
     "dist:linux": "electron-builder --linux --publish never",
     "bump": "node scripts/bump.js",
     "dmg-background": "electron scripts/build-dmg-background.js",
-    "dist:win": "electron-builder --win --publish never"
+    "dist:win": "electron-builder --win --publish never",
+    "dist:store": "electron-builder --win appx --publish never"
   },
   "dependencies": {
     "@fontsource/bricolage-grotesque": "5.3.0",
@@ -132,6 +133,18 @@
           "path": "/Applications"
         }
       ]
+    },
+    "appx": {
+      "identityName": "AmreshVenkatesanSuresh.StipStandandSip",
+      "publisher": "CN=B816EEFE-E307-4467-A119-53E4B4207BCA",
+      "publisherDisplayName": "Amresh Venkatesan Suresh",
+      "displayName": "Stip: Stand and Sip",
+      "applicationId": "Stip",
+      "backgroundColor": "#141414",
+      "languages": [
+        "en-US"
+      ],
+      "artifactName": "Stip-${version}-${arch}.${ext}"
     }
   }
 }

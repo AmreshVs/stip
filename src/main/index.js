@@ -43,6 +43,7 @@ function state() {
     meeting: { manual: meeting.manual(now), active: meeting.active(now), until: meeting.manualUntil },
     platform: process.platform,
     version: app.getVersion(),
+    fromStore: Boolean(process.windowsStore),
   };
 }
 
@@ -132,7 +133,8 @@ function onBreakFinished(how) {
 }
 
 function applyLoginItem(next) {
-  if (process.env.STIP_USER_DATA) return;
+  // Store apps can't set this themselves; Windows' Startup apps page does it.
+  if (process.env.STIP_USER_DATA || process.windowsStore) return;
   if (app.getLoginItemSettings().openAtLogin !== next.launchAtLogin) {
     app.setLoginItemSettings({ openAtLogin: next.launchAtLogin });
   }

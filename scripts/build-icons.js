@@ -28,6 +28,22 @@ async function trayGlyph(size, color, file) {
     .toFile(out(file));
 }
 
+// Microsoft Store tiles: the arrow and drop on Stip's dark plate.
+async function storeTile(width, height, file) {
+  const size = Math.round(Math.min(width, height) * 0.62);
+  const x = (width - size) / 2;
+  const y = (height - size) / 2;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+    <rect width="${width}" height="${height}" fill="#141414"/>
+    <g transform="translate(${x} ${y}) scale(${size / 1024})">
+      <path d="M512 880 L512 560 M372 690 L512 550 L652 690" fill="none" stroke="#c6f35c" stroke-width="120" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M512 120C512 120 402 248 402 316a110 110 0 00220 0C622 248 512 120 512 120z" fill="#3d6bff"/>
+    </g>
+  </svg>`;
+  fs.mkdirSync(path.join(__dirname, '..', 'build', 'appx'), { recursive: true });
+  await sharp(Buffer.from(svg)).png().toFile(path.join(__dirname, '..', 'build', 'appx', file));
+}
+
 async function main() {
   fs.mkdirSync(path.join(assets, 'generated'), { recursive: true });
   await square('icon.svg', 1024, 'icon.png');
@@ -38,6 +54,13 @@ async function main() {
   await trayGlyph(36, '#000', 'trayTemplate@2x.png');
   // Windows and Linux trays: lime glyph that reads on dark and light bars.
   await trayGlyph(32, '#8fd14f', 'tray.png');
+  // Microsoft Store package tiles, read by electron-builder from build/appx.
+  await storeTile(50, 50, 'StoreLogo.png');
+  await storeTile(44, 44, 'Square44x44Logo.png');
+  await storeTile(71, 71, 'SmallTile.png');
+  await storeTile(150, 150, 'Square150x150Logo.png');
+  await storeTile(310, 150, 'Wide310x150Logo.png');
+  await storeTile(310, 310, 'LargeTile.png');
   console.log('Icons written to assets/generated');
 }
 

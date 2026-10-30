@@ -113,6 +113,7 @@ jobs:
             os: windows-latest
             files: |
               dist/*.exe
+              dist/*.appx
     steps:
       - uses: actions/checkout@v4
         with:
@@ -134,6 +135,12 @@ jobs:
       - name: Build (Windows)
         if: matrix.name == 'Windows'
         run: npm run dist:win
+
+      # The Microsoft Store package. Upload it in Partner Center; the Store
+      # signs it, so Store installs show no warning.
+      - name: Build the Store package (Windows)
+        if: matrix.name == 'Windows'
+        run: npm run dist:store
 
       # With the signing secrets set, the app is signed with the Developer ID
       # and notarized by Apple, so it opens without any warning.
@@ -184,4 +191,9 @@ jobs:
           target_commitish: ${{ needs.prepare.outputs.sha }}
           name: Stip ${{ needs.prepare.outputs.version }}
           body_path: release-notes.md
-          files: dist/*
+          # The Store package isn't attached: it only installs through the Store.
+          files: |
+            dist/*.dmg
+            dist/*.AppImage
+            dist/*.deb
+            dist/*.exe

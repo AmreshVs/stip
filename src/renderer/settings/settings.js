@@ -116,6 +116,9 @@ function render(state) {
   const { settings, today } = state;
   applyTheme(settings.theme);
   $('version').textContent = `Stip ${state.version}`;
+  // The Microsoft Store version starts at login through Windows' own settings.
+  $('login-row').hidden = state.fromStore;
+  $('login-store').hidden = !state.fromStore;
 
   document.querySelectorAll('input[type="range"][data-key]').forEach((input) => {
     if (document.activeElement !== input) input.value = get(settings, input.dataset.key);
