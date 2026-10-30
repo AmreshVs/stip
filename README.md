@@ -126,7 +126,7 @@ Bug reports, ideas and pull requests are welcome. Please read the [contributing 
 
 - Built with [Electron](https://www.electronjs.org/).
 - Fonts: [Bricolage Grotesque](https://fonts.google.com/specimen/Bricolage+Grotesque), [DM Sans](https://fonts.google.com/specimen/DM+Sans), [Instrument Serif](https://fonts.google.com/specimen/Instrument+Serif) and [Manrope](https://fonts.google.com/specimen/Manrope), all under the SIL Open Font License, bundled through [Fontsource](https://fontsource.org/).
-- Every meme in Stip was written for it. None are borrowed.
+- Every picture in Stip is drawn in code for it, and no images are borrowed. The jokes are a mix of Stip's own and classic programming one-liners.
 
 ## License
 

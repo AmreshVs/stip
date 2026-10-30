@@ -6,7 +6,7 @@ Thanks for wanting to help. Stip is small on purpose, so the best contributions 
 
 - **Report a bug.** Open an issue with your OS, Stip version (Settings shows it at the bottom of the sidebar) and the steps to reproduce it.
 - **Suggest an idea.** Open an issue first and describe the problem it solves. It's easier to agree on the idea before anyone writes code.
-- **Add a meme.** Stip only ships jokes written for it, drawn in markup. Add one to `src/renderer/break/memes.js`. Keep it kind, short and original: no copied images, no real people, no brands.
+- **Add a meme.** Memes live in `src/renderer/break/memes.js` and are drawn in markup: a joke with a punchline, a chat, a fake error dialog, a terminal, or a small line drawing. Keep it kind and short: no copied images or comics, no real people, no brands.
 - **Fix something.** Issues labelled `good first issue` are a good place to start.
 
 ## Set up
