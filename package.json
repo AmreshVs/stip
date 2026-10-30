@@ -1,7 +1,7 @@
 {
   "name": "stip",
   "productName": "Stip",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Stand. Sip. Ship. A tiny desktop nudge to stand up and drink water.",
   "license": "MIT",
   "author": "Amresh Vs",
@@ -35,7 +35,9 @@
     "dist": "electron-builder",
     "e2e": "electron e2e/run.js",
     "screenshots": "node scripts/screenshots.js",
-    "site": "node scripts/serve-site.js"
+    "site": "node scripts/serve-site.js",
+    "dist:mac": "electron-builder --mac --publish never",
+    "dist:linux": "electron-builder --linux --publish never"
   },
   "dependencies": {
     "@fontsource/bricolage-grotesque": "5.3.0",
@@ -63,8 +65,13 @@
       "category": "public.app-category.healthcare-fitness",
       "icon": "assets/generated/icon.png",
       "target": [
-        "dmg",
-        "zip"
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
       ],
       "extendInfo": {
         "LSUIElement": true
@@ -86,7 +93,11 @@
       "target": [
         "AppImage",
         "deb"
-      ]
-    }
+      ],
+      "maintainer": "Amresh Vs <amreshcse007@gmail.com>",
+      "synopsis": "Stand up and drink water: a calm break reminder"
+    },
+    "artifactName": "Stip-${version}-${arch}.${ext}",
+    "publish": null
   }
 }

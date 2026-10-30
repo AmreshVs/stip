@@ -59,7 +59,13 @@ Every 30 minutes, Stip covers your screens with a calm two-minute stand break, w
 
 ## Install
 
-Stip hasn't had a packaged release yet. Until then, build it from source:
+Download the latest version from the [releases page](https://github.com/AmreshVs/stip/releases/latest):
+
+- **macOS:** the `.dmg` (`arm64` for Apple silicon, `x64` for Intel Macs). The app isn't notarized by Apple yet, so the first time, right-click Stip in Applications and choose **Open**.
+- **Linux:** the `.AppImage` (make it executable, then run it) or the `.deb` for Debian and Ubuntu.
+- **Windows:** build it from source for now.
+
+To run it from source instead:
 
 ```bash
 git clone https://github.com/AmreshVs/stip.git
@@ -68,13 +74,26 @@ npm install
 npm start
 ```
 
-To build an installer for your platform:
+To build an installer yourself:
 
 ```bash
-npm run dist
+npm run dist:mac      # DMG, on macOS
+npm run dist:linux    # AppImage and .deb, on Linux
+npm run dist          # whatever fits the platform you're on
 ```
 
-You'll find a DMG on macOS, an installer on Windows, or an AppImage and .deb on Linux in the `dist/` folder. Build each platform on that platform.
+They land in `dist/`. Build each platform on that platform.
+
+## Releases
+
+Releases are built by GitHub Actions. Bump `version` in `package.json`, add the changes to `CHANGELOG.md`, then tag and push:
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+The workflow builds the DMG, AppImage and .deb and attaches them to a new GitHub release. You can also run it by hand from the Actions tab to build them without releasing.
 
 You need Node.js 20 or newer.
 

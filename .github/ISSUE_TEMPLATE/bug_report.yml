@@ -24,7 +24,7 @@ body:
     attributes:
       label: Stip version
       description: Shown at the bottom of the settings sidebar.
-      placeholder: 0.1.0
+      placeholder: 1.0.0
     validations:
       required: true
   - type: dropdown

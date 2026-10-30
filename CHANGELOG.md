@@ -4,6 +4,10 @@ All notable changes to Stip are listed here. The format follows [Keep a Changelo
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-10-30
+
+The first release.
+
 ### Added
 
 - Full-screen stand break on every display, with a breathing timer and a simple task on the main screen, and original memes on the others. Defaults: every 30 minutes, for 2 minutes.
@@ -19,3 +23,7 @@ All notable changes to Stip are listed here. The format follows [Keep a Changelo
 - Flat and aurora themes.
 - Away time and sleep count as a break.
 - Unit tests, an end-to-end test that drives the real app, and CI on macOS, Windows and Linux.
+- macOS DMG and Linux AppImage and .deb builds, made by CI for every release.
+
+[Unreleased]: https://github.com/AmreshVs/stip/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/AmreshVs/stip/releases/tag/v1.0.0
