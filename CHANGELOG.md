@@ -4,6 +4,10 @@ All notable changes to Stip are listed here. The format follows [Keep a Changelo
 
 ## [Unreleased]
 
+### Added
+
+- Stip is on the [Microsoft Store](https://apps.microsoft.com/detail/9MSN24PF9CD5). The website, README and release notes link to it.
+
 ### Fixed
 
 - The Microsoft Store version now shows up in Windows Settings → Apps → Startup, so it can open at login.

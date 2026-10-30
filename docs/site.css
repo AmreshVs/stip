@@ -250,6 +250,10 @@ a {
   justify-content: flex-end;
 }
 
+.hero-get {
+  font-size: var(--t-small);
+}
+
 /* Full-bleed screenshot */
 .bleed {
   background: var(--ink);
@@ -683,6 +687,13 @@ figure figcaption {
   align-items: flex-end;
   gap: 24px;
   flex-wrap: wrap;
+}
+
+.close-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 16px;
 }
 
 .close-foot p {
@@ -1163,6 +1174,12 @@ figure figcaption {
   .footer-cols {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     row-gap: 32px;
+  }
+
+  .close-actions {
+    width: 100%;
+    align-items: stretch;
+    text-align: center;
   }
 
   .close-foot .button {

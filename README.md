@@ -62,11 +62,15 @@ Every 30 minutes, Stip covers your screens with a calm two-minute stand break, w
 
 ## Install
 
-Download the latest version from the [releases page](https://github.com/AmreshVs/stip/releases/latest):
+<a href="https://apps.microsoft.com/detail/9MSN24PF9CD5?mode=direct"><img src="https://get.microsoft.com/images/en-us%20dark.svg" width="200" alt="Get it from Microsoft"></a>
+
+On Windows, the easiest way is the [Microsoft Store](https://apps.microsoft.com/detail/9MSN24PF9CD5). The Store version installs without any warning and updates itself.
+
+For macOS and Linux, or the Windows installer, download the latest version from the [releases page](https://github.com/AmreshVs/stip/releases/latest):
 
 - **macOS:** the `.dmg` (`arm64` for Apple silicon, `x64` for Intel Macs). Releases are signed and notarized by Apple. If a build ever says it can't be opened, open **System Settings → Privacy & Security** and choose **Open Anyway**, or run `xattr -cr /Applications/Stip.app`.
 - **Linux:** the `.AppImage` (make it executable, then run it) or the `.deb` for Debian and Ubuntu.
-- **Windows:** the `.exe` installer. It isn't code-signed yet, so the first time Windows SmartScreen says "Windows protected your PC": choose **More info**, then **Run anyway**.
+- **Windows:** the [Microsoft Store](https://apps.microsoft.com/detail/9MSN24PF9CD5), or the `.exe` installer. The installer isn't code-signed yet, so the first time Windows SmartScreen says "Windows protected your PC": choose **More info**, then **Run anyway**.
 
 To run it from source instead:
 
@@ -100,7 +104,7 @@ Pushing a tag such as `v1.0.0` from your machine also builds and publishes a rel
 
 ### Microsoft Store
 
-Each release build also makes `Stip-<version>-x64.appx`, the Microsoft Store package for **Stip: Stand and Sip**. Download it from the run's page (Actions → Release → the run → Artifacts → `stip-Windows`), then upload it in Partner Center as a new submission. The Store signs it, so Store installs show no warning. The package identity is set under `build.appx` in `package.json`, and the tile images are made by `npm run icons`.
+Each release build also makes `Stip-<version>-x64.appx`, the Microsoft Store package for **Stip: Stand and Sip**. Download it from the run's page (Actions → Release → the run → Artifacts → `stip-Windows`), then upload it in Partner Center as a new submission. The Store signs it, so Store installs show no warning. Stip's Store page is [apps.microsoft.com/detail/9MSN24PF9CD5](https://apps.microsoft.com/detail/9MSN24PF9CD5), and every GitHub release links to it. The package identity is set under `build.appx` in `package.json`, and the tile images are made by `npm run icons`.
 
 ### Signing and notarizing for macOS
 
