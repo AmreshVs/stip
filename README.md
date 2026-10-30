@@ -18,19 +18,19 @@
   <img src="docs/screenshots/break-flat.png" alt="The stand break: a breathing lime timer in the middle of the screen, the words Keep calm and stand up, and two memes">
 </p>
 
-Every 40 minutes, Stip covers your screens with a calm one-minute stand break. Every half hour, a water drop runs down the edge of your screen into a little orb that asks you to take a sip. It lives in your menu bar or system tray, stays out of your way during calls, and never sends your data anywhere.
+Every 30 minutes, Stip covers your screens with a calm two-minute stand break, with something simple to do: a stretch, a look out of the window, a glass of water. Every half hour, a water drop runs down the edge of your screen into a little orb that asks you to take a sip. It lives in your menu bar or system tray, stays out of your way during calls, and never sends your data anywhere.
 
 ## What it does
 
 **Stand breaks that are hard to ignore.** A full-screen break covers every display: a breathing timer on your main screen, memes on the others. A soft chime tells you when you can sit back down.
 
-**A way out when you need one.** "I'm in a meeting" waits until your call ends. "Snooze 5 min" does what it says. Skipping takes a 3-second hold of Esc, so you can't dismiss it by reflex. Pick how strict it should be: gentle, balanced or strict.
+**A way out when you need one.** "I'm in a meeting" waits until your call ends. "Snooze 5 min" works twice in a row, then it's time to stand. Skipping takes a 3-second hold of Esc, so you can't dismiss it by reflex. Pick how strict it should be: gentle, balanced or strict.
 
 **Calls are safe.** Turn on meeting mode from the tray and the break waits. Zoom calls are detected automatically. The break starts 30 seconds after the call ends.
 
 **A water reminder you'll actually notice.** The screen dims a little, a drop falls into an orb in the corner, and the water level shows how much you've had today. One click logs a glass, and clicks pass straight through to your apps everywhere else.
 
-**Fair timing.** Five minutes away from the keyboard counts as a break, and the timer restarts after your computer sleeps or locks. Set working days and hours, or pause for 30 minutes, an hour or the rest of the day.
+**Fair timing.** Three minutes away from the keyboard counts as a break, and the timer restarts after your computer sleeps or locks. Set working days and hours, or pause for 30 minutes, an hour or the rest of the day.
 
 **Your week at a glance.** A Stats page shows your stand streak, breaks by hour, and water over the last seven days.
 

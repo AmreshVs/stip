@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Stip: free stand-up and water reminder for Mac, Windows and Linux</title>
-  <meta name="description" content="Stip is a free, open-source break reminder. Every 40 minutes it covers your screens with a one-minute stand break, and it nudges you to drink water.">
+  <meta name="description" content="Stip is a free, open-source break reminder. Every 30 minutes it covers your screens with a two-minute stand break, and it nudges you to drink water.">
   <meta name="keywords" content="stand up reminder, break reminder app, water reminder, drink water reminder, sitting too long, desktop break timer, open source, macOS, Windows, Linux">
   <meta name="author" content="Amresh Vs">
   <meta name="robots" content="index, follow, max-image-preview:large">
@@ -15,17 +15,17 @@
   <meta property="og:site_name" content="Stip">
   <meta property="og:url" content="https://amreshvs.github.io/stip/">
   <meta property="og:title" content="Stip: stand up, sip water, then ship">
-  <meta property="og:description" content="A free desktop app that covers your screens with a one-minute stand break every 40 minutes and reminds you to drink water.">
+  <meta property="og:description" content="A free desktop app that covers your screens with a two-minute stand break every 30 minutes and reminds you to drink water.">
   <meta property="og:image" content="https://amreshvs.github.io/stip/og.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Stip's break screen: a lime breathing timer at 0:59 and the words Up you get, with two memes">
+  <meta property="og:image:alt" content="Stip's break screen: a lime breathing timer counting down two minutes, a short stretch to do, and two memes">
   <meta property="og:locale" content="en_US">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Stip: stand up, sip water, then ship">
-  <meta name="twitter:description" content="A free desktop app that covers your screens with a one-minute stand break every 40 minutes and reminds you to drink water.">
+  <meta name="twitter:description" content="A free desktop app that covers your screens with a two-minute stand break every 30 minutes and reminds you to drink water.">
   <meta name="twitter:image" content="https://amreshvs.github.io/stip/og.png">
-  <meta name="twitter:image:alt" content="Stip's break screen: a lime breathing timer at 0:59 and the words Up you get, with two memes">
+  <meta name="twitter:image:alt" content="Stip's break screen: a lime breathing timer counting down two minutes, a short stretch to do, and two memes">
 
   <meta name="theme-color" content="#2f5ce8">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
@@ -39,7 +39,7 @@
     "@type": "SoftwareApplication",
     "name": "Stip",
     "alternateName": "Stip: Stand. Sip. Ship.",
-    "description": "A free, open-source desktop app that covers your screens with a one-minute stand break every 40 minutes and reminds you to drink water.",
+    "description": "A free, open-source desktop app that covers your screens with a two-minute stand break every 30 minutes and reminds you to drink water.",
     "url": "https://amreshvs.github.io/stip/",
     "image": "https://amreshvs.github.io/stip/og.png",
     "screenshot": [
@@ -85,7 +85,7 @@
     </h1>
 
     <div class="hero-foot">
-      <p class="lede">Stip is a free desktop app that covers your screens with a one-minute stand break every 40 minutes, and nudges you to drink water.</p>
+      <p class="lede">Stip is a free desktop app that covers your screens with a two-minute stand break every 30 minutes, and nudges you to drink water.</p>
       <div class="hero-actions">
         <button class="button lime" type="button" data-try-break>Try a break now</button>
         <a class="text-link" href="https://github.com/AmreshVs/stip">Get it on GitHub</a>
@@ -95,21 +95,21 @@
 
   <main id="main">
     <figure class="bleed shot-break reveal">
-      <img src="screenshots/break-flat.png" width="1600" height="900" alt="Stip's break screen: a lime breathing timer reading 0:59, the words Keep calm and stand up, and two memes on the sides">
+      <img src="screenshots/break-flat.png" width="1600" height="900" alt="Stip's break screen: a lime breathing timer counting down two minutes, a short stretch to do, and two memes">
       <figcaption>The break, on your main screen. Your other monitors get memes.</figcaption>
     </figure>
 
     <section class="compare" aria-labelledby="compare-title">
       <div class="compare-head reveal">
-        <h2 id="compare-title">Forty, then one</h2>
-        <p>Forty minutes sitting, then one minute standing. That's the whole deal. Stip counts down quietly in your menu bar, then takes over every display for sixty seconds with a breathing timer, so you actually get up instead of swatting a notification away.</p>
+        <h2 id="compare-title">Thirty, then two</h2>
+        <p>Thirty minutes sitting, then two minutes standing. That's the whole deal. Stip counts down quietly in your menu bar, then takes over every display with a breathing timer and something simple to do, so you actually get up instead of swatting a notification away.</p>
       </div>
       <div class="specimens">
         <div class="specimen reveal">
-          <p class="specimen-num" aria-label="40 minutes sitting">40:00</p>
+          <p class="specimen-num" aria-label="30 minutes sitting">30:00</p>
         </div>
         <div class="specimen reveal">
-          <p class="specimen-num" aria-label="1 minute standing">1:00</p>
+          <p class="specimen-num" aria-label="2 minutes standing">2:00</p>
         </div>
       </div>
     </section>
@@ -134,7 +134,7 @@
         <li class="band blue" data-on="false">
           <div class="band-text">
             <p class="band-line">Count my coffee run as a break</p>
-            <p class="band-more">Five minutes away from the keyboard resets the timer. So does sleep.</p>
+            <p class="band-more">Three minutes away from the keyboard resets the timer. So does sleep.</p>
           </div>
           <button class="switch" type="button" role="switch" aria-checked="false" aria-label="Count my coffee run as a break" data-ui><i></i></button>
         </li>
@@ -174,13 +174,13 @@
     <section class="ask" aria-labelledby="ask-title">
       <h2 class="ask-title reveal" id="ask-title">When will it ask?</h2>
       <label class="visually-hidden" for="interval">How often should Stip remind you to stand?</label>
-      <input class="ask-input" id="interval" type="text" value="every 40 minutes" autocomplete="off" spellcheck="false" data-ui>
+      <input class="ask-input" id="interval" type="text" value="every 30 minutes" autocomplete="off" spellcheck="false" data-ui>
       <div class="ask-answer" aria-live="polite" data-ui>
         <p class="ask-summary" id="ask-summary"></p>
         <ol class="ask-times" id="ask-times"></ol>
       </div>
       <div class="ask-examples" aria-label="Try another interval">
-        <button type="button" data-example="every 30 minutes">every 30 minutes</button>
+        <button type="button" data-example="every 40 minutes">every 40 minutes</button>
         <button type="button" data-example="every 45 min">every 45 min</button>
         <button type="button" data-example="every hour">every hour</button>
       </div>
@@ -192,7 +192,7 @@
         <p>Settings are plain and quick: how often, how long, how strict. The Stats page shows your stand streak, breaks by hour and water over the last seven days. All of it stays on your computer.</p>
       </div>
       <figure class="week-settings reveal">
-        <img src="screenshots/settings-flat.png" width="1120" height="760" loading="lazy" alt="Stip settings for stand breaks: a 40 minute slider, break length, three strictness choices and display options">
+        <img src="screenshots/settings-flat.png" width="1120" height="760" loading="lazy" alt="Stip settings for stand breaks: a 30 minute slider, break length, three strictness choices and display options">
         <figcaption>Settings</figcaption>
       </figure>
       <figure class="week-stats reveal">
@@ -216,6 +216,7 @@
         <p><strong>Which computers does it run on?</strong> macOS, Windows and Linux. On macOS the countdown also sits right in the menu bar.</p>
         <p><strong>Does it send my data anywhere?</strong> No. Stip makes no network requests. Settings and stats are small files on your own computer.</p>
         <p><strong>What if I'm in a meeting?</strong> Press "I'm in a meeting" on the break, or turn on meeting mode from the tray. Zoom calls are spotted on their own. The break waits and starts 30 seconds after the call.</p>
+        <p><strong>Can I put a break off?</strong> Snooze it for 5 minutes, twice in a row at most. After that, it's time to stand.</p>
         <p><strong>Can I skip a break?</strong> Yes, by holding Esc for three seconds, so you can't skip by reflex. Gentle mode lets you skip with one press; strict mode doesn't let you skip at all.</p>
         <p><strong>Will it bother me at night?</strong> Not if you set working hours. Outside them the tray just says when it'll be back.</p>
         <p><strong>Where do the memes come from?</strong> Every one was written for Stip. "spine.exe is not responding" is a house favourite.</p>
@@ -249,7 +250,7 @@
     <aside class="demo-meme" aria-hidden="true">
       <div class="meme-bar"><span>spine.exe</span><span class="meme-dots"><i></i><i></i></span></div>
       <p class="meme-head">spine.exe is not responding</p>
-      <p class="meme-body">It has been in the same position for 40 minutes.</p>
+      <p class="meme-body">It has been in the same position for 30 minutes.</p>
       <p class="meme-buttons"><span>Wait for it</span><span class="go">Stand to restart</span></p>
     </aside>
     <div class="demo-center">
@@ -259,7 +260,7 @@
         <div class="orb-text"><span class="orb-time" id="demo-time">0:20</span><span class="orb-breath" id="demo-breath">Breathe in</span></div>
       </div>
       <p class="demo-title" id="demo-title">Keep calm and stand up.</p>
-      <p class="demo-sub" id="demo-sub">This is a 20-second taste. The real one lasts a minute.</p>
+      <p class="demo-sub" id="demo-sub">This is a 20-second taste. The real one lasts two minutes.</p>
     </div>
     <div class="demo-escape">
       <button type="button" class="esc-meeting" data-demo-close="meeting">I'm in a meeting</button>

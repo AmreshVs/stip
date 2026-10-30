@@ -34,7 +34,7 @@ $$('.band').forEach((band) => {
   });
 });
 
-/* When will it ask? Reads "every 40 minutes", "45 min", "every hour"... */
+/* When will it ask? Reads "every 30 minutes", "45 min", "every hour"... */
 const input = $('#interval');
 
 function parseInterval(text) {
@@ -55,7 +55,7 @@ function renderSchedule() {
   const summary = $('#ask-summary');
   const list = $('#ask-times');
   if (!every || every < 15 || every > 90) {
-    summary.textContent = 'Stip asks every 15 to 90 minutes. Try "every 40 minutes".';
+    summary.textContent = 'Stip asks every 15 to 90 minutes. Try "every 30 minutes".';
     list.replaceChildren();
     return;
   }
@@ -110,7 +110,7 @@ function tick() {
   if (left === 0) {
     clearInterval(ticker);
     $('#demo-title').textContent = 'Nice. Back to it.';
-    $('#demo-sub').textContent = 'That was a stand break. Stip does this every 40 minutes.';
+    $('#demo-sub').textContent = 'That was a stand break. Stip does this every 30 minutes.';
     setTimeout(() => closeDemo('Try another break'), 1600);
   }
 }
@@ -118,7 +118,7 @@ function tick() {
 function openDemo(event) {
   opener = event.currentTarget;
   $('#demo-title').textContent = 'Keep calm and stand up.';
-  $('#demo-sub').textContent = 'This is a 20-second taste. The real one lasts a minute.';
+  $('#demo-sub').textContent = 'This is a 20-second taste. The real one lasts two minutes.';
   demo.hidden = false;
   document.body.style.overflow = 'hidden';
   endsAt = Date.now() + DEMO_SEC * 1000;
