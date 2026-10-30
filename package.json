@@ -141,6 +141,7 @@
       "displayName": "Stip: Stand and Sip",
       "applicationId": "Stip",
       "backgroundColor": "#141414",
+      "addAutoLaunchExtension": true,
       "languages": [
         "en-US"
       ],

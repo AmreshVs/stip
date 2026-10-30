@@ -4,6 +4,10 @@ All notable changes to Stip are listed here. The format follows [Keep a Changelo
 
 ## [Unreleased]
 
+### Fixed
+
+- The Microsoft Store version now shows up in Windows Settings → Apps → Startup, so it can open at login.
+
 ## [1.0.0] - 2026-10-30
 
 The first release.
