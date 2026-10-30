@@ -55,9 +55,11 @@ function broadcast({ includeSettings = true } = {}) {
 }
 
 function updateTrayTitle() {
-  const { status, meeting: call } = state();
+  const { status, meeting: call, settings: current } = state();
   const clock = fmtClock(status.msToStand);
-  if (status.pausedUntil) tray.setTitle('Paused', 'Stip · paused');
+  // With the countdown hidden, the menu bar shows only the icon.
+  if (!current.showCountdown) tray.setTitle('', `Stip · next stand in ${clock}`);
+  else if (status.pausedUntil) tray.setTitle('Paused', 'Stip · paused');
   else if (status.offHours) tray.setTitle('', 'Stip · outside working hours');
   else if (status.waitingForMeeting) tray.setTitle('In call · break waiting', 'Stip · your break starts after the call');
   else if (call.active) tray.setTitle(`In call · ${clock}`, `Stip · in a call, next stand in ${clock}`);

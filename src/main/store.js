@@ -6,6 +6,7 @@ const DEFAULTS = {
   theme: 'flat',
   sound: true,
   launchAtLogin: false,
+  showCountdown: true,
   stand: {
     everyMin: 30,
     breakSec: 120,

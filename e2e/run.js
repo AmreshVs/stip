@@ -90,6 +90,12 @@ async function testTray(stip) {
   if (process.platform === 'darwin') {
     check('menu bar goes back to the countdown', await waitFor(() => /^\d+:\d\d$/.test(stip.tray.tray.getTitle())), stip.tray.tray.getTitle());
   }
+  if (process.platform === 'darwin') {
+    stip.settings.set({ showCountdown: false });
+    check('countdown can be hidden from the menu bar', await waitFor(() => stip.tray.tray.getTitle() === ''), stip.tray.tray.getTitle());
+    stip.settings.set({ showCountdown: true });
+    check('countdown comes back', await waitFor(() => /^\d+:\d\d$/.test(stip.tray.tray.getTitle())), stip.tray.tray.getTitle());
+  }
 
   stip.settings.set({ workHours: { enabled: true, days: [] } });
   check('tray says Off hours outside working hours', await waitFor(() => js(panel, "document.getElementById('status-text').textContent === 'Off hours'")));
@@ -163,6 +169,9 @@ async function testWater(stip) {
   await waitFor(() => js(win, "document.getElementById('count').textContent !== ''"));
   const level = await js(win, "document.getElementById('level').style.transform");
   check('water orb shows a level', /translateY/.test(level));
+  await js(win, "document.getElementById('card').dispatchEvent(new MouseEvent('mouseenter'))");
+  await sleep(500);
+  check('water reminder stays while the pointer is on it', Boolean(stip.water.win));
   await click(win, '#sipped');
   check('I sipped logs a glass', await waitFor(() => stip.stats.today().glasses === before + 1));
   check('water reminder closes after a sip', await waitFor(() => !stip.water.win, 4000));
