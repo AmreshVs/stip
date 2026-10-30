@@ -73,22 +73,23 @@ async function main() {
     await onBackdrop(tray, theme === 'flat' ? '#3d6bff' : '#0b1020', 48, out(`tray-${theme}.png`));
   }
 
-  // The water reminder dims a full-screen window; show its corner over a plain desktop.
-  const water = capture('water', 'flat', 4000);
-  const { width, height } = await sharp(water).metadata();
-  const desk = await sharp({ create: { width, height, channels: 4, background: '#9aa3b2' } })
-    .composite([{ input: water }])
-    .png()
-    .toBuffer();
-  const cropWidth = Math.min(width, 1100);
-  await sharp(desk)
-    .extract({ left: width - cropWidth, top: height - 640, width: cropWidth, height: 640 })
-    .png()
-    .toFile(out('water-flat.png'));
+  for (const theme of ['flat', 'aurora']) {
+    // The water reminder dims a full-screen window; show its corner over a plain desktop.
+    const water = capture('water', theme, 4000);
+    const { width, height } = await sharp(water).metadata();
+    const desk = await sharp({ create: { width, height, channels: 4, background: theme === 'flat' ? '#9aa3b2' : '#334155' } })
+      .composite([{ input: water }])
+      .png()
+      .toBuffer();
+    const cropWidth = Math.min(width, 1100);
+    await sharp(desk)
+      .extract({ left: width - cropWidth, top: height - 640, width: cropWidth, height: 640 })
+      .png()
+      .toFile(out(`water-${theme}.png`));
 
-  await sharp(capture('settings.stand', 'flat')).png().toFile(out('settings-flat.png'));
-  await sharp(capture('settings.stats', 'flat')).png().toFile(out('stats-flat.png'));
-  await sharp(capture('settings.stand', 'aurora')).png().toFile(out('settings-aurora.png'));
+    await sharp(capture('settings.stand', theme)).png().toFile(out(`settings-${theme}.png`));
+    await sharp(capture('settings.stats', theme)).png().toFile(out(`stats-${theme}.png`));
+  }
 
   fs.rmSync(tmp, { recursive: true, force: true });
   console.log(`Screenshots saved to ${path.relative(root, outDir)}`);

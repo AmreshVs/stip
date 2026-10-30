@@ -38,6 +38,8 @@ Every 30 minutes, Stip covers your screens with a calm two-minute stand break, w
 
 ## Screenshots
 
+### Flat theme
+
 | Tray | Water reminder |
 | --- | --- |
 | <img src="docs/screenshots/tray-flat.png" width="380" alt="The tray panel with a countdown ring, water progress, and Stand now and Water now buttons"> | <img src="docs/screenshots/water-flat.png" width="460" alt="The water reminder: a blue orb with a face in the bottom corner and a card asking for a sip"> |
@@ -46,16 +48,17 @@ Every 30 minutes, Stip covers your screens with a calm two-minute stand break, w
 | --- | --- |
 | <img src="docs/screenshots/settings-flat.png" width="460" alt="Settings for stand breaks: interval slider, break length, strictness and display options"> | <img src="docs/screenshots/stats-flat.png" width="460" alt="Stats page with streak, breaks today, water today and two charts"> |
 
-<details>
-<summary>Aurora theme</summary>
+### Aurora theme
 
 <img src="docs/screenshots/break-aurora.png" alt="The stand break in the aurora theme, with a glowing teal orb on a dark night background">
 
-<img src="docs/screenshots/tray-aurora.png" width="380" alt="The tray panel in the aurora theme">
+| Tray | Water reminder |
+| --- | --- |
+| <img src="docs/screenshots/tray-aurora.png" width="380" alt="The tray panel in the aurora theme: a teal countdown ring, water progress and Stand now and Water now buttons"> | <img src="docs/screenshots/water-aurora.png" width="460" alt="The water reminder in the aurora theme: a glowing orb in the corner of a dimmed screen and a card saying Hydrate or diedrate"> |
 
-<img src="docs/screenshots/settings-aurora.png" width="560" alt="Settings in the aurora theme">
-
-</details>
+| Settings | Stats |
+| --- | --- |
+| <img src="docs/screenshots/settings-aurora.png" width="460" alt="Settings for stand breaks in the aurora theme"> | <img src="docs/screenshots/stats-aurora.png" width="460" alt="The stats page in the aurora theme, with a 7-day streak and teal and blue charts"> |
 
 ## Install
 

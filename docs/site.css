@@ -606,8 +606,30 @@ figure figcaption {
   margin-top: 24px;
 }
 
-.aurora-shot img {
+.aurora figure img {
   border-radius: 10px;
+}
+
+.aurora-tray {
+  grid-column: 1 / 5;
+  align-self: end;
+}
+
+.aurora-water {
+  grid-column: 5 / 13;
+  align-self: end;
+}
+
+.aurora-settings {
+  grid-column: 1 / 7;
+}
+
+.aurora-stats {
+  grid-column: 7 / 13;
+}
+
+.aurora figcaption {
+  color: #c9c5bb;
 }
 
 /* Questions */
@@ -1026,6 +1048,10 @@ figure figcaption {
   .week-text p,
   .aurora h2,
   .aurora > p,
+  .aurora-tray,
+  .aurora-water,
+  .aurora-settings,
+  .aurora-stats,
   .faq h2,
   .faq-text,
   .corner-text,
@@ -1046,7 +1072,8 @@ figure figcaption {
     margin-top: 24px;
   }
 
-  .corner-tray {
+  .corner-tray,
+  .aurora-tray {
     max-width: 420px;
   }
 }
