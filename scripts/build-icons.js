@@ -29,7 +29,7 @@ async function trayGlyph(size, color, file) {
 }
 
 // Microsoft Store tiles: the arrow and drop on Stip's dark plate.
-async function storeTile(width, height, file) {
+async function storeTile(width, height, file, dir = 'appx') {
   const size = Math.round(Math.min(width, height) * 0.62);
   const x = (width - size) / 2;
   const y = (height - size) / 2;
@@ -40,8 +40,8 @@ async function storeTile(width, height, file) {
       <path d="M512 120C512 120 402 248 402 316a110 110 0 00220 0C622 248 512 120 512 120z" fill="#3d6bff"/>
     </g>
   </svg>`;
-  fs.mkdirSync(path.join(__dirname, '..', 'build', 'appx'), { recursive: true });
-  await sharp(Buffer.from(svg)).png().toFile(path.join(__dirname, '..', 'build', 'appx', file));
+  fs.mkdirSync(path.join(__dirname, '..', 'build', dir), { recursive: true });
+  await sharp(Buffer.from(svg)).png().toFile(path.join(__dirname, '..', 'build', dir, file));
 }
 
 async function main() {
@@ -61,6 +61,10 @@ async function main() {
   await storeTile(150, 150, 'Square150x150Logo.png');
   await storeTile(310, 150, 'Wide310x150Logo.png');
   await storeTile(310, 310, 'LargeTile.png');
+  // Store listing images, uploaded by hand in Partner Center under Store logos.
+  await storeTile(300, 300, 'app-tile-icon-300x300.png', 'store-listing');
+  await storeTile(2160, 2160, 'box-art-2160x2160.png', 'store-listing');
+  await storeTile(1440, 2160, 'poster-art-1440x2160.png', 'store-listing');
   console.log('Icons written to assets/generated');
 }
 
