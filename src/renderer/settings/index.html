@@ -68,6 +68,12 @@
                   <button role="radio" data-value="120">2 min</button>
                 </div>
               </div>
+              <div class="row">
+                <span class="row-text"><strong>Snoozes in a row</strong><small>After these, the break can't be put off</small></span>
+                <select aria-label="Snoozes in a row" data-key="stand.maxSnoozes" data-num>
+                  <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="0">No limit</option>
+                </select>
+              </div>
             </div>
           </section>
 
@@ -76,7 +82,7 @@
             <div class="cards" role="radiogroup" aria-label="How strict" data-key="stand.strictness">
               <button role="radio" data-value="gentle">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8.5 14s1.3 2 3.5 2 3.5-2 3.5-2M9 9.5h.01M15 9.5h.01"/></svg>
-                <strong>Gentle</strong><span>Skip or snooze any time</span>
+                <strong>Gentle</strong><span>Skip with one press</span>
               </button>
               <button role="radio" data-value="balanced">
                 <span class="key">esc</span>
@@ -124,7 +130,7 @@
           <h2 class="group-title">Preview</h2>
           <div class="preview">
             <div class="preview-meme"><i></i><b></b><b></b></div>
-            <div class="preview-orb display" id="preview-time">1:00</div>
+            <div class="preview-orb display" id="preview-time">2:00</div>
             <div class="preview-line display">Keep calm and <span>stand up.</span></div>
             <div class="preview-bar"><i></i><i></i><i></i></div>
           </div>
