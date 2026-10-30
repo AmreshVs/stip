@@ -61,7 +61,7 @@ Every 30 minutes, Stip covers your screens with a calm two-minute stand break, w
 
 Download the latest version from the [releases page](https://github.com/AmreshVs/stip/releases/latest):
 
-- **macOS:** the `.dmg` (`arm64` for Apple silicon, `x64` for Intel Macs). The app isn't notarized by Apple yet, so the first time, right-click Stip in Applications and choose **Open**.
+- **macOS:** the `.dmg` (`arm64` for Apple silicon, `x64` for Intel Macs). Releases are signed and notarized by Apple. If a build ever says it can't be opened, open **System Settings → Privacy & Security** and choose **Open Anyway**, or run `xattr -cr /Applications/Stip.app`.
 - **Linux:** the `.AppImage` (make it executable, then run it) or the `.deb` for Debian and Ubuntu.
 - **Windows:** build it from source for now.
 
@@ -94,6 +94,24 @@ git push origin v1.0.0
 ```
 
 The workflow builds the DMG, AppImage and .deb and attaches them to a new GitHub release. You can also run it by hand from the Actions tab to build them without releasing.
+
+### Signing and notarizing for macOS
+
+The workflow signs the Mac app with a Developer ID certificate and notarizes it with Apple when these repository secrets exist (Settings → Secrets and variables → Actions). Without them, it falls back to an ad-hoc signature.
+
+| Secret | What it is |
+| --- | --- |
+| `CSC_LINK` | Your **Developer ID Application** certificate and private key, exported from Keychain Access as a `.p12`, then base64-encoded: `base64 -i stip.p12 \| pbcopy` |
+| `CSC_KEY_PASSWORD` | The password you set when exporting the `.p12` |
+| `APPLE_ID` | The Apple ID email of your developer account |
+| `APPLE_APP_SPECIFIC_PASSWORD` | An app-specific password from [account.apple.com](https://account.apple.com) → Sign-In and Security |
+| `APPLE_TEAM_ID` | Your 10-character Team ID, shown in brackets in the certificate's name |
+
+You can add each one from the terminal; `gh` asks for the value so it never lands in your shell history:
+
+```bash
+gh secret set CSC_LINK
+```
 
 You need Node.js 20 or newer.
 

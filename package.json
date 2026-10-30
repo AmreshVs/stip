@@ -75,7 +75,11 @@
       ],
       "extendInfo": {
         "LSUIElement": true
-      }
+      },
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist"
     },
     "win": {
       "icon": "assets/generated/icon.png",
