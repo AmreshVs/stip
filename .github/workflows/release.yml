@@ -1,8 +1,7 @@
 name: Release
 
-# Builds the macOS DMG, the Linux AppImage and .deb, and the Windows installer,
-# and publishes them as
-# a GitHub release.
+# Builds the macOS DMG, the Linux AppImage and .deb, and the Windows installer
+# and Store package, and publishes them as a GitHub release.
 #
 # From the Actions tab ("Run workflow"):
 #   Bump the version   none, patch, minor or major. Updates package.json and
@@ -10,8 +9,10 @@ name: Release
 #   Publish a release  Tags the version and publishes a GitHub release with
 #                      the installers and that version's changelog notes.
 #                      Unticked, it only builds them.
+#   macOS / Linux /    Which platforms to build. A release only carries the
+#   Windows            platforms that were built.
 #
-# Pushing a tag like v1.0.0 also builds and publishes a release.
+# Pushing a tag like v1.0.0 builds every platform and publishes a release.
 on:
   push:
     tags: ['v*']
@@ -26,6 +27,18 @@ on:
         description: Tag this version and publish a GitHub release
         type: boolean
         default: false
+      macos:
+        description: Build for macOS
+        type: boolean
+        default: true
+      linux:
+        description: Build for Linux
+        type: boolean
+        default: true
+      windows:
+        description: Build for Windows
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -44,6 +57,7 @@ jobs:
       version: ${{ steps.version.outputs.version }}
       sha: ${{ steps.version.outputs.sha }}
       publish: ${{ steps.version.outputs.publish }}
+      matrix: ${{ steps.platforms.outputs.matrix }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -89,6 +103,28 @@ jobs:
           fi
           echo "Version $version"
 
+      # A tag push builds everything; a manual run builds the ticked platforms.
+      - name: Choose platforms
+        id: platforms
+        shell: bash
+        env:
+          MACOS: ${{ github.event_name == 'push' || inputs.macos }}
+          LINUX: ${{ github.event_name == 'push' || inputs.linux }}
+          WINDOWS: ${{ github.event_name == 'push' || inputs.windows }}
+        run: |
+          matrix="$(node -e '
+            const all = [
+              { name: "macOS", os: "macos-latest", files: "dist/*.dmg", on: process.env.MACOS },
+              { name: "Linux", os: "ubuntu-latest", files: "dist/*.AppImage\ndist/*.deb", on: process.env.LINUX },
+              { name: "Windows", os: "windows-latest", files: "dist/*.exe\ndist/*.appx", on: process.env.WINDOWS },
+            ];
+            const include = all.filter((p) => p.on === "true").map(({ on, ...p }) => p);
+            if (!include.length) { console.error("Tick at least one platform."); process.exit(1); }
+            console.log(JSON.stringify({ include }));
+          ')"
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+          echo "Building: $(echo "$matrix" | node -p 'JSON.parse(require("fs").readFileSync(0)).include.map((p) => p.name).join(", ")')"
+
   build:
     name: Build (${{ matrix.name }})
     needs: prepare
@@ -98,22 +134,7 @@ jobs:
       HAS_CERT: ${{ secrets.CSC_LINK != '' }}
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - name: macOS
-            os: macos-latest
-            files: |
-              dist/*.dmg
-          - name: Linux
-            os: ubuntu-latest
-            files: |
-              dist/*.AppImage
-              dist/*.deb
-          - name: Windows
-            os: windows-latest
-            files: |
-              dist/*.exe
-              dist/*.appx
+      matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v4
         with:

@@ -90,6 +90,7 @@ They land in `dist/`. Build each platform on that platform.
 Releases are built and published by GitHub Actions. Before a release, list the changes under **Unreleased** in `CHANGELOG.md`. Then open **Actions → Release → Run workflow** and pick:
 
 - **Bump the version:** `patch`, `minor` or `major`. CI updates `package.json` and `CHANGELOG.md` and commits that to `main`. Pick `none` to release the version that's already there.
+- **Build for macOS / Linux / Windows:** untick the platforms you don't need. A release carries only the platforms that were built, so leave all three ticked for a normal release.
 - **Tag this version and publish a GitHub release:** tick it to tag the version and publish a release with the DMG, AppImage, .deb and Windows installer, using that version's changelog notes as the release text. Leave it unticked to only build the installers, which you can download from the run's page.
 
 Pushing a tag such as `v1.0.0` from your machine also builds and publishes a release. To bump locally instead of in CI, run `npm run bump -- patch` (or `minor`, `major`, or an exact version).
