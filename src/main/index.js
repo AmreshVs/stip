@@ -54,16 +54,20 @@ function broadcast({ includeSettings = true } = {}) {
   if (includeSettings) settingsWindow.send(current);
 }
 
+// The menu bar stays quiet: the icon alone, plus a word for a state that
+// matters, and the timer only in the last 30 seconds before a break.
+const FINAL_COUNTDOWN_MS = 30 * 1000;
+
 function updateTrayTitle() {
   const { status, meeting: call, settings: current } = state();
   const clock = fmtClock(status.msToStand);
-  // With the countdown hidden, the menu bar shows only the icon.
-  if (!current.showCountdown) tray.setTitle('', `Stip · next stand in ${clock}`);
-  else if (status.pausedUntil) tray.setTitle('Paused', 'Stip · paused');
+  const tooltip = `Stip · next stand in ${clock}`;
+  const final = current.showCountdown && status.msToStand <= FINAL_COUNTDOWN_MS;
+  if (status.pausedUntil) tray.setTitle('Paused', 'Stip · paused');
   else if (status.offHours) tray.setTitle('', 'Stip · outside working hours');
   else if (status.waitingForMeeting) tray.setTitle('In call · break waiting', 'Stip · your break starts after the call');
-  else if (call.active) tray.setTitle(`In call · ${clock}`, `Stip · in a call, next stand in ${clock}`);
-  else tray.setTitle(clock, `Stip · next stand in ${clock}`);
+  else if (call.active) tray.setTitle(final ? `In call · ${clock}` : 'In call', `Stip · in a call, next stand in ${clock}`);
+  else tray.setTitle(final ? clock : '', tooltip);
 }
 
 function fmtClock(ms) {

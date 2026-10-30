@@ -83,18 +83,22 @@ async function testTray(stip) {
     ),
   );
   if (process.platform === 'darwin') {
-    check('menu bar shows the call', await waitFor(() => stip.tray.tray.getTitle().startsWith('In call · ')), stip.tray.tray.getTitle());
+    check('menu bar shows the call', await waitFor(() => stip.tray.tray.getTitle() === 'In call'), stip.tray.tray.getTitle());
   }
   await click(panel, '#meeting');
   check('meeting mode turns off', await waitFor(() => !stip.meeting.manual()));
   if (process.platform === 'darwin') {
-    check('menu bar goes back to the countdown', await waitFor(() => /^\d+:\d\d$/.test(stip.tray.tray.getTitle())), stip.tray.tray.getTitle());
+    check('menu bar shows only the icon most of the time', await waitFor(() => stip.tray.tray.getTitle() === ''), stip.tray.tray.getTitle());
   }
   if (process.platform === 'darwin') {
+    // Bring the break within 30 seconds, without letting it start.
+    const realDue = stip.scheduler.standDueAt;
+    stip.scheduler.standDueAt = Date.now() + 25 * 1000;
+    check('menu bar counts down the last 30 seconds', await waitFor(() => /^0:\d\d$/.test(stip.tray.tray.getTitle())), stip.tray.tray.getTitle());
     stip.settings.set({ showCountdown: false });
-    check('countdown can be hidden from the menu bar', await waitFor(() => stip.tray.tray.getTitle() === ''), stip.tray.tray.getTitle());
+    check('the last 30 seconds can be turned off', await waitFor(() => stip.tray.tray.getTitle() === ''), stip.tray.tray.getTitle());
     stip.settings.set({ showCountdown: true });
-    check('countdown comes back', await waitFor(() => /^\d+:\d\d$/.test(stip.tray.tray.getTitle())), stip.tray.tray.getTitle());
+    stip.scheduler.standDueAt = realDue;
   }
 
   stip.settings.set({ workHours: { enabled: true, days: [] } });
