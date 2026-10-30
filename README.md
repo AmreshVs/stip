@@ -63,7 +63,7 @@ Download the latest version from the [releases page](https://github.com/AmreshVs
 
 - **macOS:** the `.dmg` (`arm64` for Apple silicon, `x64` for Intel Macs). Releases are signed and notarized by Apple. If a build ever says it can't be opened, open **System Settings → Privacy & Security** and choose **Open Anyway**, or run `xattr -cr /Applications/Stip.app`.
 - **Linux:** the `.AppImage` (make it executable, then run it) or the `.deb` for Debian and Ubuntu.
-- **Windows:** build it from source for now.
+- **Windows:** the `.exe` installer. It isn't code-signed yet, so the first time Windows SmartScreen says "Windows protected your PC": choose **More info**, then **Run anyway**.
 
 To run it from source instead:
 
@@ -79,6 +79,7 @@ To build an installer yourself:
 ```bash
 npm run dist:mac      # DMG, on macOS
 npm run dist:linux    # AppImage and .deb, on Linux
+npm run dist:win      # installer, on Windows
 npm run dist          # whatever fits the platform you're on
 ```
 
@@ -89,7 +90,7 @@ They land in `dist/`. Build each platform on that platform.
 Releases are built and published by GitHub Actions. Before a release, list the changes under **Unreleased** in `CHANGELOG.md`. Then open **Actions → Release → Run workflow** and pick:
 
 - **Bump the version:** `patch`, `minor` or `major`. CI updates `package.json` and `CHANGELOG.md` and commits that to `main`. Pick `none` to release the version that's already there.
-- **Tag this version and publish a GitHub release:** tick it to tag the version and publish a release with the DMG, AppImage and .deb, using that version's changelog notes as the release text. Leave it unticked to only build the installers, which you can download from the run's page.
+- **Tag this version and publish a GitHub release:** tick it to tag the version and publish a release with the DMG, AppImage, .deb and Windows installer, using that version's changelog notes as the release text. Leave it unticked to only build the installers, which you can download from the run's page.
 
 Pushing a tag such as `v1.0.0` from your machine also builds and publishes a release. To bump locally instead of in CI, run `npm run bump -- patch` (or `minor`, `major`, or an exact version).
 

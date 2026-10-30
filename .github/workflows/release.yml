@@ -1,6 +1,7 @@
 name: Release
 
-# Builds the macOS DMG and the Linux AppImage and .deb, and publishes them as
+# Builds the macOS DMG, the Linux AppImage and .deb, and the Windows installer,
+# and publishes them as
 # a GitHub release.
 #
 # From the Actions tab ("Run workflow"):
@@ -108,6 +109,10 @@ jobs:
             files: |
               dist/*.AppImage
               dist/*.deb
+          - name: Windows
+            os: windows-latest
+            files: |
+              dist/*.exe
     steps:
       - uses: actions/checkout@v4
         with:
@@ -123,6 +128,12 @@ jobs:
       - name: Build (Linux)
         if: matrix.name == 'Linux'
         run: npm run dist:linux
+
+      # No Windows signing certificate yet, so SmartScreen asks once on
+      # first run: More info, then Run anyway.
+      - name: Build (Windows)
+        if: matrix.name == 'Windows'
+        run: npm run dist:win
 
       # With the signing secrets set, the app is signed with the Developer ID
       # and notarized by Apple, so it opens without any warning.

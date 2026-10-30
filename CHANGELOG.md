@@ -23,7 +23,7 @@ The first release.
 - Flat and aurora themes.
 - Away time and sleep count as a break.
 - Unit tests, an end-to-end test that drives the real app, and CI on macOS, Windows and Linux.
-- macOS DMG and Linux AppImage and .deb builds, made by CI for every release.
+- macOS DMG (signed and notarized), Linux AppImage and .deb, and a Windows installer, made by CI for every release.
 
 [Unreleased]: https://github.com/AmreshVs/stip/compare/v1.0.0...HEAD
 [1.0.0]: https://github.com/AmreshVs/stip/releases/tag/v1.0.0
