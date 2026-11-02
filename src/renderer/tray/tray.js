@@ -106,10 +106,11 @@ function render(state) {
   const custom = characters.has(water.character);
   $('bead-orb').toggleAttribute('hidden', custom);
   $('bead-char').toggleAttribute('hidden', !custom);
-  const beadKey = `${water.character}:${today.glasses}:${water.goalGlasses}`;
+  const growth = characters.growth(water.character, state.activeDays, state.daysSinceBreak);
+  const beadKey = `${water.character}:${today.glasses}:${water.goalGlasses}:${growth.level}:${growth.neglected}`;
   if (custom && beadKey !== lastBead) {
     lastBead = beadKey;
-    characters.render($('bead-char'), water.character, characters.fillFor(today.glasses, water.goalGlasses), { small: true });
+    characters.render($('bead-char'), water.character, characters.fillFor(today.glasses, water.goalGlasses), { small: true, level: growth.level, neglected: growth.neglected });
   }
   // Like the big orb, the bead never looks completely empty.
   const level = 0.2 + 0.8 * Math.min(1, today.glasses / water.goalGlasses);

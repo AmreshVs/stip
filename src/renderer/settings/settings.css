@@ -1249,3 +1249,10 @@ input[type='time'] {
 .report-link {
   margin-top: 14px;
 }
+
+.character-growth {
+  margin: 10px 4px 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--muted-on-paper);
+}

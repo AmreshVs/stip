@@ -11,7 +11,8 @@ const { SettingsWindow } = require('./settings-window');
 const { ReportWindow } = require('./report-window');
 const { buildReport, tip } = require('./report');
 const { recentCommits } = require('./git-history');
-const { snapshot, requestedView } = require('./snapshot');
+const { snapshot, requestedView, HIDDEN } = require('./snapshot');
+const characters = require('../renderer/shared/characters');
 const { startCliServer, installCommand } = require('./cli-server');
 const { socketPath } = require('../cli');
 
@@ -49,6 +50,8 @@ function state() {
     today: stats.today(),
     streak: stats.streak(),
     longestStreak: stats.longestStreak(),
+    activeDays: stats.activeDays(),
+    daysSinceBreak: stats.daysSinceBreak(),
     week: stats.week(),
     meeting: { manual: meeting.manual(now), active: meeting.active(now), until: meeting.manualUntil },
     platform: process.platform,
@@ -220,10 +223,20 @@ async function settleSuggestion(outcome) {
   });
 }
 
+function announceUnlock(before, after) {
+  const { character } = settings.get().water;
+  const unlock = characters.unlockedBetween(character, before, after);
+  if (!unlock || HIDDEN || !Notification.isSupported()) return;
+  const { name } = characters.list.find(({ id }) => id === character);
+  new Notification({ title: `${name} earned ${unlock}`, body: `That's ${after} days with a break. Nice work.`, silent: true }).show();
+}
+
 function onBreakFinished(how) {
   const now = Date.now();
   if (how === 'done') {
+    const before = stats.activeDays();
     stats.record('breaks');
+    announceUnlock(before, stats.activeDays());
     scheduler.breakDone(now);
   } else if (how === 'snooze') {
     stats.record('snoozed');

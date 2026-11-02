@@ -155,6 +155,20 @@ class Stats extends EventEmitter {
     return count;
   }
 
+  // Days with at least one break, ever.
+  activeDays() {
+    return Object.values(this.days).filter((day) => day.breaks > 0).length;
+  }
+
+  // Days since the last break, or null if there hasn't been one.
+  daysSinceBreak(now = new Date()) {
+    const keys = Object.keys(this.days).filter((key) => this.days[key].breaks > 0).sort();
+    if (!keys.length) return null;
+    const last = new Date(`${keys[keys.length - 1]}T12:00:00`).getTime();
+    const today = new Date(`${dayKey(now)}T12:00:00`).getTime();
+    return Math.round((today - last) / DAY_MS);
+  }
+
   longestStreak() {
     let best = 0;
     let run = 0;

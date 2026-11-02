@@ -11,6 +11,7 @@ All notable changes to Stip are listed here. The format follows [Keep a Changelo
 - Water characters: choose Debug Duck, Coolant, Hump Day, Gulp, Spike or Sprout instead of the orb, in Settings → Water. They fill with today's water, change mood as you drink, and also show in the tray.
 - Water has its own schedule: any time, working hours, or custom days and hours, in Settings → Water.
 - The Spine report: your week as a code review, with a suggestion you can apply and a save-as-image button. Open it from the tray or the Stats page. Optionally compares your breaks with git commits from folders you choose, on your computer only.
+- Water characters grow with you: 7 and 30 days with a break unlock a hat, a heatsink, a second hump and more. Unlocks are never taken away, and a week without a break only leaves a little dust.
 - The `stip` terminal command: `status`, `break`, `water`, `sip`, `pause`, `resume` and `meeting`. Install it from settings. Try `npm run build && stip break`.
 
 ### Changed

@@ -36,7 +36,7 @@ Every 30 minutes, Stip covers your screens with a calm two-minute stand break, w
 
 **Waits for a natural pause.** If you're busy or a build is running, the break starts when you pause, 10 minutes later at most. It only looks at idle time and program names, never what you type.
 
-**Pick your water character.** A rubber duck that floats up as you drink, a CPU that cools down, a camel, a goldfish, a cactus or a plant. Or keep the orb.
+**Pick your water character.** A rubber duck that floats up as you drink, a CPU that cools down, a camel, a goldfish, a cactus or a plant. Or keep the orb. They earn things as you go: a hat for the duck, a heatsink for the chip, a second hump for the camel.
 
 **The Spine report.** Your week as a code review: "changes requested", with a diff of your habits and a suggestion you can apply. Save it as an image to share.
 

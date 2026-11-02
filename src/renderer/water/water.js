@@ -17,6 +17,7 @@ let glasses = 0;
 let goal = 8;
 let answered = false;
 let character = 'orb';
+let look = {};
 
 // Water surface height inside the orb: 244 is empty, 36 is full. The orb
 // always keeps a little water so its face, which floats in it, stays visible.
@@ -26,6 +27,7 @@ function setLevel(count, previous) {
   if (!characters.has(character)) return;
   characters.render($('char'), character, characters.fillFor(count, goal), {
     from: previous === undefined ? undefined : characters.fillFor(previous, goal),
+    ...look,
   });
 }
 
@@ -59,6 +61,8 @@ async function init() {
   goal = state.settings.water.goalGlasses;
   const ml = state.settings.water.glassMl;
   character = state.settings.water.character;
+  const { level, neglected } = characters.growth(character, state.activeDays, state.daysSinceBreak);
+  look = { level, neglected };
   $('char').toggleAttribute('hidden', !characters.has(character));
   $('orb-art').toggleAttribute('hidden', characters.has(character));
 

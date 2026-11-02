@@ -60,11 +60,27 @@
   animation-delay: 0.9s;
 }
 
+.char-spin {
+  animation: charSpin 1.6s linear infinite;
+}
+
+@keyframes charSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* A bit of dust after a week without a break. One break clears it. */
+.char-dusty {
+  filter: grayscale(0.55) brightness(0.88);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .char-wave,
   .char-bob,
   .char-bubble,
-  .char-drip {
+  .char-drip,
+  .char-spin {
     animation: none;
   }
 }

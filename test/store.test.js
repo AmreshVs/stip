@@ -51,3 +51,17 @@ test('week totals, best hour and longest streak', () => {
   assert.equal(week.bestHour, 11);
   assert.equal(stats.longestStreak(), 3);
 });
+
+test('active days and days since a break', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'stip-'));
+  const stats = new Stats(dir);
+  const now = new Date(2026, 10, 10, 12);
+  assert.equal(stats.activeDays(), 0);
+  assert.equal(stats.daysSinceBreak(now), null);
+  stats.record('skipped', new Date(2026, 10, 9, 12));
+  assert.equal(stats.activeDays(), 0, 'a skip is not a break');
+  stats.record('breaks', new Date(2026, 10, 1, 12));
+  stats.record('breaks', new Date(2026, 10, 3, 12));
+  assert.equal(stats.activeDays(), 2);
+  assert.equal(stats.daysSinceBreak(now), 7);
+});

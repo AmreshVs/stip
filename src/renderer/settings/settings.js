@@ -5,6 +5,7 @@ const LAST_HOUR = 18;
 
 let hoursOpen = false;
 let lastPreview = '';
+let lastPicker = '';
 
 function get(obj, key) {
   return key.split('.').reduce((o, k) => o?.[k], obj);
@@ -130,6 +131,12 @@ function renderDays(container, key, selected) {
 
 function render(state) {
   const { settings, today } = state;
+  // The choices show what's been earned, so redraw them when that changes.
+  const pickerKey = `${state.activeDays}:${state.daysSinceBreak}`;
+  if (pickerKey !== lastPicker) {
+    lastPicker = pickerKey;
+    buildCharacters(state.activeDays, state.daysSinceBreak);
+  }
   applyTheme(settings.theme);
   $('version').textContent = `Stip ${state.version}`;
   // The Microsoft Store version starts at login through Windows' own settings.
@@ -197,10 +204,13 @@ function render(state) {
   const character = settings.water.character;
   $('mini-orb').toggleAttribute('hidden', characters.has(character));
   $('mini-char').toggleAttribute('hidden', !characters.has(character));
-  const previewKey = `${character}:${today.glasses}:${goal}`;
+  const growth = characters.growth(character, state.activeDays, state.daysSinceBreak);
+  const look = { level: growth.level, neglected: growth.neglected };
+  renderGrowth(character, growth, state.activeDays);
+  const previewKey = `${character}:${today.glasses}:${goal}:${growth.level}:${growth.neglected}`;
   if (characters.has(character) && previewKey !== lastPreview) {
     lastPreview = previewKey;
-    characters.render($('mini-char'), character, characters.fillFor(today.glasses, goal));
+    characters.render($('mini-char'), character, characters.fillFor(today.glasses, goal), look);
   }
   const fill = 0.32 + 0.68 * Math.min(1, today.glasses / goal);
   $('preview-level').style.transform = `translateY(${244 - fill * 208}px)`;
@@ -219,8 +229,19 @@ function render(state) {
 
 let lastState = null;
 
+function renderGrowth(character, growth, activeDays) {
+  const line = $('character-growth');
+  line.hidden = !characters.has(character);
+  if (line.hidden) return;
+  const parts = [`${activeDays} ${activeDays === 1 ? 'day' : 'days'} with a break.`];
+  if (growth.next) parts.push(`${growth.next.left} more for ${growth.next.name}.`);
+  else parts.push('Everything unlocked.');
+  if (growth.neglected) parts.push('Looking a bit dusty. One break fixes that.');
+  line.textContent = parts.join(' ');
+}
+
 // Each choice shows the character half full, so the water reads.
-function buildCharacters() {
+function buildCharacters(activeDays = 0, daysSinceBreak = null) {
   $('characters').replaceChildren(
     ...characters.list.map(({ id, name }) => {
       const button = document.createElement('button');
@@ -231,7 +252,8 @@ function buildCharacters() {
       art.setAttribute('viewBox', '0 0 160 160');
       art.setAttribute('aria-hidden', 'true');
       if (characters.has(id)) {
-        art.innerHTML = characters.markup(id, 0.5);
+        const { level, neglected } = characters.growth(id, activeDays, daysSinceBreak);
+        art.innerHTML = characters.markup(id, 0.5, { level, neglected });
       } else {
         art.innerHTML = `<circle cx="80" cy="84" r="60" fill="#141b2e" stroke="#e2e8f0" stroke-width="3"/><path d="M20 84a60 60 0 00120 0z" fill="#38bdf8"/><circle cx="66" cy="108" r="4" fill="#0b1020"/><circle cx="94" cy="108" r="4" fill="#0b1020"/>`;
       }
