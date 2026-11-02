@@ -15,6 +15,8 @@ All notable changes to Stip are listed here. The format follows [Keep a Changelo
 
 - The tray panel opens instantly, even the first time, and Esc closes it. On macOS it opens over full-screen apps.
 - Opening Stip while it's already running shows the tray panel.
+- Stip uses almost no CPU while idle: the hidden tray panel no longer runs its animations.
+- A smaller download: only the English language files are included.
 
 ### Fixed
 

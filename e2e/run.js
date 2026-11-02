@@ -229,6 +229,12 @@ async function testWater(stip) {
 }
 
 async function testTimers(stip) {
+  const panel = stip.tray.open();
+  await isLoaded(panel);
+  check('tray animations run while it is open', await waitFor(() => js(panel, "!document.body.classList.contains('asleep')")));
+  stip.tray.hide();
+  check('tray animations pause while it is hidden', await waitFor(() => js(panel, "document.body.classList.contains('asleep')")));
+
   stip.settings.set({ water: { everyMin: 0.05 } });
   check('water reminder fires on its own timer', await waitFor(() => stip.water.win, 6000));
   stip.water.hide();

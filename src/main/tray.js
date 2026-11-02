@@ -76,12 +76,12 @@ class TrayUI {
       // A macOS panel opens over full-screen apps without switching spaces.
       ...(process.platform === 'darwin' ? { type: 'panel' } : {}),
       backgroundColor: PANEL_BG[this.theme] || PANEL_BG.flat,
-      webPreferences: { preload: PRELOAD, sandbox: true, backgroundThrottling: false },
+      webPreferences: { preload: PRELOAD, sandbox: true },
     });
     this.panel.loadFile(path.join(__dirname, '..', 'renderer', 'tray', 'index.html'));
     this.panel.on('blur', () => {
       this.closedAt = Date.now();
-      this.panel.hide();
+      this.hide();
     });
   }
 
@@ -99,6 +99,7 @@ class TrayUI {
     // Clicking the icon while open blurs the panel first; don't reopen it.
     if (Date.now() - this.closedAt < CLICK_THROUGH_MS) return;
     // Snapshots and tests render the panel without showing it.
+    this.panel.webContents.send('show', { visible: true });
     if (HIDDEN) {
       this.panelOpen = true;
       return;
@@ -137,12 +138,20 @@ class TrayUI {
   hide() {
     this.panelOpen = false;
     this.panel?.hide();
+    this.panel?.webContents.send('show', { visible: false });
   }
 
   // macOS shows the countdown right in the menu bar.
+  // This runs every second, so it only touches the system when text changes.
   setTitle(text, tooltip = 'Stip') {
-    if (process.platform === 'darwin') this.tray.setTitle(text, { fontType: 'monospacedDigit' });
-    this.tray.setToolTip(tooltip);
+    if (process.platform === 'darwin' && text !== this.title) {
+      this.title = text;
+      this.tray.setTitle(text, { fontType: 'monospacedDigit' });
+    }
+    if (tooltip !== this.tooltip) {
+      this.tooltip = tooltip;
+      this.tray.setToolTip(tooltip);
+    }
   }
 
   send(state) {

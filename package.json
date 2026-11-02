@@ -57,6 +57,10 @@
   "build": {
     "appId": "dev.amreshvs.stip",
     "productName": "Stip",
+    "electronLanguages": [
+      "en",
+      "en-US"
+    ],
     "files": [
       "src/**/*",
       "assets/generated/**/*",

@@ -113,5 +113,8 @@ function render(state) {
   reportHeight();
 }
 
+// A hidden window keeps running its CSS animations, which would use CPU all day.
+window.stip.onShow(({ visible }) => document.body.classList.toggle('asleep', !visible));
+
 window.stip.onState(render);
 window.stip.getState().then(render);

@@ -486,3 +486,7 @@ body {
 .actions:has(#water-now[hidden]) .stand {
   grid-column: 1 / -1;
 }
+
+.asleep * {
+  animation-play-state: paused !important;
+}

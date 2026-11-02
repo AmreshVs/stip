@@ -70,13 +70,14 @@ function updateTrayTitle() {
   const now = Date.now();
   const status = scheduler.status(now);
   const clock = fmtClock(status.msToStand);
-  const tooltip = `Stip · next stand in ${clock}`;
+  const minutes = Math.ceil(status.msToStand / 60000);
+  const tooltip = `Stip · next stand in ${minutes} min`;
   const final = settings.get().showCountdown && status.msToStand <= FINAL_COUNTDOWN_MS;
   if (status.pausedUntil) tray.setTitle('Paused', 'Stip · paused');
   else if (status.offHours) tray.setTitle('', 'Stip · outside working hours');
   else if (status.waitingForMeeting) tray.setTitle('In call · break waiting', 'Stip · your break starts after the call');
   else if (status.waitingForFlow) tray.setTitle('Break at next pause', 'Stip · your break starts when you pause');
-  else if (meeting.active(now)) tray.setTitle(final ? `In call · ${clock}` : 'In call', `Stip · in a call, next stand in ${clock}`);
+  else if (meeting.active(now)) tray.setTitle(final ? `In call · ${clock}` : 'In call', `Stip · in a call, next stand in ${minutes} min`);
   else tray.setTitle(final ? clock : '', tooltip);
 }
 
