@@ -84,7 +84,11 @@ function render(state) {
   $('water-rule').hidden = !water.enabled;
   $('water-now').hidden = !water.enabled;
   $('glasses').textContent = `${today.glasses} of ${water.goalGlasses} glasses`;
-  $('water-next').textContent = `Sip in ${fmt.minutes(status.msToWater)}`;
+  if (status.waterOff) {
+    $('water-next').textContent = status.waterResumesAt ? `Back at ${timeOfDay(status.waterResumesAt)}` : 'No days set';
+  } else {
+    $('water-next').textContent = `Sip in ${fmt.minutes(status.msToWater)}`;
+  }
   // Like the big orb, the bead never looks completely empty.
   const level = 0.2 + 0.8 * Math.min(1, today.glasses / water.goalGlasses);
   $('bead-level').style.transform = `translateY(${36 - level * 32}px)`;

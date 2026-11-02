@@ -11,11 +11,40 @@ function minutesOfDay(hhmm) {
   return h * 60 + m;
 }
 
-function inWorkHours(workHours, date) {
-  if (!workHours.enabled) return true;
-  if (!workHours.days.includes(date.getDay())) return false;
+// Whether a time falls in a window of days and hours. An end before the start
+// runs past midnight, and counts as part of the day it began on.
+function inWindow({ days, start, end }, date) {
   const now = date.getHours() * 60 + date.getMinutes();
-  return now >= minutesOfDay(workHours.start) && now < minutesOfDay(workHours.end);
+  const from = minutesOfDay(start);
+  const to = minutesOfDay(end);
+  const today = date.getDay();
+  if (from === to) return days.includes(today);
+  if (from < to) return days.includes(today) && now >= from && now < to;
+  if (now >= from) return days.includes(today);
+  return now < to && days.includes((today + 6) % 7);
+}
+
+function inWorkHours(workHours, date) {
+  return !workHours.enabled || inWindow(workHours, date);
+}
+
+// Water can run any time, in working hours, or on its own hours. Until someone
+// chooses, it follows the working hours switch, as it always has.
+function waterSchedule({ water, workHours }) {
+  return water.schedule || (workHours.enabled ? 'work' : 'always');
+}
+
+function inWaterHours(settings, date) {
+  const schedule = waterSchedule(settings);
+  if (schedule === 'custom') return inWindow(settings.water.hours, date);
+  if (schedule === 'work') return inWindow(settings.workHours, date);
+  return true;
+}
+
+function nextWaterStart(settings, date) {
+  const schedule = waterSchedule(settings);
+  if (schedule === 'always') return null;
+  return nextWorkStart(schedule === 'custom' ? settings.water.hours : settings.workHours, date);
 }
 
 // When working hours next begin, as a timestamp.
@@ -66,13 +95,23 @@ class Scheduler extends EventEmitter {
     const settings = this.getSettings();
     if (this.onBreak) return;
 
-    if (this.isPaused(now) || !inWorkHours(settings.workHours, new Date(now))) {
-      // Nothing is due while paused or off the clock; restart fresh after.
+    // Nothing is due while paused or off the clock; restart fresh after.
+    const paused = this.isPaused(now);
+    if (paused || !inWorkHours(settings.workHours, new Date(now))) {
       this.standDueAt = Math.max(this.standDueAt, now + this.standEvery());
-      this.waterDueAt = Math.max(this.waterDueAt, now + this.waterEvery());
-      return;
+    } else {
+      this.tickStand(now, settings, { idleSec, inMeeting, inFlow });
     }
 
+    if (paused || !inWaterHours(settings, new Date(now))) {
+      this.waterDueAt = Math.max(this.waterDueAt, now + this.waterEvery());
+    } else if (settings.water.enabled && now >= this.waterDueAt && !inMeeting) {
+      this.waterDueAt = now + this.waterEvery();
+      this.emit('water');
+    }
+  }
+
+  tickStand(now, settings, { idleSec, inMeeting, inFlow }) {
     // Being away from the keyboard long enough counts as a break.
     if (settings.stand.resetWhenAway && idleSec >= settings.stand.awayMin * 60) {
       this.lastBreakAt = now;
@@ -104,11 +143,6 @@ class Scheduler extends EventEmitter {
       }
     } else {
       this.flowWaitStartedAt = 0;
-    }
-
-    if (settings.water.enabled && now >= this.waterDueAt && !inMeeting) {
-      this.waterDueAt = now + this.waterEvery();
-      this.emit('water');
     }
   }
 
@@ -205,7 +239,9 @@ class Scheduler extends EventEmitter {
   }
 
   status(now) {
-    const { workHours } = this.getSettings();
+    const settings = this.getSettings();
+    const { workHours } = settings;
+    const waterOff = !inWaterHours(settings, new Date(now));
     const offHours = !inWorkHours(workHours, new Date(now));
     return {
       offHours,
@@ -214,6 +250,8 @@ class Scheduler extends EventEmitter {
       standEveryMs: this.standEvery(),
       sittingMs: now - this.lastBreakAt,
       msToWater: Math.max(0, this.waterDueAt - now),
+      waterOff,
+      waterResumesAt: waterOff ? nextWaterStart(settings, new Date(now)) : 0,
       pausedUntil: this.isPaused(now) ? this.pausedUntil : 0,
       waitingForMeeting: this.waitingForMeeting,
       waitingForFlow: this.flowWaitStartedAt > 0,
@@ -223,4 +261,4 @@ class Scheduler extends EventEmitter {
   }
 }
 
-module.exports = { Scheduler, inWorkHours, nextWorkStart, MEETING_GRACE_MS, FLOW_MAX_WAIT_MS };
+module.exports = { Scheduler, inWorkHours, inWaterHours, waterSchedule, nextWorkStart, MEETING_GRACE_MS, FLOW_MAX_WAIT_MS };

@@ -9,6 +9,7 @@ All notable changes to Stip are listed here. The format follows [Keep a Changelo
 - Stip is on the [Microsoft Store](https://apps.microsoft.com/detail/9MSN24PF9CD5). The website, README and release notes link to it.
 - Breaks wait for a natural pause: if you're busy or a build is running, the break starts when you pause, 10 minutes later at most. It only looks at idle time and program names, and can be turned off in settings.
 - Water characters: choose Debug Duck, Coolant, Hump Day, Gulp, Spike or Sprout instead of the orb, in Settings → Water. They fill with today's water, change mood as you drink, and also show in the tray.
+- Water has its own schedule: any time, working hours, or custom days and hours, in Settings → Water.
 - The `stip` terminal command: `status`, `break`, `water`, `sip`, `pause`, `resume` and `meeting`. Install it from settings. Try `npm run build && stip break`.
 
 ### Changed

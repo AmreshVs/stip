@@ -113,6 +113,21 @@ function renderStats({ settings, today, streak, longestStreak, week }) {
   $('week-chips').replaceChildren(...chips);
 }
 
+function renderDays(container, key, selected) {
+  container.replaceChildren(
+    ...[1, 2, 3, 4, 5, 6, 0].map((day) => {
+      const button = document.createElement('button');
+      button.textContent = DAYS[day];
+      button.setAttribute('aria-pressed', String(selected.includes(day)));
+      button.addEventListener('click', () => {
+        const days = selected.includes(day) ? selected.filter((d) => d !== day) : [...selected, day];
+        save(key, days.sort());
+      });
+      return button;
+    }),
+  );
+}
+
 function render(state) {
   const { settings, today } = state;
   applyTheme(settings.theme);
@@ -152,18 +167,20 @@ function render(state) {
   $('hours-detail').hidden = !hoursOpen;
   $('hours-edit').textContent = hoursOpen ? 'Done' : 'Edit';
   $('hours-edit').setAttribute('aria-expanded', String(hoursOpen));
-  $('days').replaceChildren(
-    ...[1, 2, 3, 4, 5, 6, 0].map((day) => {
-      const button = document.createElement('button');
-      button.textContent = DAYS[day];
-      button.setAttribute('aria-pressed', String(hours.days.includes(day)));
-      button.addEventListener('click', () => {
-        const days = hours.days.includes(day) ? hours.days.filter((d) => d !== day) : [...hours.days, day];
-        save('workHours.days', days.sort());
-      });
-      return button;
-    }),
-  );
+  renderDays($('days'), 'workHours.days', hours.days);
+
+  // Until someone chooses, water follows the working hours switch.
+  const schedule = settings.water.schedule || (hours.enabled ? 'work' : 'always');
+  $('water-schedule').querySelectorAll('[role="radio"]').forEach((button) => {
+    button.setAttribute('aria-checked', String(button.dataset.value === schedule));
+  });
+  $('water-hours').hidden = schedule !== 'custom';
+  renderDays($('water-days'), 'water.hours.days', settings.water.hours.days);
+  $('water-schedule-hint').textContent = {
+    always: 'Whenever Stip is running',
+    work: `${dayNames || 'No days'} · ${hours.start} to ${hours.end}. Change these under Stand breaks.`,
+    custom: 'Its own days and hours, separate from breaks',
+  }[schedule];
 
   const cli = state.cliInstall;
   $('cli-row').hidden = state.fromStore;

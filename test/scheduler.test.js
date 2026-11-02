@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { Scheduler, inWorkHours, nextWorkStart, MEETING_GRACE_MS, FLOW_MAX_WAIT_MS } = require('../src/main/scheduler');
+const { Scheduler, inWorkHours, inWaterHours, waterSchedule, nextWorkStart, MEETING_GRACE_MS, FLOW_MAX_WAIT_MS } = require('../src/main/scheduler');
 const { DEFAULTS, merge } = require('../src/main/store');
 
 const MIN = 60 * 1000;
@@ -195,4 +195,88 @@ test('being busy changes nothing when waiting for a pause is off', () => {
   const { scheduler, events } = setup({ water: { enabled: false }, stand: { waitForFlow: false } });
   scheduler.tick(40 * MIN, { inFlow: true });
   assert.deepEqual(events, ['stand']);
+});
+
+// Monday 2 November 2026.
+const at = (hour, minute = 0, day = 2) => new Date(2026, 10, day, hour, minute);
+
+function clocked(patch) {
+  const settings = merge(merge(DEFAULTS, BASE), patch);
+  const start = at(0).getTime();
+  const scheduler = new Scheduler(() => settings, start);
+  const events = [];
+  for (const name of ['stand', 'water']) scheduler.on(name, () => events.push(name));
+  return { scheduler, events, settings };
+}
+
+test('water follows the working hours switch until someone chooses', () => {
+  const off = merge(DEFAULTS, { workHours: { enabled: false } });
+  const on = merge(DEFAULTS, { workHours: { enabled: true } });
+  assert.equal(waterSchedule(off), 'always');
+  assert.equal(waterSchedule(on), 'work');
+  assert.equal(inWaterHours(off, at(23)), true);
+  assert.equal(inWaterHours(on, at(23)), false);
+});
+
+test('choosing working hours applies them even with the break switch off', () => {
+  const settings = merge(DEFAULTS, { water: { schedule: 'work' }, workHours: { enabled: false } });
+  assert.equal(inWaterHours(settings, at(10)), true);
+  assert.equal(inWaterHours(settings, at(20)), false);
+});
+
+test('any time ignores working hours', () => {
+  const settings = merge(DEFAULTS, { water: { schedule: 'always' }, workHours: { enabled: true } });
+  assert.equal(inWaterHours(settings, at(23)), true);
+});
+
+test('custom water hours use their own days and times', () => {
+  const settings = merge(DEFAULTS, { water: { schedule: 'custom', hours: { days: [1], start: '08:00', end: '21:00' } } });
+  assert.equal(inWaterHours(settings, at(7, 59)), false);
+  assert.equal(inWaterHours(settings, at(8)), true);
+  assert.equal(inWaterHours(settings, at(21)), false);
+  assert.equal(inWaterHours(settings, at(10, 0, 3)), false, 'Tuesday is off');
+});
+
+test('custom water hours can run past midnight', () => {
+  const settings = merge(DEFAULTS, { water: { schedule: 'custom', hours: { days: [1], start: '22:00', end: '02:00' } } });
+  assert.equal(inWaterHours(settings, at(23)), true);
+  assert.equal(inWaterHours(settings, at(1, 0, 3)), true, 'Monday night, into Tuesday');
+  assert.equal(inWaterHours(settings, at(23, 0, 3)), false, 'Tuesday night is off');
+  assert.equal(inWaterHours(settings, at(12)), false);
+});
+
+test('water reminds outside working hours when it has its own schedule', () => {
+  const { scheduler, events } = clocked({
+    water: { schedule: 'always', everyMin: 30 },
+    stand: { everyMin: 40 },
+    workHours: { enabled: true, days: [1], start: '09:00', end: '18:00' },
+  });
+  scheduler.tick(at(0, 30).getTime());
+  assert.deepEqual(events, ['water']);
+});
+
+test('breaks still run while water is off the clock', () => {
+  const { scheduler, events } = clocked({
+    water: { schedule: 'custom', everyMin: 30, hours: { days: [1], start: '20:00', end: '21:00' } },
+    stand: { everyMin: 40 },
+  });
+  scheduler.tick(at(0, 30).getTime());
+  assert.deepEqual(events, []);
+  assert.equal(scheduler.status(at(0, 30).getTime()).waterOff, true);
+  assert.equal(scheduler.status(at(0, 30).getTime()).waterResumesAt, at(20).getTime());
+  scheduler.tick(at(0, 41).getTime());
+  assert.deepEqual(events, ['stand']);
+});
+
+test('pausing stops water on every schedule', () => {
+  const { scheduler, events } = clocked({ water: { schedule: 'always', everyMin: 30 } });
+  scheduler.pause(at(0).getTime(), 120);
+  scheduler.tick(at(1).getTime());
+  assert.deepEqual(events, []);
+});
+
+test('no water days means no reminders and no return time', () => {
+  const { scheduler } = clocked({ water: { schedule: 'custom', hours: { days: [] } } });
+  assert.equal(scheduler.status(at(10).getTime()).waterOff, true);
+  assert.equal(scheduler.status(at(10).getTime()).waterResumesAt, null);
 });

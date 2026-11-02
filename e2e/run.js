@@ -222,6 +222,15 @@ async function testWater(stip) {
   const settingsWin = stip.settingsWindow.open('flat');
   await isLoaded(settingsWin);
   await click(settingsWin, '.nav[data-page="water"]');
+  check('water hours stay hidden until Custom is chosen', await js(settingsWin, "document.getElementById('water-hours').hidden"));
+  await click(settingsWin, '#water-schedule [data-value="custom"]');
+  check('Custom saves the water schedule', await waitFor(() => stip.settings.get().water.schedule === 'custom'));
+  check('Custom shows the water days and hours', await waitFor(() => js(settingsWin, "!document.getElementById('water-hours').hidden")));
+  await click(settingsWin, '#water-days button:nth-child(7)');
+  check('a water day can be toggled', await waitFor(() => !stip.settings.get().water.hours.days.includes(0)));
+  await click(settingsWin, '#water-schedule [data-value="work"]');
+  check('Working hours can be chosen for water', await waitFor(() => stip.settings.get().water.schedule === 'work'));
+  stip.settings.set({ water: { schedule: null } });
   await click(settingsWin, '[data-act="water-now"]');
   check('settings Try a water reminder shows it', await waitFor(() => stip.water.win));
   stip.water.hide();

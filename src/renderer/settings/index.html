@@ -165,6 +165,28 @@
           </section>
 
           <section>
+            <h2 class="group-title">When to remind me</h2>
+            <div class="group">
+              <div class="row">
+                <span class="row-text"><strong>Remind me</strong><small id="water-schedule-hint"></small></span>
+                <div class="segmented" id="water-schedule" role="radiogroup" aria-label="When to remind me about water" data-key="water.schedule">
+                  <button role="radio" data-value="always">Any time</button>
+                  <button role="radio" data-value="work">Working hours</button>
+                  <button role="radio" data-value="custom">Custom</button>
+                </div>
+              </div>
+              <div class="row detail" id="water-hours" hidden>
+                <div class="days" id="water-days" aria-label="Days for water reminders"></div>
+                <span class="times">
+                  <input type="time" aria-label="Water reminders start" data-key="water.hours.start">
+                  <span>to</span>
+                  <input type="time" aria-label="Water reminders end" data-key="water.hours.end">
+                </span>
+              </div>
+            </div>
+          </section>
+
+          <section>
             <h2 class="group-title">Timing and goal</h2>
             <div class="group">
               <div class="row slider-row">
