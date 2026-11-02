@@ -30,6 +30,7 @@ const DEFAULTS = {
     schedule: null,
     hours: { days: [0, 1, 2, 3, 4, 5, 6], start: '08:00', end: '21:00' },
   },
+  report: { folders: [], reviewed: null },
   workHours: {
     enabled: false,
     days: [1, 2, 3, 4, 5],
@@ -91,7 +92,7 @@ function dayKey(date) {
   return `${y}-${m}-${d}`;
 }
 
-const EMPTY_DAY = { breaks: 0, skipped: 0, snoozed: 0, glasses: 0, hours: {} };
+const EMPTY_DAY = { breaks: 0, skipped: 0, snoozed: 0, glasses: 0, hours: {}, skippedHours: {}, longestSitMin: 0 };
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 class Stats extends EventEmitter {
@@ -113,9 +114,33 @@ class Stats extends EventEmitter {
       const hour = String(now.getHours());
       day.hours = { ...day.hours, [hour]: (day.hours[hour] || 0) + 1 };
     }
+    if (kind === 'skipped') {
+      const hour = String(now.getHours());
+      day.skippedHours = { ...day.skippedHours, [hour]: (day.skippedHours[hour] || 0) + 1 };
+    }
     this.days[key] = day;
     writeJson(this.file, this.days);
     this.emit('change');
+  }
+
+  // Keeps today's longest stretch of sitting. Written once a minute at most.
+  noteSit(minutes, now = new Date()) {
+    const key = dayKey(now);
+    const day = { ...EMPTY_DAY, ...this.days[key] };
+    if (minutes <= day.longestSitMin) return;
+    this.days[key] = { ...day, longestSitMin: minutes };
+    writeJson(this.file, this.days);
+  }
+
+  // Day records, oldest first: count days, ending endsAgo days before now.
+  range(count, endsAgo = 0, now = new Date()) {
+    const days = [];
+    for (let i = count - 1 + endsAgo; i >= endsAgo; i -= 1) {
+      const date = new Date(now);
+      date.setDate(date.getDate() - i);
+      days.push({ date: dayKey(date), ...EMPTY_DAY, ...this.days[dayKey(date)] });
+    }
+    return days;
   }
 
   // Days in a row, ending today or yesterday, with at least one break taken.

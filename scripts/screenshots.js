@@ -22,17 +22,17 @@ function dayKey(offset) {
 function seed(dir) {
   fs.mkdirSync(dir, { recursive: true });
   const week = [
-    [6, 7, 1, 0, 6],
-    [5, 8, 0, 1, 8],
-    [4, 6, 1, 2, 7],
-    [3, 9, 0, 1, 9],
-    [2, 7, 1, 0, 6],
-    [1, 8, 0, 1, 8],
-    [0, 4, 0, 1, 4],
+    [6, 7, 1, 0, 6, { 16: 1 }, 48],
+    [5, 8, 0, 1, 8, {}, 42],
+    [4, 6, 1, 2, 7, { 15: 1 }, 70],
+    [3, 9, 3, 1, 9, { 15: 2, 16: 1 }, 160],
+    [2, 7, 1, 0, 6, { 17: 1 }, 55],
+    [1, 8, 0, 1, 8, {}, 40],
+    [0, 4, 0, 1, 4, {}, 35],
   ];
   const days = {};
-  for (const [offset, breaks, skipped, snoozed, glasses] of week) {
-    days[dayKey(offset)] = { breaks, skipped, snoozed, glasses, hours: { 9: 1, 10: 1, 11: 2 } };
+  for (const [offset, breaks, skipped, snoozed, glasses, skippedHours, longestSitMin] of week) {
+    days[dayKey(offset)] = { breaks, skipped, snoozed, glasses, hours: { 9: 1, 10: 1, 11: 2, 14: 1 }, skippedHours, longestSitMin };
   }
   fs.writeFileSync(path.join(dir, 'stats.json'), JSON.stringify(days));
 }
@@ -89,6 +89,7 @@ async function main() {
 
     await sharp(capture('settings.stand', theme)).png().toFile(out(`settings-${theme}.png`));
     await sharp(capture('settings.stats', theme)).png().toFile(out(`stats-${theme}.png`));
+    await sharp(capture('report', theme)).png().toFile(out(`report-${theme}.png`));
   }
 
   fs.rmSync(tmp, { recursive: true, force: true });

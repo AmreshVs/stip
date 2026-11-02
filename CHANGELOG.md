@@ -10,10 +10,12 @@ All notable changes to Stip are listed here. The format follows [Keep a Changelo
 - Breaks wait for a natural pause: if you're busy or a build is running, the break starts when you pause, 10 minutes later at most. It only looks at idle time and program names, and can be turned off in settings.
 - Water characters: choose Debug Duck, Coolant, Hump Day, Gulp, Spike or Sprout instead of the orb, in Settings → Water. They fill with today's water, change mood as you drink, and also show in the tray.
 - Water has its own schedule: any time, working hours, or custom days and hours, in Settings → Water.
+- The Spine report: your week as a code review, with a suggestion you can apply and a save-as-image button. Open it from the tray or the Stats page. Optionally compares your breaks with git commits from folders you choose, on your computer only.
 - The `stip` terminal command: `status`, `break`, `water`, `sip`, `pause`, `resume` and `meeting`. Install it from settings. Try `npm run build && stip break`.
 
 ### Changed
 
+- The tray panel now looks and behaves like a system menu: system font, light and dark mode, arrow keys and shortcuts. It gives a tip when it spots a pattern in your skipped breaks.
 - The tray panel opens instantly, even the first time, and Esc closes it. On macOS it opens over full-screen apps.
 - Opening Stip while it's already running shows the tray panel.
 - Stip uses almost no CPU while idle: the hidden tray panel no longer runs its animations.

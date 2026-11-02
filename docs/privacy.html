@@ -94,7 +94,7 @@
     <p>Stip saves two small files in its own app data folder, so it can remember your choices between launches:</p>
     <ul>
       <li><strong>Settings:</strong> how often to remind you, break length, theme, working hours and similar choices.</li>
-      <li><strong>Stats:</strong> how many breaks you took, skipped or snoozed, and how many glasses of water you logged, by day.</li>
+      <li><strong>Stats:</strong> how many breaks you took, skipped or snoozed and at what hour, your longest stretch of sitting, and how many glasses of water you logged, by day.</li>
     </ul>
     <p>These files never leave your computer. Uninstalling Stip, or deleting its app data folder, removes them.</p>
 
@@ -108,6 +108,9 @@
 
     <h2>The stip command</h2>
     <p>The optional <code>stip</code> terminal command talks to the app over a private socket on your own computer. Nothing goes over the network.</p>
+
+    <h2>Spine report and your commits</h2>
+    <p>The weekly Spine report is built on your computer from your own stats. If you choose to add project folders, Stip reads the time and message of your recent git commits in those folders to compare them with your breaks. That stays in memory and is never uploaded. It's off until you add a folder.</p>
 
     <h2>The website</h2>
     <p>This website is hosted on GitHub Pages and loads fonts from Google Fonts. Like any web host, GitHub and Google may log basic request details such as your IP address. The site itself uses no cookies, analytics or tracking.</p>

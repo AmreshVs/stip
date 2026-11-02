@@ -60,10 +60,13 @@ async function testTray(stip) {
   await waitFor(() => js(panel, "document.getElementById('next').textContent !== '--:--'"));
   check('tray shows the countdown', /^\d+:\d\d$/.test(await js(panel, "document.getElementById('next').textContent")));
 
-  check('tray status says Active', (await js(panel, "document.getElementById('status-text').textContent")) === 'Active');
+  check('tray says when the next break is', (await js(panel, "document.getElementById('status-text').textContent")) === 'Next break');
   const height = stip.tray.panel.getBounds().height;
   check('tray window fits its content', height > 300 && height < 440, `${height} px`);
 
+  check('pause choices start folded away', await js(panel, "document.getElementById('pause-row').hidden"));
+  await click(panel, '#pause-toggle');
+  check('Pause unfolds its choices', await js(panel, "!document.getElementById('pause-row').hidden"));
   await click(panel, '[data-act="pause"][data-min="30"]');
   check('pause 30 min pauses reminders', await waitFor(() => stip.scheduler.status(Date.now()).pausedUntil > 0));
   check('tray status says Paused', await waitFor(() => js(panel, "document.getElementById('status-text').textContent === 'Paused'")));
@@ -78,7 +81,7 @@ async function testTray(stip) {
     await waitFor(() =>
       js(
         panel,
-        "document.getElementById('meeting').getAttribute('aria-pressed') === 'true' && document.getElementById('status-text').textContent === 'In a call' && document.getElementById('meeting-text').textContent.startsWith('End meeting mode · on until')",
+        "document.getElementById('meeting').getAttribute('aria-pressed') === 'true' && document.getElementById('status-text').textContent === 'In a call' && document.getElementById('meeting-text').textContent.startsWith('On until')",
       ),
     ),
   );
@@ -106,9 +109,7 @@ async function testTray(stip) {
   stip.settings.set({ workHours: { enabled: false, days: [1, 2, 3, 4, 5] } });
 
   stip.settings.set({ water: { enabled: false } });
-  await waitFor(() => js(panel, "document.getElementById('water-now').hidden"));
-  const fullWidth = await js(panel, "document.querySelector('.stand').offsetWidth > document.querySelector('.actions').offsetWidth * 0.8");
-  check('Stand now fills the row when water is off', fullWidth);
+  check('water rows go when water is off', await waitFor(() => js(panel, "document.getElementById('water-now').hidden && document.getElementById('sip').hidden")));
   stip.settings.set({ water: { enabled: true } });
   stip.tray.hide();
 }
@@ -237,6 +238,25 @@ async function testWater(stip) {
   settingsWin.close();
 }
 
+async function testReport(stip) {
+  const before = stip.settings.get().stand.everyMin;
+  stip.stats.noteSit(150);
+  check('the longest sit is remembered', stip.stats.today().longestSitMin >= 150);
+  stip.stats.record('skipped');
+  check('a skip records its hour', Object.keys(stip.stats.today().skippedHours).length === 1);
+  stip.handleAction('report-open');
+  const win = stip.reportWindow.win;
+  await isLoaded(win);
+  check('the report opens with a verdict', await waitFor(() => js(win, "document.querySelector('#title em')?.textContent === 'changes requested.'")));
+  check('the report lists the long sit', await js(win, "document.getElementById('diff').textContent.includes('Sat for')"));
+  check('the report offers a suggestion', await js(win, "!document.getElementById('suggestion-box').hidden"));
+  await click(win, '#apply');
+  check('applying a suggestion changes the setting', await waitFor(() => stip.settings.get().stand.everyMin !== before));
+  check('an applied suggestion is settled', await waitFor(() => js(win, "document.getElementById('suggestion-box').hidden && !document.getElementById('outcome').hidden")));
+  win.close();
+  stip.settings.set({ stand: { everyMin: before }, report: { reviewed: null } });
+}
+
 async function testTimers(stip) {
   const panel = stip.tray.open();
   await isLoaded(panel);
@@ -307,7 +327,7 @@ async function testSettings(stip) {
 
 async function main() {
   const stip = await ready;
-  for (const suite of [testTray, testBreak, testWater, testTimers, testSettings]) {
+  for (const suite of [testTray, testBreak, testWater, testTimers, testReport, testSettings]) {
     console.log(`\n${suite.name.replace(/^test/, '')}`);
     try {
       await suite(stip);

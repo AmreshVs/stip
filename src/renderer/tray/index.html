@@ -4,85 +4,49 @@
   <meta charset="utf-8">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:">
   <title>Stip</title>
-  <link rel="stylesheet" href="../shared/base.css">
   <link rel="stylesheet" href="../shared/characters.css">
   <link rel="stylesheet" href="tray.css">
 </head>
 <body class="asleep">
   <main class="panel" id="panel">
-    <header class="head">
-      <svg class="glyph" viewBox="0 0 300 500" aria-hidden="true"><path class="glyph-drop" d="M150 0C150 0 70 94 70 150a80 80 0 00160 0C230 94 150 0 150 0z"/><path class="glyph-arrow" d="M150 465 L150 315 M70 390 L150 310 L230 390"/></svg>
-      <span class="brand display">stip</span>
-      <span class="status" id="status"><i></i><span id="status-text">Active</span></span>
-      <span class="grow"></span>
-      <button class="icon" data-act="settings" aria-label="Settings" title="Settings">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>
-      </button>
-      <button class="icon" data-act="quit" aria-label="Quit Stip" title="Quit Stip">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v9M6.3 6.3a8 8 0 1011.4 0"/></svg>
-      </button>
-    </header>
+    <section class="top">
+      <div class="top-line"><strong id="status-text">Next break</strong><span id="break-at"></span></div>
+      <div class="clock" id="next">--:--</div>
+      <div class="bar" aria-hidden="true"><i id="bar"></i></div>
+      <p class="note" id="note" hidden></p>
+      <p class="summary" id="summary"></p>
+    </section>
 
-    <section class="hero">
-      <div class="ring">
-        <svg viewBox="0 0 116 116" aria-hidden="true">
-          <defs><linearGradient id="ring-grad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" class="ring-a"/><stop offset="1" class="ring-b"/></linearGradient></defs>
-          <circle class="ring-track" cx="58" cy="58" r="50"/>
-          <circle class="ring-fill" id="ring" cx="58" cy="58" r="50"/>
+    <hr>
+    <button class="row" data-act="stand-now">Stand now</button>
+    <button class="row" id="sip" data-act="sip">
+      Log a sip
+      <span class="side">
+        <svg class="bead" id="bead-char" viewBox="0 0 160 160" aria-hidden="true" hidden></svg>
+        <svg class="bead" id="bead-orb" viewBox="0 0 40 40" aria-hidden="true">
+          <defs><clipPath id="bead-clip"><circle cx="20" cy="20" r="16"/></clipPath></defs>
+          <circle class="bead-glass" cx="20" cy="20" r="16"/>
+          <g clip-path="url(#bead-clip)"><g id="bead-level"><path class="bead-water" d="M0 0 H40 V40 H0 Z"/></g></g>
         </svg>
-        <div class="ring-text">
-          <span class="time display" id="next">--:--</span>
-          <span class="time-label" id="next-label">to stand</span>
-        </div>
-      </div>
-      <div class="info">
-        <div>
-          <div class="info-main" id="sitting">Sitting 0 min</div>
-          <div class="info-sub" id="break-at"></div>
-        </div>
-        <div class="rule" id="water-rule"></div>
-        <div class="water" id="water-row">
-          <svg class="bead char-bead" id="bead-char" viewBox="0 0 160 160" aria-hidden="true" hidden></svg>
-          <svg class="bead" id="bead-orb" viewBox="0 0 40 40" aria-hidden="true">
-            <defs><clipPath id="bead-clip"><circle cx="20" cy="20" r="16"/></clipPath></defs>
-            <circle class="bead-glass" cx="20" cy="20" r="16"/>
-            <g clip-path="url(#bead-clip)"><g id="bead-level"><g class="bead-wave"><path d="M0 0 Q6 -3 12 0 T24 0 T36 0 T48 0 T60 0 T72 0 V40 H0 Z"/></g></g></g>
-            <circle class="bead-rim" cx="20" cy="20" r="16"/>
-          </svg>
-          <div>
-            <div class="info-main" id="glasses">0 of 8 glasses</div>
-            <div class="info-sub" id="water-next"></div>
-          </div>
-        </div>
-      </div>
-    </section>
+        <span id="glasses"></span>
+      </span>
+    </button>
+    <button class="row" id="water-now" data-act="water-now">Water reminder now<span class="side" id="water-next"></span></button>
+    <button class="row" id="meeting" data-act="meeting-toggle" aria-pressed="false">
+      Meeting mode<span class="side" id="meeting-text">Off</span>
+    </button>
+    <button class="row" id="pause-toggle" aria-expanded="false">Pause<span class="side chevron" aria-hidden="true">›</span></button>
+    <div class="sub" id="pause-row" hidden>
+      <button class="row" data-act="pause" data-min="30">For 30 minutes</button>
+      <button class="row" data-act="pause" data-min="60">For 1 hour</button>
+      <button class="row" data-act="pause" data-min="day">For today</button>
+    </div>
+    <button class="row" id="resume" data-act="resume" hidden>Resume</button>
 
-    <p class="summary" id="summary"></p>
-
-    <section class="actions">
-      <button class="act stand" data-act="stand-now">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="4.5" r="2"/><path d="M12 7v7M8 10l4-2 4 2M9.5 21l2.5-7 2.5 7"/></svg>
-        Stand now
-      </button>
-      <button class="act water-now" data-act="water-now" id="water-now">
-        <svg viewBox="0 0 24 28" aria-hidden="true"><path d="M12 1S3 11 3 17a9 9 0 0018 0C21 11 12 1 12 1z"/></svg>
-        Water now
-      </button>
-      <button class="act meeting" id="meeting" data-act="meeting-toggle" aria-pressed="false" title="Hold breaks until your meeting ends">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 19.5c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"/><circle cx="17" cy="9" r="2.6"/><path d="M16.5 14.2c2.8.2 4.5 2.1 4.5 5.3"/></svg>
-        <span id="meeting-text">Meeting mode</span>
-      </button>
-    </section>
-
-    <footer class="pause">
-      <span class="pause-label" id="pause-label">Pause for</span>
-      <div class="pause-group" id="pause-row">
-        <button data-act="pause" data-min="30">30 min</button>
-        <button data-act="pause" data-min="60">1 hour</button>
-        <button data-act="pause" data-min="day">Today</button>
-      </div>
-      <button class="resume" id="resume" data-act="resume" hidden>Resume</button>
-    </footer>
+    <hr>
+    <button class="row" data-act="report-open">This week's report</button>
+    <button class="row" data-act="settings">Settings…<span class="side mac-only">⌘,</span></button>
+    <button class="row" data-act="quit">Quit Stip<span class="side mac-only">⌘Q</span></button>
   </main>
   <script src="../shared/format.js"></script>
   <script src="../shared/characters.js"></script>

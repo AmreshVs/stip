@@ -1245,3 +1245,7 @@ input[type='time'] {
   width: 150px;
   height: 150px;
 }
+
+.report-link {
+  margin-top: 14px;
+}

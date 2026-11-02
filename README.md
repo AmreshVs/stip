@@ -38,6 +38,8 @@ Every 30 minutes, Stip covers your screens with a calm two-minute stand break, w
 
 **Pick your water character.** A rubber duck that floats up as you drink, a CPU that cools down, a camel, a goldfish, a cactus or a plant. Or keep the orb.
 
+**The Spine report.** Your week as a code review: "changes requested", with a diff of your habits and a suggestion you can apply. Save it as an image to share.
+
 **A terminal command.** Install it from settings, then `stip status`, `stip pause 1h`, or `npm run build && stip break`.
 
 **Two themes.** Flat is bold and solid. Aurora is a calm, glowing night.
@@ -48,11 +50,15 @@ Every 30 minutes, Stip covers your screens with a calm two-minute stand break, w
 
 | Tray | Water reminder |
 | --- | --- |
-| <img src="docs/screenshots/tray-flat.png" width="380" alt="The tray panel with a countdown ring, water progress, and Stand now and Water now buttons"> | <img src="docs/screenshots/water-flat.png" width="460" alt="The water reminder: a blue orb with a face in the bottom corner and a card asking for a sip"> |
+| <img src="docs/screenshots/tray-flat.png" width="380" alt="The tray menu: the time to the next break, a progress bar, and rows for Stand now, Log a sip, Meeting mode and Pause"> | <img src="docs/screenshots/water-flat.png" width="460" alt="The water reminder: a blue orb with a face in the bottom corner and a card asking for a sip"> |
 
 | Settings | Stats |
 | --- | --- |
 | <img src="docs/screenshots/settings-flat.png" width="460" alt="Settings for stand breaks: interval slider, break length, strictness and display options"> | <img src="docs/screenshots/stats-flat.png" width="460" alt="Stats page with streak, breaks today, water today and two charts"> |
+
+### Spine report
+
+<img src="docs/screenshots/report-aurora.png" width="760" alt="The Spine report: changes requested, with a diff of habits such as breaks taken and skipped, a review from Stip with a suggestion, and a chart of breaks by hour">
 
 ### Aurora theme
 
@@ -60,7 +66,7 @@ Every 30 minutes, Stip covers your screens with a calm two-minute stand break, w
 
 | Tray | Water reminder |
 | --- | --- |
-| <img src="docs/screenshots/tray-aurora.png" width="380" alt="The tray panel in the aurora theme: a teal countdown ring, water progress and Stand now and Water now buttons"> | <img src="docs/screenshots/water-aurora.png" width="460" alt="The water reminder in the aurora theme: a glowing orb in the corner of a dimmed screen and a card saying Hydrate or diedrate"> |
+| <img src="docs/screenshots/tray-aurora.png" width="380" alt="The tray menu: the time to the next break, a progress bar, and rows for Stand now, Log a sip, Meeting mode and Pause"> | <img src="docs/screenshots/water-aurora.png" width="460" alt="The water reminder in the aurora theme: a glowing orb in the corner of a dimmed screen and a card saying Hydrate or diedrate"> |
 
 | Settings | Stats |
 | --- | --- |

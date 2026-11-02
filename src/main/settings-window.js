@@ -37,7 +37,7 @@ class SettingsWindow {
     });
     this.win.on('closed', () => {
       this.win = null;
-      if (process.platform === 'darwin') app.dock.hide();
+      if (process.platform === 'darwin' && !BrowserWindow.getAllWindows().some((w) => w.isVisible())) app.dock.hide();
     });
     return this.win;
   }

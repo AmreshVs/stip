@@ -1,12 +1,15 @@
 const path = require('node:path');
-const { BrowserWindow, Tray, Menu, nativeImage, screen } = require('electron');
+const { BrowserWindow, Tray, Menu, nativeImage, nativeTheme, screen } = require('electron');
 const { HIDDEN } = require('./snapshot');
 
 const ICONS = path.join(__dirname, '..', '..', 'assets', 'generated');
 const PRELOAD = path.join(__dirname, '..', 'preload.js');
-const PANEL = { width: 380, height: 440 };
-// Solid window colours, matching each theme's panel background.
-const PANEL_BG = { flat: '#f3f0e8', aurora: '#0c111e' };
+const PANEL = { width: process.platform === 'win32' ? 320 : 300, height: 400 };
+// Solid window colours, matching the panel in the system's light or dark mode.
+const panelColor = () => {
+  if (process.platform === 'win32') return nativeTheme.shouldUseDarkColors ? '#2c2c2c' : '#f9f9f9';
+  return nativeTheme.shouldUseDarkColors ? '#2a2a2c' : '#f6f6f6';
+};
 const CLICK_THROUGH_MS = 250;
 
 function trayIcon() {
@@ -31,8 +34,7 @@ function panelPosition(trayBounds, height) {
 }
 
 class TrayUI {
-  constructor({ onAction, getState, theme = 'flat' }) {
-    this.theme = theme;
+  constructor({ onAction, getState }) {
     this.onAction = onAction;
     this.getState = getState;
     this.tray = new Tray(trayIcon());
@@ -47,6 +49,7 @@ class TrayUI {
       { label: 'Log a sip', click: () => onAction('sip') },
       { label: 'Pause for 1 hour', click: () => onAction('pause', { minutes: 60 }) },
       { type: 'separator' },
+      { label: "This week's report", click: () => onAction('report-open') },
       { label: 'Settings', click: () => onAction('settings') },
       { label: 'Quit Stip', click: () => onAction('quit') },
     ]);
@@ -75,10 +78,11 @@ class TrayUI {
       hasShadow: true,
       // A macOS panel opens over full-screen apps without switching spaces.
       ...(process.platform === 'darwin' ? { type: 'panel' } : {}),
-      backgroundColor: PANEL_BG[this.theme] || PANEL_BG.flat,
+      backgroundColor: panelColor(),
       webPreferences: { preload: PRELOAD, sandbox: true },
     });
     this.panel.loadFile(path.join(__dirname, '..', 'renderer', 'tray', 'index.html'));
+    nativeTheme.on('updated', () => this.panel?.setBackgroundColor(panelColor()));
     this.panel.on('blur', () => {
       this.closedAt = Date.now();
       this.hide();
@@ -109,11 +113,6 @@ class TrayUI {
     this.panel.webContents.send('state', this.getState());
     this.panel.show();
     this.panel.focus();
-  }
-
-  setTheme(theme) {
-    this.theme = theme;
-    this.panel?.setBackgroundColor(PANEL_BG[theme] || PANEL_BG.flat);
   }
 
   // The page reports its height so the window fits it exactly.

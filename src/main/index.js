@@ -8,6 +8,9 @@ const { TrayUI } = require('./tray');
 const { BreakScreens } = require('./breaks');
 const { WaterReminder } = require('./water');
 const { SettingsWindow } = require('./settings-window');
+const { ReportWindow } = require('./report-window');
+const { buildReport, tip } = require('./report');
+const { recentCommits } = require('./git-history');
 const { snapshot, requestedView } = require('./snapshot');
 const { startCliServer, installCommand } = require('./cli-server');
 const { socketPath } = require('../cli');
@@ -29,6 +32,7 @@ let tray;
 let breaks;
 let water;
 let settingsWindow;
+let reportWindow;
 let cliInstallResult = null;
 
 function minutesUntilMidnight(now = new Date()) {
@@ -51,6 +55,7 @@ function state() {
     version: app.getVersion(),
     fromStore: Boolean(process.windowsStore),
     cliInstall: cliInstallResult,
+    tip: tip(stats.range(14)),
   };
 }
 
@@ -59,7 +64,10 @@ function state() {
 function broadcast({ includeSettings = true } = {}) {
   const current = state();
   tray.send(current);
-  if (includeSettings) settingsWindow.send(current);
+  if (includeSettings) {
+    settingsWindow.send(current);
+    reportWindow.send(current);
+  }
 }
 
 // The menu bar stays quiet: the icon alone, plus a word for a state that
@@ -122,6 +130,22 @@ const actions = {
     settingsWindow.open(settings.get().theme);
   },
   'settings-set': (patch) => settings.set(patch),
+  'report-open': () => {
+    tray.hide();
+    reportWindow.open(settings.get().theme);
+  },
+  'report-apply': () => settleSuggestion('applied'),
+  'report-dismiss': () => settleSuggestion('dismissed'),
+  'report-copy': () => reportWindow.copy(),
+  'report-save': () => reportWindow.save(),
+  'report-add-folder': async () => {
+    const folder = await reportWindow.pickFolder();
+    const { folders } = settings.get().report;
+    if (folder && !folders.includes(folder)) settings.set({ report: { folders: [...folders, folder] } });
+  },
+  'report-remove-folder': ({ folder }) => {
+    settings.set({ report: { folders: settings.get().report.folders.filter((f) => f !== folder) } });
+  },
   'install-cli': () => {
     try {
       const { dir } = installCommand({ exe: process.execPath, cli: path.join(app.getAppPath(), 'src', 'cli.js') });
@@ -169,6 +193,33 @@ function cliCommand({ command, minutes, on }) {
   }
 }
 
+async function report() {
+  const current = settings.get();
+  const { folders } = current.report;
+  const commits = folders.length ? await recentCommits(folders) : null;
+  return {
+    report: buildReport({
+      week: stats.range(7),
+      lastWeek: stats.range(7, 7),
+      streak: stats.streak(),
+      settings: current,
+      commits,
+    }),
+    folders,
+    theme: current.theme,
+  };
+}
+
+// Applying or dismissing a suggestion settles it for the week.
+async function settleSuggestion(outcome) {
+  const { report: current } = await report();
+  if (!current.suggestion) return;
+  settings.set({
+    ...(outcome === 'applied' ? current.suggestion.patch : {}),
+    report: { reviewed: { key: current.key, outcome } },
+  });
+}
+
 function onBreakFinished(how) {
   const now = Date.now();
   if (how === 'done') {
@@ -212,11 +263,12 @@ const ready = app.whenReady().then(() => {
   flow = new Flow();
   meeting = new Meeting({ onProcesses: (names) => flow.updateProcesses(names) });
   meeting.start();
-  tray = new TrayUI({ onAction: handleAction, getState: state, theme: settings.get().theme });
+  tray = new TrayUI({ onAction: handleAction, getState: state });
   tray.preload();
   breaks = new BreakScreens({ onFinish: onBreakFinished });
   water = new WaterReminder();
   settingsWindow = new SettingsWindow();
+  reportWindow = new ReportWindow();
   scheduler.on('stand', () => {
     water.hide();
     breaks.show(settings.get(), scheduler.status(Date.now()));
@@ -237,10 +289,10 @@ const ready = app.whenReady().then(() => {
   if (!process.env.STIP_USER_DATA || process.env.STIP_SOCKET) startCliServer(socketPath(), cliCommand);
 
   ipcMain.handle('state', () => state());
+  ipcMain.handle('report', () => report());
   ipcMain.on('act', (_event, name, payload) => handleAction(name, payload));
 
   settings.on('change', (next) => {
-    tray.setTheme(next.theme);
     scheduler.reschedule(Date.now());
     applyLoginItem(next);
     broadcast();
@@ -255,6 +307,10 @@ const ready = app.whenReady().then(() => {
     const idleSec = powerMonitor.getSystemIdleTime();
     flow.note(idleSec);
     scheduler.tick(now, { idleSec, inMeeting: meeting.active(now), inFlow: flow.active() });
+    const sitting = scheduler.status(now);
+    if (!sitting.pausedUntil && !sitting.offHours && !sitting.onBreak) {
+      stats.noteSit(Math.floor(sitting.sittingMs / 60000));
+    }
     updateTrayTitle();
     broadcast({ includeSettings: false });
   }, 1000);
@@ -273,6 +329,8 @@ async function showRequestedView() {
     win = breaks.primary;
   } else if (name === 'water') {
     win = water.show();
+  } else if (name === 'report') {
+    win = reportWindow.open(settings.get().theme);
   } else if (name.startsWith('settings')) {
     // settings.water opens straight on the Water page.
     const page = name.split('.')[1];
@@ -301,5 +359,5 @@ app.on('window-all-closed', () => {});
 
 // The end-to-end test drives the running app through these.
 module.exports = {
-  ready: ready.then(() => ({ settings, stats, scheduler, meeting, tray, breaks, water, settingsWindow, handleAction })),
+  ready: ready.then(() => ({ settings, stats, scheduler, meeting, tray, breaks, water, settingsWindow, reportWindow, handleAction })),
 };
