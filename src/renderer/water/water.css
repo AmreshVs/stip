@@ -536,3 +536,17 @@ body {
   color: var(--text);
   font-weight: 500;
 }
+
+/* A character jumps for joy when you sip. */
+.happy .char {
+  animation: charJoy 0.7s ease-out, bob 5s ease-in-out 0.7s infinite;
+}
+
+@keyframes charJoy {
+  30% {
+    transform: translateY(-22px) scale(1.06);
+  }
+  60% {
+    transform: translateY(0) scale(0.98);
+  }
+}

@@ -1,0 +1,70 @@
+/* The water characters. Drawn in shared/characters.js. */
+.char-mono {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+}
+
+.char-rise {
+  transition: transform 0.9s cubic-bezier(0.3, 0.8, 0.3, 1);
+}
+
+.char-wave {
+  animation: charWave 2.6s linear infinite;
+}
+
+@keyframes charWave {
+  to {
+    transform: translateX(-40px);
+  }
+}
+
+.char-bob {
+  animation: charBob 3s ease-in-out infinite;
+}
+
+@keyframes charBob {
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+.char-bubble {
+  animation: charBubble 2.6s ease-in infinite;
+}
+
+@keyframes charBubble {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-34px);
+    opacity: 0;
+  }
+}
+
+.char-drip {
+  animation: charDrip 1.6s ease-in infinite;
+}
+
+@keyframes charDrip {
+  to {
+    transform: translateY(26px);
+    opacity: 0;
+  }
+}
+
+.char-later {
+  animation-delay: 0.9s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .char-wave,
+  .char-bob,
+  .char-bubble,
+  .char-drip {
+    animation: none;
+  }
+}

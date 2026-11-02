@@ -4,6 +4,7 @@ const FIRST_HOUR = 9;
 const LAST_HOUR = 18;
 
 let hoursOpen = false;
+let lastPreview = '';
 
 function get(obj, key) {
   return key.split('.').reduce((o, k) => o?.[k], obj);
@@ -176,6 +177,14 @@ function render(state) {
 
   // Water preview: same level rule as the real orb, which never looks empty.
   const goal = settings.water.goalGlasses;
+  const character = settings.water.character;
+  $('mini-orb').toggleAttribute('hidden', characters.has(character));
+  $('mini-char').toggleAttribute('hidden', !characters.has(character));
+  const previewKey = `${character}:${today.glasses}:${goal}`;
+  if (characters.has(character) && previewKey !== lastPreview) {
+    lastPreview = previewKey;
+    characters.render($('mini-char'), character, characters.fillFor(today.glasses, goal));
+  }
   const fill = 0.32 + 0.68 * Math.min(1, today.glasses / goal);
   $('preview-level').style.transform = `translateY(${244 - fill * 208}px)`;
   $('glass-dots').replaceChildren(
@@ -193,7 +202,32 @@ function render(state) {
 
 let lastState = null;
 
+// Each choice shows the character half full, so the water reads.
+function buildCharacters() {
+  $('characters').replaceChildren(
+    ...characters.list.map(({ id, name }) => {
+      const button = document.createElement('button');
+      button.setAttribute('role', 'radio');
+      button.dataset.value = id;
+      const svgNs = 'http://www.w3.org/2000/svg';
+      const art = document.createElementNS(svgNs, 'svg');
+      art.setAttribute('viewBox', '0 0 160 160');
+      art.setAttribute('aria-hidden', 'true');
+      if (characters.has(id)) {
+        art.innerHTML = characters.markup(id, 0.5);
+      } else {
+        art.innerHTML = `<circle cx="80" cy="84" r="60" fill="#141b2e" stroke="#e2e8f0" stroke-width="3"/><path d="M20 84a60 60 0 00120 0z" fill="#38bdf8"/><circle cx="66" cy="108" r="4" fill="#0b1020"/><circle cx="94" cy="108" r="4" fill="#0b1020"/>`;
+      }
+      const label = document.createElement('span');
+      label.textContent = name;
+      button.append(art, label);
+      return button;
+    }),
+  );
+}
+
 function wire() {
+  buildCharacters();
   buildTicks();
 
   document.querySelectorAll('.nav').forEach((nav) => {

@@ -16,12 +16,17 @@ const LINES = [
 let glasses = 0;
 let goal = 8;
 let answered = false;
+let character = 'orb';
 
 // Water surface height inside the orb: 244 is empty, 36 is full. The orb
 // always keeps a little water so its face, which floats in it, stays visible.
-function setLevel(count) {
+function setLevel(count, previous) {
   const fill = 0.32 + 0.68 * Math.min(1, count / goal);
   $('level').style.transform = `translateY(${244 - fill * 208}px)`;
+  if (!characters.has(character)) return;
+  characters.render($('char'), character, characters.fillFor(count, goal), {
+    from: previous === undefined ? undefined : characters.fillFor(previous, goal),
+  });
 }
 
 function renderDots(count) {
@@ -53,6 +58,9 @@ async function init() {
   glasses = state.today.glasses;
   goal = state.settings.water.goalGlasses;
   const ml = state.settings.water.glassMl;
+  character = state.settings.water.character;
+  $('char').toggleAttribute('hidden', !characters.has(character));
+  $('orb-art').toggleAttribute('hidden', characters.has(character));
 
   $('line').innerHTML = LINES[Math.floor(Math.random() * LINES.length)];
   $('since').textContent = `Sitting for ${fmt.minutes(state.status.sittingMs)}`;
@@ -73,7 +81,7 @@ async function init() {
     clearTimeout(ignoreTimer);
     window.stip.act('water-sipped');
     glasses += 1;
-    setLevel(glasses);
+    setLevel(glasses, glasses - 1);
     renderDots(glasses);
     $('count').textContent = `${glasses} of ${goal} glasses · ${(glasses * ml) / 1000} L today`;
     document.getElementById('orb').classList.add('happy');

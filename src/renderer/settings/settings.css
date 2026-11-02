@@ -1191,3 +1191,57 @@ input[type='time'] {
     display: none;
   }
 }
+
+/* Water characters */
+.characters {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 8px;
+}
+
+.characters button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 6px;
+  border: 2px solid transparent;
+  border-radius: 14px;
+  background: var(--ink);
+  color: #f3f0e8;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.characters button:hover {
+  background: #2a2a2a;
+}
+
+.characters button[aria-checked='true'] {
+  border-color: var(--water);
+}
+
+.characters svg {
+  width: 72px;
+  height: 72px;
+}
+
+[data-theme='aurora'] .characters button {
+  background: rgba(255, 255, 255, 0.05);
+  color: #eef2ff;
+}
+
+[data-theme='aurora'] .characters button:hover {
+  background: rgba(255, 255, 255, 0.09);
+}
+
+[data-theme='aurora'] .characters button[aria-checked='true'] {
+  border-color: #7dd3fc;
+}
+
+.mini-char {
+  width: 150px;
+  height: 150px;
+}

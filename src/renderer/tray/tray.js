@@ -29,6 +29,7 @@ function setStatus(kind, text) {
 
 // The window fits the panel, so its height follows the content.
 let lastHeight = 0;
+let lastBead = '';
 function reportHeight() {
   const height = Math.ceil($('panel').getBoundingClientRect().height);
   if (height !== lastHeight) {
@@ -87,6 +88,15 @@ function render(state) {
   // Like the big orb, the bead never looks completely empty.
   const level = 0.2 + 0.8 * Math.min(1, today.glasses / water.goalGlasses);
   $('bead-level').style.transform = `translateY(${36 - level * 32}px)`;
+
+  const custom = characters.has(water.character);
+  $('bead-orb').toggleAttribute('hidden', custom);
+  $('bead-char').toggleAttribute('hidden', !custom);
+  const beadKey = `${water.character}:${today.glasses}:${water.goalGlasses}`;
+  if (custom && beadKey !== lastBead) {
+    lastBead = beadKey;
+    characters.render($('bead-char'), water.character, characters.fillFor(today.glasses, water.goalGlasses), { small: true });
+  }
 
   const litres = Number(((today.glasses * water.glassMl) / 1000).toFixed(1));
   const breaks = `${today.breaks} ${today.breaks === 1 ? 'break' : 'breaks'} today`;

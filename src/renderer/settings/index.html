@@ -5,6 +5,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:">
   <title>Stip settings</title>
   <link rel="stylesheet" href="../shared/base.css">
+  <link rel="stylesheet" href="../shared/characters.css">
   <link rel="stylesheet" href="settings.css">
 </head>
 <body>
@@ -153,9 +154,14 @@
           <section>
             <h2 class="group-title">Reminders</h2>
             <div class="group">
-              <label class="row"><span class="row-text"><strong>Water reminders</strong><small>The drop and orb in the bottom corner</small></span><input type="checkbox" class="switch" data-key="water.enabled"></label>
+              <label class="row"><span class="row-text"><strong>Water reminders</strong><small>The drop and your character in the bottom corner</small></span><input type="checkbox" class="switch" data-key="water.enabled"></label>
               <label class="row"><span class="row-text"><strong>Dim the screen</strong><small>Fade the rest of the screen while it shows</small></span><input type="checkbox" class="switch" data-key="water.dimScreen"></label>
             </div>
+          </section>
+
+          <section>
+            <h2 class="group-title">Character</h2>
+            <div class="characters" id="characters" role="radiogroup" aria-label="Water character" data-key="water.character"></div>
           </section>
 
           <section>
@@ -197,7 +203,7 @@
         <aside class="side">
           <h2 class="group-title">Preview</h2>
           <div class="preview">
-            <svg class="mini-orb" viewBox="0 0 240 260" aria-hidden="true">
+            <svg class="mini-orb" id="mini-orb" viewBox="0 0 240 260" aria-hidden="true">
               <defs><clipPath id="mini-clip"><circle cx="120" cy="140" r="104"/></clipPath></defs>
               <circle class="mini-glass" cx="120" cy="140" r="104"/>
               <g clip-path="url(#mini-clip)">
@@ -211,6 +217,7 @@
               </g>
               <path class="mini-shine" d="M58 96 A72 72 0 0 1 100 56"/>
             </svg>
+            <svg class="mini-char" id="mini-char" viewBox="0 0 160 160" aria-hidden="true" hidden></svg>
             <div class="preview-line display">I'm running <span class="water-word">low.</span></div>
           </div>
           <button class="outline" data-act="water-now">Try a water reminder</button>
@@ -327,6 +334,7 @@
     </main>
   </div>
   <script src="../shared/format.js"></script>
+  <script src="../shared/characters.js"></script>
   <script src="settings.js"></script>
 </body>
 </html>

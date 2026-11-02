@@ -198,6 +198,19 @@ async function testWater(stip) {
   check('the screen dims behind the reminder', dimmed);
   stip.water.hide();
 
+  stip.settings.set({ water: { character: 'duck' } });
+  win = stip.water.show();
+  await isLoaded(win);
+  await waitFor(() => js(win, "document.getElementById('count').textContent !== ''"));
+  check('a chosen character replaces the orb', await js(win, "getComputedStyle(document.getElementById('char')).display !== 'none' && getComputedStyle(document.getElementById('orb-art')).display === 'none'"));
+  check('the character holds water', await js(win, "document.querySelectorAll('#char .char-wave').length === 1"));
+  const glassesBefore = stip.stats.today().glasses;
+  await click(win, '#sipped');
+  check('a sip works with a character', await waitFor(() => stip.stats.today().glasses === glassesBefore + 1));
+  check('the water rises on a sip', await js(win, "/translateY/.test(document.querySelector('#char .char-rise').style.transform)"));
+  stip.water.hide();
+  stip.settings.set({ water: { character: 'orb' } });
+
   stip.settings.set({ water: { dimScreen: false } });
   win = stip.water.show();
   await isLoaded(win);

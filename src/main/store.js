@@ -21,6 +21,7 @@ const DEFAULTS = {
   },
   water: {
     enabled: true,
+    character: 'orb',
     dimScreen: true,
     everyMin: 30,
     goalGlasses: 8,
