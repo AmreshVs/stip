@@ -7,6 +7,7 @@ const PRELOAD = path.join(__dirname, '..', 'preload.js');
 const PANEL = { width: 380, height: 440 };
 // Solid window colours, matching each theme's panel background.
 const PANEL_BG = { flat: '#f3f0e8', aurora: '#0c111e' };
+const CLICK_THROUGH_MS = 250;
 
 function trayIcon() {
   if (process.platform === 'darwin') {
@@ -30,12 +31,14 @@ function panelPosition(trayBounds, height) {
 }
 
 class TrayUI {
-  constructor({ onAction, theme = 'flat' }) {
+  constructor({ onAction, getState, theme = 'flat' }) {
     this.theme = theme;
     this.onAction = onAction;
+    this.getState = getState;
     this.tray = new Tray(trayIcon());
     this.tray.setToolTip('Stip');
     this.panel = null;
+    this.closedAt = 0;
 
     const menu = Menu.buildFromTemplate([
       { label: 'Open Stip', click: () => this.toggle() },
@@ -70,11 +73,21 @@ class TrayUI {
       skipTaskbar: true,
       alwaysOnTop: true,
       hasShadow: true,
+      // A macOS panel opens over full-screen apps without switching spaces.
+      ...(process.platform === 'darwin' ? { type: 'panel' } : {}),
       backgroundColor: PANEL_BG[this.theme] || PANEL_BG.flat,
-      webPreferences: { preload: PRELOAD, sandbox: true },
+      webPreferences: { preload: PRELOAD, sandbox: true, backgroundThrottling: false },
     });
     this.panel.loadFile(path.join(__dirname, '..', 'renderer', 'tray', 'index.html'));
-    this.panel.on('blur', () => this.panel.hide());
+    this.panel.on('blur', () => {
+      this.closedAt = Date.now();
+      this.panel.hide();
+    });
+  }
+
+  // Loads the panel ahead of time, so the first click opens it instantly.
+  preload() {
+    if (!this.panel) this.createPanel();
   }
 
   toggle() {
@@ -83,6 +96,8 @@ class TrayUI {
       this.hide();
       return;
     }
+    // Clicking the icon while open blurs the panel first; don't reopen it.
+    if (Date.now() - this.closedAt < CLICK_THROUGH_MS) return;
     // Snapshots and tests render the panel without showing it.
     if (HIDDEN) {
       this.panelOpen = true;
@@ -90,6 +105,7 @@ class TrayUI {
     }
     const { x, y } = panelPosition(this.tray.getBounds(), this.panel.getBounds().height);
     this.panel.setPosition(x, y, false);
+    this.panel.webContents.send('state', this.getState());
     this.panel.show();
     this.panel.focus();
   }

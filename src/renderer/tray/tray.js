@@ -18,6 +18,10 @@ document.addEventListener('click', (event) => {
   window.stip.act(button.dataset.act, minutes ? { minutes } : undefined);
 });
 
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') window.stip.act('tray-close');
+});
+
 function setStatus(kind, text) {
   $('status').className = `status ${kind}`;
   $('status-text').textContent = text;
@@ -57,6 +61,11 @@ function render(state) {
     $('break-at').textContent = status.waitingForMeeting
       ? 'Starts 30 s after the call'
       : `Break at ${timeOfDay(now + status.msToStand)}, or after the call`;
+  } else if (status.waitingForFlow) {
+    setStatus('', 'Active');
+    $('next').textContent = 'Soon';
+    $('next-label').textContent = 'at next pause';
+    $('break-at').textContent = 'Starts when you pause, 10 min at most';
   } else {
     setStatus('', 'Active');
     $('next').textContent = fmt.clock(status.msToStand);
@@ -66,7 +75,7 @@ function render(state) {
   $('sitting').textContent = `Sitting ${fmt.minutes(status.sittingMs)}`;
 
   const idle = paused || status.offHours;
-  const progress = idle ? 0 : status.waitingForMeeting ? 1 : 1 - status.msToStand / status.standEveryMs;
+  const progress = idle ? 0 : status.waitingForMeeting || status.waitingForFlow ? 1 : 1 - status.msToStand / status.standEveryMs;
   $('ring').style.strokeDashoffset = String(RING * (1 - Math.min(1, Math.max(0, progress))));
 
   const water = settings.water;

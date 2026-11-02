@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { Scheduler, inWorkHours, nextWorkStart, MEETING_GRACE_MS } = require('../src/main/scheduler');
+const { Scheduler, inWorkHours, nextWorkStart, MEETING_GRACE_MS, FLOW_MAX_WAIT_MS } = require('../src/main/scheduler');
 const { DEFAULTS, merge } = require('../src/main/store');
 
 const MIN = 60 * 1000;
@@ -170,4 +170,29 @@ test('defaults: 30 minutes sitting, 2 minute breaks, 3 minutes away, 2 snoozes',
   assert.equal(DEFAULTS.stand.breakSec, 120);
   assert.equal(DEFAULTS.stand.awayMin, 3);
   assert.equal(DEFAULTS.stand.maxSnoozes, 2);
+});
+
+test('a due break waits for a pause, then starts', () => {
+  const { scheduler, events } = setup({ water: { enabled: false }, stand: { waitForFlow: true } });
+  scheduler.tick(40 * MIN, { inFlow: true });
+  assert.deepEqual(events, []);
+  assert.equal(scheduler.status(40 * MIN).waitingForFlow, true);
+  scheduler.tick(41 * MIN, { inFlow: false });
+  assert.deepEqual(events, ['stand']);
+  assert.equal(scheduler.status(41 * MIN).waitingForFlow, false);
+});
+
+test('a break waits for a pause for 10 minutes at most', () => {
+  const { scheduler, events } = setup({ water: { enabled: false }, stand: { waitForFlow: true } });
+  scheduler.tick(40 * MIN, { inFlow: true });
+  scheduler.tick(40 * MIN + FLOW_MAX_WAIT_MS - 1, { inFlow: true });
+  assert.deepEqual(events, []);
+  scheduler.tick(40 * MIN + FLOW_MAX_WAIT_MS, { inFlow: true });
+  assert.deepEqual(events, ['stand']);
+});
+
+test('being busy changes nothing when waiting for a pause is off', () => {
+  const { scheduler, events } = setup({ water: { enabled: false }, stand: { waitForFlow: false } });
+  scheduler.tick(40 * MIN, { inFlow: true });
+  assert.deepEqual(events, ['stand']);
 });

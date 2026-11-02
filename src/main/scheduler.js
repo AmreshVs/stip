@@ -3,6 +3,8 @@ const { EventEmitter } = require('node:events');
 const MIN = 60 * 1000;
 // After a call ends, wait a little before covering the screen.
 const MEETING_GRACE_MS = 30 * 1000;
+// A break waits for a pause in your work, but not forever.
+const FLOW_MAX_WAIT_MS = 10 * MIN;
 
 function minutesOfDay(hhmm) {
   const [h, m] = hhmm.split(':').map(Number);
@@ -45,6 +47,7 @@ class Scheduler extends EventEmitter {
     this.waitingForMeeting = false;
     this.meetingEndedAt = 0;
     this.snoozeCount = 0;
+    this.flowWaitStartedAt = 0;
   }
 
   standEvery() {
@@ -59,7 +62,7 @@ class Scheduler extends EventEmitter {
     return now < this.pausedUntil;
   }
 
-  tick(now, { idleSec = 0, inMeeting = false } = {}) {
+  tick(now, { idleSec = 0, inMeeting = false, inFlow = false } = {}) {
     const settings = this.getSettings();
     if (this.onBreak) return;
 
@@ -91,9 +94,16 @@ class Scheduler extends EventEmitter {
       } else if (this.waitingForMeeting) {
         if (!this.meetingEndedAt) this.meetingEndedAt = now;
         if (now - this.meetingEndedAt >= MEETING_GRACE_MS) this.startBreak();
+      } else if (settings.stand.waitForFlow && inFlow && !this.flowWaitOver(now)) {
+        if (!this.flowWaitStartedAt) {
+          this.flowWaitStartedAt = now;
+          this.emit('status');
+        }
       } else {
         this.startBreak();
       }
+    } else {
+      this.flowWaitStartedAt = 0;
     }
 
     if (settings.water.enabled && now >= this.waterDueAt && !inMeeting) {
@@ -102,8 +112,13 @@ class Scheduler extends EventEmitter {
     }
   }
 
+  flowWaitOver(now) {
+    return this.flowWaitStartedAt > 0 && now - this.flowWaitStartedAt >= FLOW_MAX_WAIT_MS;
+  }
+
   startBreak() {
     this.onBreak = true;
+    this.flowWaitStartedAt = 0;
     this.waitingForMeeting = false;
     this.meetingEndedAt = 0;
     this.emit('stand');
@@ -201,10 +216,11 @@ class Scheduler extends EventEmitter {
       msToWater: Math.max(0, this.waterDueAt - now),
       pausedUntil: this.isPaused(now) ? this.pausedUntil : 0,
       waitingForMeeting: this.waitingForMeeting,
+      waitingForFlow: this.flowWaitStartedAt > 0,
       onBreak: this.onBreak,
       snoozesLeft: this.snoozesLeft(),
     };
   }
 }
 
-module.exports = { Scheduler, inWorkHours, nextWorkStart, MEETING_GRACE_MS };
+module.exports = { Scheduler, inWorkHours, nextWorkStart, MEETING_GRACE_MS, FLOW_MAX_WAIT_MS };

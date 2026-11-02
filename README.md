@@ -34,6 +34,10 @@ Every 30 minutes, Stip covers your screens with a calm two-minute stand break, w
 
 **Your week at a glance.** A Stats page shows your stand streak, breaks by hour, and water over the last seven days.
 
+**Waits for a natural pause.** If you're busy or a build is running, the break starts when you pause, 10 minutes later at most. It only looks at idle time and program names, never what you type.
+
+**A terminal command.** Install it from settings, then `stip status`, `stip pause 1h`, or `npm run build && stip break`.
+
 **Two themes.** Flat is bold and solid. Aurora is a calm, glowing night.
 
 ## Screenshots

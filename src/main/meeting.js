@@ -22,7 +22,8 @@ function listProcesses() {
 // Tracks whether the user is in a call: either they said so (meeting mode),
 // or a known call process is running.
 class Meeting {
-  constructor() {
+  constructor({ onProcesses } = {}) {
+    this.onProcesses = onProcesses;
     this.manualUntil = 0;
     this.autoDetected = false;
     this.timer = null;
@@ -32,6 +33,7 @@ class Meeting {
     const poll = async () => {
       const names = await listProcesses();
       this.autoDetected = names.some((name) => CALL_PROCESSES.some((re) => re.test(name)));
+      this.onProcesses?.(names);
     };
     poll();
     this.timer = setInterval(poll, pollMs);

@@ -7,9 +7,17 @@ All notable changes to Stip are listed here. The format follows [Keep a Changelo
 ### Added
 
 - Stip is on the [Microsoft Store](https://apps.microsoft.com/detail/9MSN24PF9CD5). The website, README and release notes link to it.
+- Breaks wait for a natural pause: if you're busy or a build is running, the break starts when you pause, 10 minutes later at most. It only looks at idle time and program names, and can be turned off in settings.
+- The `stip` terminal command: `status`, `break`, `water`, `sip`, `pause`, `resume` and `meeting`. Install it from settings. Try `npm run build && stip break`.
+
+### Changed
+
+- The tray panel opens instantly, even the first time, and Esc closes it. On macOS it opens over full-screen apps.
+- Opening Stip while it's already running shows the tray panel.
 
 ### Fixed
 
+- Clicking the tray icon while the panel is open now closes it instead of reopening it.
 - The Microsoft Store version now shows up in Windows Settings → Apps → Startup, so it can open at login.
 
 ## [1.0.0] - 2026-10-30

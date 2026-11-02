@@ -164,6 +164,14 @@ function render(state) {
     }),
   );
 
+  const cli = state.cliInstall;
+  $('cli-row').hidden = state.fromStore;
+  $('cli-hint').textContent = !cli
+    ? 'Control Stip from a terminal: stip pause 1h, or npm run build && stip break'
+    : cli.ok
+      ? `Installed in ${cli.dir}. If "stip" isn't found, add that folder to your PATH.`
+      : `Couldn't install it: ${cli.error}`;
+
   $('preview-time').textContent = fmt.clock(settings.stand.breakSec * 1000);
 
   // Water preview: same level rule as the real orb, which never looks empty.

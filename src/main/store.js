@@ -13,6 +13,7 @@ const DEFAULTS = {
     strictness: 'balanced',
     coverAllDisplays: true,
     waitDuringCalls: true,
+    waitForFlow: true,
     resetWhenAway: true,
     awayMin: 3,
     // Snoozes in a row before the break can't be put off. 0 means no limit.

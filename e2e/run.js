@@ -7,7 +7,7 @@ const path = require('node:path');
 const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'stip-e2e-'));
 fs.writeFileSync(
   path.join(dataDir, 'settings.json'),
-  JSON.stringify({ stand: { everyMin: 60 }, water: { everyMin: 60 } }),
+  JSON.stringify({ stand: { everyMin: 60, waitForFlow: false }, water: { everyMin: 60 } }),
 );
 process.env.STIP_USER_DATA = dataDir;
 process.env.STIP_HIDDEN = '1';

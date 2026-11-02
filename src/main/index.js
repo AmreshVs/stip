@@ -1,12 +1,16 @@
+const path = require('node:path');
 const { app, ipcMain, powerMonitor, Notification } = require('electron');
 const { Settings, Stats } = require('./store');
 const { Scheduler } = require('./scheduler');
 const { Meeting } = require('./meeting');
+const { Flow } = require('./flow');
 const { TrayUI } = require('./tray');
 const { BreakScreens } = require('./breaks');
 const { WaterReminder } = require('./water');
 const { SettingsWindow } = require('./settings-window');
 const { snapshot, requestedView } = require('./snapshot');
+const { startCliServer, installCommand } = require('./cli-server');
+const { socketPath } = require('../cli');
 
 // Lets dev runs and snapshots keep their settings apart from the real ones.
 if (process.env.STIP_USER_DATA) app.setPath('userData', process.env.STIP_USER_DATA);
@@ -20,10 +24,12 @@ let settings;
 let stats;
 let scheduler;
 let meeting;
+let flow;
 let tray;
 let breaks;
 let water;
 let settingsWindow;
+let cliInstallResult = null;
 
 function minutesUntilMidnight(now = new Date()) {
   const midnight = new Date(now);
@@ -44,6 +50,7 @@ function state() {
     platform: process.platform,
     version: app.getVersion(),
     fromStore: Boolean(process.windowsStore),
+    cliInstall: cliInstallResult,
   };
 }
 
@@ -60,14 +67,16 @@ function broadcast({ includeSettings = true } = {}) {
 const FINAL_COUNTDOWN_MS = 30 * 1000;
 
 function updateTrayTitle() {
-  const { status, meeting: call, settings: current } = state();
+  const now = Date.now();
+  const status = scheduler.status(now);
   const clock = fmtClock(status.msToStand);
   const tooltip = `Stip · next stand in ${clock}`;
-  const final = current.showCountdown && status.msToStand <= FINAL_COUNTDOWN_MS;
+  const final = settings.get().showCountdown && status.msToStand <= FINAL_COUNTDOWN_MS;
   if (status.pausedUntil) tray.setTitle('Paused', 'Stip · paused');
   else if (status.offHours) tray.setTitle('', 'Stip · outside working hours');
   else if (status.waitingForMeeting) tray.setTitle('In call · break waiting', 'Stip · your break starts after the call');
-  else if (call.active) tray.setTitle(final ? `In call · ${clock}` : 'In call', `Stip · in a call, next stand in ${clock}`);
+  else if (status.waitingForFlow) tray.setTitle('Break at next pause', 'Stip · your break starts when you pause');
+  else if (meeting.active(now)) tray.setTitle(final ? `In call · ${clock}` : 'In call', `Stip · in a call, next stand in ${clock}`);
   else tray.setTitle(final ? clock : '', tooltip);
 }
 
@@ -87,6 +96,7 @@ const actions = {
     scheduler.sipped(Date.now());
   },
   'tray-size': ({ height }) => tray.resize(height),
+  'tray-close': () => tray.hide(),
   'water-now': () => {
     tray.hide();
     if (!breaks.open) water.show();
@@ -111,8 +121,52 @@ const actions = {
     settingsWindow.open(settings.get().theme);
   },
   'settings-set': (patch) => settings.set(patch),
+  'install-cli': () => {
+    try {
+      const { dir } = installCommand({ exe: process.execPath, cli: path.join(app.getAppPath(), 'src', 'cli.js') });
+      cliInstallResult = { ok: true, dir };
+    } catch (err) {
+      cliInstallResult = { ok: false, error: err.message };
+    }
+  },
   quit: () => app.quit(),
 };
+
+// The `stip` command in the terminal.
+function cliCommand({ command, minutes, on }) {
+  const now = Date.now();
+  switch (command) {
+    case 'status':
+      return {
+        status: scheduler.status(now),
+        today: stats.today(),
+        streak: stats.streak(),
+        meeting: meeting.manual(now),
+      };
+    case 'break':
+      if (scheduler.status(now).onBreak) return { message: 'Already on a break.' };
+      handleAction('stand-now');
+      return { message: 'Stand up!' };
+    case 'water':
+      handleAction('water-now');
+      return { message: 'Water reminder is up.' };
+    case 'sip':
+      handleAction('sip');
+      return { message: `Logged. ${stats.today().glasses} of ${settings.get().water.goalGlasses} glasses today.` };
+    case 'pause':
+      handleAction('pause', { minutes });
+      return { message: minutes === 'day' ? 'Paused for today.' : `Paused for ${minutes} min.` };
+    case 'resume':
+      handleAction('resume');
+      return { message: 'Reminders are back on.' };
+    case 'meeting':
+      meeting.setManual(on);
+      broadcast();
+      return { message: on ? 'Meeting mode on.' : 'Meeting mode off.' };
+    default:
+      return { error: 'Unknown command.' };
+  }
+}
 
 function onBreakFinished(how) {
   const now = Date.now();
@@ -154,9 +208,11 @@ const ready = app.whenReady().then(() => {
   settings = new Settings(dir);
   stats = new Stats(dir);
   scheduler = new Scheduler(() => settings.get());
-  meeting = new Meeting();
+  flow = new Flow();
+  meeting = new Meeting({ onProcesses: (names) => flow.updateProcesses(names) });
   meeting.start();
-  tray = new TrayUI({ onAction: handleAction, theme: settings.get().theme });
+  tray = new TrayUI({ onAction: handleAction, getState: state, theme: settings.get().theme });
+  tray.preload();
   breaks = new BreakScreens({ onFinish: onBreakFinished });
   water = new WaterReminder();
   settingsWindow = new SettingsWindow();
@@ -176,6 +232,9 @@ const ready = app.whenReady().then(() => {
     if (!breaks.open) water.show();
   });
 
+  // Test and snapshot runs keep their hands off the real command's socket.
+  if (!process.env.STIP_USER_DATA || process.env.STIP_SOCKET) startCliServer(socketPath(), cliCommand);
+
   ipcMain.handle('state', () => state());
   ipcMain.on('act', (_event, name, payload) => handleAction(name, payload));
 
@@ -192,10 +251,9 @@ const ready = app.whenReady().then(() => {
 
   setInterval(() => {
     const now = Date.now();
-    scheduler.tick(now, {
-      idleSec: powerMonitor.getSystemIdleTime(),
-      inMeeting: meeting.active(now),
-    });
+    const idleSec = powerMonitor.getSystemIdleTime();
+    flow.note(idleSec);
+    scheduler.tick(now, { idleSec, inMeeting: meeting.active(now), inFlow: flow.active() });
     updateTrayTitle();
     broadcast({ includeSettings: false });
   }, 1000);
@@ -233,6 +291,9 @@ async function showRequestedView() {
     app.quit();
   }
 }
+
+// Opening Stip again while it's running shows the panel.
+app.on('second-instance', () => tray?.open());
 
 // Keep running in the tray when windows close.
 app.on('window-all-closed', () => {});
