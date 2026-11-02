@@ -110,7 +110,7 @@ window.MEMES = [
   },
   { kind: 'scene', art: SCENE_STICK, caption: 'Every production codebase.' },
   { kind: 'joke', setup: "What's the object-oriented way to get rich?", punchline: 'Inheritance.' },
-  { kind: 'joke', setup: 'Why do Java developers wear glasses?', punchline: "Because they don't C." },
+  { kind: 'joke', setup: 'Why do Java developers wear glasses?', punchline: "Because they don't C#" },
   { kind: 'joke', setup: 'A SQL query walks into a bar, walks up to two tables and asks:', punchline: '"Can I join you?"' },
   { kind: 'joke', setup: 'Optimist: the glass is half full. Pessimist: half empty.', punchline: 'Programmer: the glass is twice as big as it needs to be.' },
   { kind: 'scene', art: SCENE_SEARCH, caption: 'Me looking for the semicolon that broke a 4,000-line build.' },
