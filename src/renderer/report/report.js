@@ -64,8 +64,10 @@ function renderFolders(folders) {
 }
 
 async function refresh() {
-  const { report, folders, theme } = await window.stip.getReport();
+  const { report, folders, theme, sandboxed } = await window.stip.getReport();
   applyTheme(theme);
+  $('commits').hidden = sandboxed;
+  $('commits-rule').hidden = sandboxed;
   $('meta').textContent = `you/spine #${report.number} · ${dateLabel(report.from)} to ${dateLabel(report.to)}`;
 
   const [word, tone] = VERDICT[report.verdict];

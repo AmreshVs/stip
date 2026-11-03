@@ -190,7 +190,11 @@ function render(state) {
   }[schedule];
 
   const cli = state.cliInstall;
-  $('cli-row').hidden = state.fromStore;
+  $('cli-row').hidden = state.fromStore || state.sandboxed;
+  if (state.sandboxed) {
+    $('calls-hint').textContent = 'When meeting mode is on';
+    $('flow-hint').textContent = "When you're busy, the break starts at your next pause, 10 minutes later at most. Stip only looks at idle time, never what you type.";
+  }
   $('cli-hint').textContent = !cli
     ? 'Control Stip from a terminal: stip pause 1h, or npm run build && stip break'
     : cli.ok

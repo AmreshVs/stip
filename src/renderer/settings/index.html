@@ -262,13 +262,13 @@
           <section>
             <h2 class="group-title">During calls</h2>
             <div class="group">
-              <label class="row"><span class="row-text"><strong>Wait while I'm on a call</strong><small>When meeting mode is on, or a Zoom call is running</small></span><input type="checkbox" class="switch" data-key="stand.waitDuringCalls"></label>
+              <label class="row"><span class="row-text"><strong>Wait while I'm on a call</strong><small id="calls-hint">When meeting mode is on, or a Zoom call is running</small></span><input type="checkbox" class="switch" data-key="stand.waitDuringCalls"></label>
             </div>
           </section>
           <section>
             <h2 class="group-title">While you work</h2>
             <div class="group">
-              <label class="row"><span class="row-text"><strong>Wait for a natural pause</strong><small>When you're busy or a build is running, the break starts at your next pause, 10 minutes later at most. Stip only looks at idle time and program names, never what you type.</small></span><input type="checkbox" class="switch" data-key="stand.waitForFlow"></label>
+              <label class="row"><span class="row-text"><strong>Wait for a natural pause</strong><small id="flow-hint">When you're busy or a build is running, the break starts at your next pause, 10 minutes later at most. Stip only looks at idle time and program names, never what you type.</small></span><input type="checkbox" class="switch" data-key="stand.waitForFlow"></label>
             </div>
           </section>
           <section>
@@ -350,6 +350,7 @@
               <label class="row"><span class="row-text"><strong>Count down the last 30 seconds</strong><small>In the menu bar, just before a break (macOS)</small></span><input type="checkbox" class="switch" data-key="showCountdown"></label>
               <label class="row" id="login-row"><span class="row-text"><strong>Open at login</strong><small>Start Stip when you log in</small></span><input type="checkbox" class="switch" data-key="launchAtLogin"></label>
               <div class="row" id="login-store" hidden><span class="row-text"><strong>Open at login</strong><small>Turn Stip on in Windows Settings → Apps → Startup</small></span></div>
+              <div class="row"><span class="row-text"><strong>Privacy</strong><small>Stip collects nothing. Your settings and stats stay on this computer.</small></span><button class="small" data-act="open-privacy">Privacy policy</button></div>
               <div class="row" id="cli-row"><span class="row-text"><strong>The stip command</strong><small id="cli-hint"></small></span><button class="small" data-act="install-cli">Install</button></div>
             </div>
           </section>

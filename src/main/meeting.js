@@ -30,6 +30,9 @@ class Meeting {
   }
 
   start(pollMs = 15000) {
+    // The Mac App Store sandbox can't list programs, so there meeting mode is
+    // the only way to say you're in a call.
+    if (process.mas) return;
     const poll = async () => {
       const names = await listProcesses();
       this.autoDetected = names.some((name) => CALL_PROCESSES.some((re) => re.test(name)));

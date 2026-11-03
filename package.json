@@ -35,13 +35,15 @@
     "dist": "electron-builder",
     "e2e": "electron e2e/run.js",
     "screenshots": "node scripts/screenshots.js",
+    "screenshots:appstore": "node scripts/appstore-screenshots.js",
     "site": "node scripts/serve-site.js",
     "dist:mac": "electron-builder --mac --publish never",
     "dist:linux": "electron-builder --linux --publish never",
     "bump": "node scripts/bump.js",
     "dmg-background": "electron scripts/build-dmg-background.js",
     "dist:win": "electron-builder --win --publish never",
-    "dist:store": "electron-builder --win appx --publish never"
+    "dist:store": "electron-builder --win appx --publish never",
+    "dist:mas": "electron-builder --mac mas --universal"
   },
   "dependencies": {
     "@fontsource/bricolage-grotesque": "5.3.0",
@@ -88,6 +90,17 @@
       "gatekeeperAssess": false,
       "entitlements": "build/entitlements.mac.plist",
       "entitlementsInherit": "build/entitlements.mac.plist"
+    },
+    "mas": {
+      "hardenedRuntime": false,
+      "entitlements": "build/entitlements.mas.plist",
+      "entitlementsInherit": "build/entitlements.mas.inherit.plist",
+      "provisioningProfile": "build/Stip_App_Store.provisionprofile",
+      "extendInfo": {
+        "LSUIElement": true,
+        "ElectronTeamID": "DRQUZF86A2",
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "win": {
       "icon": "assets/generated/icon.png",
