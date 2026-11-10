@@ -71,12 +71,12 @@ format and defaults are unchanged, and unknown keys are kept.
 ## CI
 
 - `ci.yml`: the `tauri` job runs `cargo test` and a release build on Ubuntu 24.04, macOS and Windows; `tauri-probe` runs the self-check on macOS and keeps its JSON report.
-- `release.yml`: tick **Tauri preview** on a manual run to also build a universal DMG, an AppImage and .deb, and an NSIS installer. They're workflow artifacts (`tauri-preview-*`) and never go into the GitHub release.
+- `release.yml`: builds only the Tauri app on this branch: a universal DMG (signed with the Developer ID, then the app and the DMG notarized and stapled, when the Apple secrets are set), an AppImage and .deb, and an NSIS installer.
 
 ## Left to do
 
 - **Windows and Linux**: the Windows code type-checks (`cargo check --target x86_64-pc-windows-msvc`), but neither has been run. Not done yet on either: picture of the report page (Copy / Save PNG), and screen-unlock detection (sleep is covered).
 - **Packaging**: a universal `.app` and DMG build and run on macOS (`npx @tauri-apps/cli@2.12.4 build --target universal-apple-darwin --bundles app,dmg`, after a `cargo check` to stage `ui-dist/`). The AppImage, .deb and NSIS builds are only in the release workflow and haven't been run yet.
-- **Signing and notarization**, the **Mac App Store** build (sandbox entitlements, `mas` feature, a login item through `SMAppService`), and the **MSIX / Store** build.
+- **Windows signing** (the Mac build is signed with the Developer ID and notarized by `release.yml`), the **Mac App Store** build (sandbox entitlements, `mas` feature, a login item through `SMAppService`), and the **MSIX / Store** build.
 - The menu bar title doesn't use monospaced digits, as Electron's `fontType: 'monospacedDigit'` did.
 - Notifications and launch at login use Tauri's plugins. They need a bundled app with an identifier to show up properly, so they haven't been checked yet.
