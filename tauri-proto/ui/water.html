@@ -1,0 +1,24 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Water</title>
+<style>
+  html,body{margin:0;height:100%;background:transparent;overflow:hidden;font:500 15px -apple-system,system-ui,sans-serif}
+  .dim{position:fixed;inset:0;background:rgba(0,0,0,.18);pointer-events:none}
+  .card{position:fixed;right:24px;bottom:24px;width:240px;padding:18px;border-radius:18px;background:#f2f4ff;color:#05070f;box-shadow:0 10px 40px #0005;text-align:center}
+  .drop{width:60px;height:60px;margin:0 auto 10px;background:#2f5ce8;border-radius:50% 50% 50% 0;transform:rotate(-45deg);animation:bob 1.6s ease-in-out infinite}
+  @keyframes bob{50%{transform:rotate(-45deg) translate(4px,-4px)}}
+  button{font:inherit;padding:8px 16px;margin:4px;border-radius:999px;border:0;background:#2f5ce8;color:#fff;cursor:pointer}
+  button:hover{background:#1d44c4}
+</style></head>
+<body><div class="dim"></div>
+<div class="card" id="card"><div class="drop"></div><p>Time for a glass of water</p>
+  <button id="drank">I drank</button><button id="later">Later</button></div>
+<script>
+  const { invoke } = window.__TAURI__.core;
+  const report = () => {
+    const r = document.getElementById('card').getBoundingClientRect();
+    invoke('water_hit', { x: r.x, y: r.y, w: r.width, h: r.height });
+  };
+  report(); addEventListener('resize', report);
+  document.getElementById('drank').onclick = () => invoke('hide_water');
+  document.getElementById('later').onclick = () => invoke('hide_water');
+</script></body></html>

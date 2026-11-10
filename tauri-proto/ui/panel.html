@@ -1,0 +1,25 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Stip</title>
+<style>
+  :root{color-scheme:light dark;--bg:#ececec;--ink:#1d1d1f;--soft:#6e6e73;--hover:#0000000f}
+  @media (prefers-color-scheme:dark){:root{--bg:#2a2a2c;--ink:#f5f5f7;--soft:#a1a1a6;--hover:#ffffff14}}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font:13px -apple-system,system-ui,sans-serif;user-select:none;cursor:default}
+  .head{padding:12px 14px 6px}.big{font-size:22px;font-weight:600}.soft{color:var(--soft)}
+  .row{padding:6px 14px;margin:0 5px;border-radius:5px}.row:hover{background:var(--hover)}
+  hr{border:0;border-top:1px solid #8884;margin:5px 14px}
+</style></head>
+<body>
+  <div class="head"><div class="soft">Next break in</div><div class="big">24:10</div><div class="soft" id="idle">Idle: …</div></div>
+  <hr>
+  <div class="row" id="break">Take a break now</div>
+  <div class="row" id="water">Show water reminder</div>
+  <hr>
+  <div class="row">Settings…</div>
+  <div class="row">Quit</div>
+<script>
+  const { invoke } = window.__TAURI__.core;
+  document.getElementById('break').onclick = () => invoke('show_break');
+  document.getElementById('water').onclick = () => invoke('show_water');
+  const tick = async () => { document.getElementById('idle').textContent = 'Idle: ' + await invoke('idle_seconds') + 's'; };
+  tick(); setInterval(tick, 1000);
+</script></body></html>
