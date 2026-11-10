@@ -1,0 +1,49 @@
+[package]
+name = "stip"
+version = "1.1.0"
+description = "Stand. Sip. Ship. A tiny desktop nudge to stand up and drink water."
+authors = ["Amresh Vs"]
+license = "MIT"
+edition = "2021"
+default-run = "stip"
+
+[features]
+# The Mac App Store build: no process listing, git or terminal command.
+mas = []
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["tray-icon", "macos-private-api", "image-png"] }
+tauri-plugin-single-instance = "2"
+tauri-plugin-dialog = "2"
+tauri-plugin-notification = "2"
+tauri-plugin-autostart = "2"
+tauri-plugin-opener = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+chrono = "0.4"
+user-idle = "0.6"
+tokio = { version = "1", features = ["net", "io-util", "rt", "macros", "time"] }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2 = "0.6"
+objc2-foundation = { version = "0.3", features = ["NSString", "NSData", "NSArray", "NSError", "NSGeometry"] }
+objc2-app-kit = { version = "0.3", features = ["NSWindow", "NSApplication", "NSRunningApplication", "NSPasteboard", "NSImage", "NSImageRep", "NSBitmapImageRep", "NSGraphics", "NSResponder", "NSView"] }
+objc2-web-kit = { version = "0.3", features = ["WKWebView", "WKSnapshotConfiguration", "block2", "objc2-app-kit"] }
+block2 = "0.6"
+core-foundation = "0.10"
+
+[dev-dependencies]
+tempfile = "3"
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+strip = true
+panic = "abort"
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.59", features = ["Win32_System_Console"] }

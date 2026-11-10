@@ -1,0 +1,21 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Stip",
+  "version": "1.1.0",
+  "identifier": "dev.amreshvs.stip",
+  "build": { "frontendDist": "ui-dist" },
+  "app": {
+    "macOSPrivateApi": true,
+    "withGlobalTauri": true,
+    "windows": [],
+    "security": { "csp": null }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["app", "dmg"],
+    "category": "HealthcareAndFitness",
+    "shortDescription": "Stand up and drink water: a calm break reminder",
+    "icon": ["icons/icon.png"],
+    "macOS": { "minimumSystemVersion": "11.0", "infoPlist": "Info.plist" }
+  }
+}
