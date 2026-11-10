@@ -15,7 +15,7 @@
     "targets": ["app", "dmg"],
     "category": "HealthcareAndFitness",
     "shortDescription": "Stand up and drink water: a calm break reminder",
-    "icon": ["icons/icon.png"],
+    "icon": ["icons/icon.png", "icons/icon.ico"],
     "macOS": { "minimumSystemVersion": "11.0", "infoPlist": "Info.plist" }
   }
 }
