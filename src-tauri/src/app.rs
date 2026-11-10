@@ -552,16 +552,19 @@ pub fn start_clock(app: &AppHandle) {
                 let s = shared(&app);
                 // A long gap means the computer slept; start fresh, as
                 // Electron did on powerMonitor's resume.
-                let mut restart = now - last > 30_000;
+                let slept = now - last > 30_000;
                 last = now;
+                // Coming back to a locked screen is the same: the user was away.
                 #[cfg(target_os = "macos")]
-                {
+                let unlocked = {
                     let locked = crate::mac::screen_locked();
-                    restart |= was_locked && !locked;
+                    let unlocked = was_locked && !locked;
                     was_locked = locked;
-                }
+                    unlocked
+                };
                 #[cfg(not(target_os = "macos"))]
-                let _ = &mut was_locked;
+                let unlocked = std::mem::take(&mut was_locked);
+                let restart = slept || unlocked;
                 let idle_sec = user_idle::UserIdle::get_time().map(|t| t.as_seconds() as f64).unwrap_or(0.0);
                 let title = {
                     let mut c = s.core();
