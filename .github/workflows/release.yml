@@ -225,6 +225,20 @@ jobs:
           esac
           npx --yes @tauri-apps/cli@2.12.4 build "${args[@]}"
 
+      # The Tauri CLI notarizes the app but not the disk image around it, and
+      # Gatekeeper turns away a downloaded image that isn't notarized.
+      - name: Notarize the disk image (macOS)
+        if: runner.os == 'macOS' && env.HAS_CERT == 'true'
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          for dmg in target/universal-apple-darwin/release/bundle/dmg/*.dmg; do
+            xcrun notarytool submit "$dmg" --apple-id "$APPLE_ID" --password "$APPLE_PASSWORD" --team-id "$APPLE_TEAM_ID" --wait
+            xcrun stapler staple "$dmg"
+          done
+
       - name: Check the signature (macOS)
         if: runner.os == 'macOS'
         run: |
@@ -234,15 +248,26 @@ jobs:
           if [ "$HAS_CERT" = "true" ]; then
             xcrun stapler validate "$app"
             spctl --assess --type execute --verbose=4 "$app"
+            for dmg in target/universal-apple-darwin/release/bundle/dmg/*.dmg; do
+              xcrun stapler validate "$dmg"
+              spctl --assess --type open --context context:primary-signature --verbose=4 "$dmg"
+            done
           fi
+
+      # One flat folder, so each artifact holds just its installers and the
+      # release step finds them in dist/.
+      - name: Collect the installers
+        run: |
+          mkdir -p ../dist
+          for f in target/universal-apple-darwin/release/bundle/dmg/*.dmg target/release/bundle/appimage/*.AppImage \
+                   target/release/bundle/deb/*.deb target/release/bundle/nsis/*.exe; do
+            if [ -f "$f" ]; then cp "$f" ../dist/; fi
+          done
+          ls -l ../dist
       - uses: actions/upload-artifact@v7
         with:
           name: stip-${{ matrix.name }}
-          path: |
-            src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg
-            src-tauri/target/release/bundle/appimage/*.AppImage
-            src-tauri/target/release/bundle/deb/*.deb
-            src-tauri/target/release/bundle/nsis/*.exe
+          path: dist/*
           if-no-files-found: error
 
   release:
