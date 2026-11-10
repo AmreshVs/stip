@@ -10,7 +10,9 @@ permissions:
 
 jobs:
   unit:
-    name: Unit tests (${{ matrix.os }})
+    # The Node tests: the stip command (src/cli.js) and the characters the
+    # pages draw are shared with the Tauri app.
+    name: JS tests (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     strategy:
@@ -25,20 +27,6 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
-
-  e2e:
-    name: End-to-end test (macOS)
-    runs-on: macos-latest
-    # A hung Electron run used to sit until GitHub's six-hour limit.
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npm run e2e
 
   # The Tauri port in src-tauri/: Rust unit tests and a release build on every
   # platform. npm ci fetches the fonts the pages import.
