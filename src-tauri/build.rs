@@ -37,14 +37,16 @@ fn allow_ipc(dir: &Path) {
 }
 
 // Each @import in base.css is a fontsource stylesheet; copy it with the woff2
-// files it names (WebKit and WebView2 never fall back to the woff ones).
+// files it names (WebKit and WebView2 never fall back to the woff ones). They
+// go in vendor/, since the Tauri CLI won't bundle a node_modules folder, and
+// the staged base.css points there.
 fn copy_fonts(root: &Path, out: &Path) {
     let base = fs::read_to_string(root.join("src/renderer/shared/base.css")).unwrap();
     for line in base.lines() {
         let Some(rest) = line.split("node_modules/").nth(1) else { continue };
         let rel = rest.split('\'').next().unwrap();
         let css_from = root.join("node_modules").join(rel);
-        let css_to = out.join("node_modules").join(rel);
+        let css_to = out.join("vendor").join(rel);
         let Ok(css) = fs::read_to_string(&css_from) else {
             println!("cargo:warning=missing font stylesheet {}; run npm install", css_from.display());
             continue;
@@ -59,6 +61,8 @@ fn copy_fonts(root: &Path, out: &Path) {
             }
         }
     }
+    let staged = out.join("src/renderer/shared/base.css");
+    fs::write(&staged, base.replace("../../../node_modules/", "../../../vendor/")).unwrap();
 }
 
 fn main() {
