@@ -48,10 +48,7 @@ fn level(win: &WebviewWindow) -> Value {
     let _ = win.run_on_main_thread(move || {
         let _ = tx.send(crate::mac::describe(&w));
     });
-    match rx.recv_timeout(Duration::from_secs(2)) {
-        Ok((level, behavior)) => json!({ "level": level, "behavior": behavior }),
-        Err(_) => Value::Null,
-    }
+    rx.recv_timeout(Duration::from_secs(2)).unwrap_or(Value::Null)
 }
 
 #[cfg(not(target_os = "macos"))]
@@ -98,6 +95,8 @@ pub fn run(app: AppHandle) {
             on_break && breaks.len() == monitors.max(1) && main["extra"] == true,
             json!({ "monitors": monitors, "windows": windows_info, "page": main, "show_ms": shown_ms, "shot": shot }),
         );
+        let key = breaks.first().map(|(_, w)| level(w)).unwrap_or(Value::Null);
+        check(&mut out, &mut failures, "break_has_keyboard", key["key"] == true || !cfg!(target_os = "macos"), key);
         app::handle_action(&app, "break-finish", &json!({ "how": "done" }));
         sleep(500);
         let after = today(&app)["breaks"].as_u64().unwrap_or(0);
@@ -114,21 +113,73 @@ pub fn run(app: AppHandle) {
         let water = app.get_webview_window("water");
         let mac = water.as_ref().map(level).unwrap_or(Value::Null);
         check(&mut out, &mut failures, "water_shows", water.is_some() && !hit.is_empty() && page["stip"] == "object", json!({ "hit": hit, "page": page, "mac": mac, "shot": shot }));
-        app::handle_action(&app, "water-sipped", &Value::Null);
-        app::handle_action(&app, "water-close", &Value::Null);
+        // The pointer over the card turns clicks on; leaving turns them off
+        // and the page hears it leave. A stand-in pointer, so the real one
+        // stays where the user left it.
+        let hover = water.as_ref().and_then(|w| {
+            let origin = w.inner_position().ok()?;
+            let scale = w.scale_factor().ok()?;
+            let (x, y, wd, ht) = *hit.first()?;
+            let inside = (origin.x as f64 + (x + wd / 2.0) * scale, origin.y as f64 + (y + ht / 2.0) * scale);
+            shared(&app).ui().fake_cursor = Some(inside);
+            sleep(300);
+            let over = level(w);
+            let _ = w.eval("document.querySelector('.interactive').dispatchEvent(new MouseEvent('mouseenter'))");
+            shared(&app).ui().fake_cursor = Some((origin.x as f64 + 5.0, origin.y as f64 + 5.0));
+            sleep(300);
+            let away = level(w);
+            shared(&app).ui().fake_cursor = None;
+            Some(json!({ "over": over["ignoresMouse"], "away": away["ignoresMouse"] }))
+        });
+        check(&mut out, &mut failures, "water_click_through", hover.as_ref().is_some_and(|h| h["over"] == false && h["away"] == true) || !cfg!(target_os = "macos"), json!(hover));
+        // The button's own handler logs the sip and closes the reminder.
+        if let Some(w) = &water {
+            let _ = w.eval("document.getElementById('sipped').click()");
+        }
+        sleep(2800);
         sleep(300);
         let now = today(&app)["glasses"].as_u64().unwrap_or(0);
         check(&mut out, &mut failures, "water_sip", now == glasses + 1 && app.get_webview_window("water").is_none(), json!({ "glasses": [glasses, now] }));
+        if app.get_webview_window("water").is_some() {
+            app::handle_action(&app, "water-close", &Value::Null);
+        }
 
         // Tray panel: opens with the state, fits its content, hides again.
-        windows::panel_open(&app);
+        let tray = app.tray_by_id("main").and_then(|t| t.rect().ok().flatten());
+        windows::panel_toggle(&app, tray);
         sleep(1200);
+        let placed = app.get_webview_window("panel").and_then(|p| p.outer_position().ok()).map(|p| json!([p.x, p.y]));
+        let tray_at = tray.map(|r| { let p = r.position.to_physical::<f64>(1.0); json!([p.x, p.y]) });
         let page = dom(&app, "panel", "document.getElementById('status-text').textContent");
         let size = app.get_webview_window("panel").and_then(|p| p.inner_size().ok()).map(|s| json!([s.width, s.height]));
         let shot = screenshot("panel");
         let visible = app.get_webview_window("panel").is_some_and(|p| p.is_visible().unwrap_or(false));
-        check(&mut out, &mut failures, "panel_shows", visible && page["extra"].as_str().is_some_and(|t| !t.is_empty()), json!({ "page": page, "size": size, "shot": shot }));
+        check(&mut out, &mut failures, "panel_shows", visible && page["extra"].as_str().is_some_and(|t| !t.is_empty()), json!({ "page": page, "size": size, "placed": placed, "tray": tray_at, "shot": shot }));
+        // Clicking anywhere else closes it, as a menu does.
+        let other = windows::settings_open(&app, None);
+        sleep(800);
+        let open_after_blur = shared(&app).ui().panel_open;
+        let hidden = app.get_webview_window("panel").is_some_and(|p| !p.is_visible().unwrap_or(true));
+        check(&mut out, &mut failures, "panel_hides_on_blur", !open_after_blur && hidden, json!({ "hidden": hidden }));
+        // Clicking the icon while it's open blurs it first; that click
+        // mustn't reopen it.
+        windows::panel_toggle(&app, tray);
+        sleep(600);
+        if let Some(w) = app.get_webview_window("settings") {
+            let _ = w.set_focus();
+        }
+        let started = Instant::now();
+        while shared(&app).ui().panel_open && started.elapsed() < Duration::from_secs(2) {
+            sleep(5);
+        }
+        windows::panel_toggle(&app, tray);
+        let reopened = shared(&app).ui().panel_open;
+        check(&mut out, &mut failures, "panel_click_guard", !reopened, json!("a click right after closing doesn't reopen it"));
         windows::panel_hide(&app);
+        if let Some(w) = other {
+            let _ = w.destroy();
+        }
+        sleep(300);
 
         // Settings: the page loads its state, and a change is saved.
         windows::settings_open(&app, None);

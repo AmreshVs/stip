@@ -241,8 +241,16 @@ fn watch_pointer(app: &AppHandle) {
 
 fn over_hit(app: &AppHandle, win: &WebviewWindow) -> bool {
     const PAD: f64 = 4.0;
-    let rects = shared(app).ui().water_hit.clone();
-    let (Ok(cursor), Ok(origin), Ok(scale)) = (app.cursor_position(), win.inner_position(), win.scale_factor()) else {
+    let (rects, fake) = {
+        let s = shared(app);
+        let ui = s.ui();
+        (ui.water_hit.clone(), ui.fake_cursor)
+    };
+    let cursor = match fake {
+        Some((x, y)) => Ok(tauri::PhysicalPosition::new(x, y)),
+        None => app.cursor_position(),
+    };
+    let (Ok(cursor), Ok(origin), Ok(scale)) = (cursor, win.inner_position(), win.scale_factor()) else {
         return false;
     };
     let cx = (cursor.x - origin.x as f64) / scale;

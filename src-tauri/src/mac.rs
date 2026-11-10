@@ -23,13 +23,18 @@ pub fn raise(win: &tauri::WebviewWindow, level: isize) {
     }
 }
 
-pub fn describe(win: &tauri::WebviewWindow) -> (isize, usize) {
-    let Ok(ptr) = win.ns_window() else { return (-1, 0) };
+/// Level, collection behaviour, whether clicks pass through, whether it has
+/// the keyboard, and whether the app is active. Main thread only.
+pub fn describe(win: &tauri::WebviewWindow) -> serde_json::Value {
+    let Ok(ptr) = win.ns_window() else { return serde_json::Value::Null };
     let ns = ptr as *mut AnyObject;
     unsafe {
         let level: isize = msg_send![ns, level];
         let behavior: usize = msg_send![ns, collectionBehavior];
-        (level, behavior)
+        let ignores: bool = msg_send![ns, ignoresMouseEvents];
+        let key: bool = msg_send![ns, isKeyWindow];
+        let app = objc2_app_kit::NSApplication::sharedApplication(MainThreadMarker::new_unchecked());
+        serde_json::json!({ "level": level, "behavior": behavior, "ignoresMouse": ignores, "key": key, "appActive": app.isActive() })
     }
 }
 

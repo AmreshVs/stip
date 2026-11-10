@@ -31,6 +31,8 @@ pub struct Core {
 pub struct Ui {
     /// Clickable parts of the water window, in CSS pixels from its corner.
     pub water_hit: Vec<(f64, f64, f64, f64)>,
+    /// A stand-in pointer for the probe, in physical screen pixels.
+    pub fake_cursor: Option<(f64, f64)>,
     pub panel_hidden_at: Option<Instant>,
     pub panel_open: bool,
     /// The first "show" for a window, kept until its page asks for it.
