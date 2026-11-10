@@ -1,21 +1,20 @@
 name: Release
 
-# Builds the macOS DMG, the Linux AppImage and .deb, and the Windows installer
-# and Store package, and publishes them as a GitHub release.
+# Builds the Tauri app (src-tauri/): a universal macOS DMG, a Linux AppImage
+# and .deb, and a Windows installer, and publishes them as a GitHub release.
 #
 # From the Actions tab ("Run workflow"):
-#   Bump the version   none, patch, minor or major. Updates package.json and
-#                      CHANGELOG.md and commits that to main.
+#   Bump the version   none, patch, minor or major. Updates package.json (the
+#                      app reads its version from there) and CHANGELOG.md,
+#                      and commits that to the branch the workflow ran on.
 #   Publish a release  Tags the version and publishes a GitHub release with
 #                      the installers and that version's changelog notes.
 #                      Unticked, it only builds them.
 #   macOS / Linux /    Which platforms to build. A release only carries the
 #   Windows            platforms that were built.
-#   Tauri preview      Also build the Tauri port (src-tauri/) for those
-#                      platforms: a universal DMG, an AppImage and .deb, and
-#                      an NSIS installer. They're kept as workflow artifacts
-#                      only and never attached to the release, until the
-#                      port replaces the Electron app.
+#
+# The macOS app has an ad-hoc signature, so macOS offers "Open Anyway" in
+# Privacy & Security; Windows has no signature yet, so SmartScreen asks once.
 #
 # Pushing a tag like v1.0.0 builds every platform and publishes a release.
 on:
@@ -44,10 +43,6 @@ on:
         description: Build for Windows
         type: boolean
         default: true
-      tauri:
-        description: Also build the Tauri preview (artifacts only)
-        type: boolean
-        default: false
 
 permissions:
   contents: read
@@ -81,7 +76,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           node scripts/bump.js "${{ inputs.bump }}"
-          git push origin HEAD:main
+          git push origin "HEAD:$GITHUB_REF_NAME"
 
       - name: Work out the version
         id: version
@@ -123,9 +118,9 @@ jobs:
         run: |
           matrix="$(node -e '
             const all = [
-              { name: "macOS", os: "macos-latest", files: "dist/*.dmg", on: process.env.MACOS },
-              { name: "Linux", os: "ubuntu-latest", files: "dist/*.AppImage\ndist/*.deb", on: process.env.LINUX },
-              { name: "Windows", os: "windows-latest", files: "dist/*.exe\ndist/*.appx", on: process.env.WINDOWS },
+              { name: "macOS", os: "macos-latest", on: process.env.MACOS },
+              { name: "Linux", os: "ubuntu-24.04", on: process.env.LINUX },
+              { name: "Windows", os: "windows-latest", on: process.env.WINDOWS },
             ];
             const include = all.filter((p) => p.on === "true").map(({ on, ...p }) => p);
             if (!include.length) { console.error("Tick at least one platform."); process.exit(1); }
@@ -138,74 +133,6 @@ jobs:
     name: Build (${{ matrix.name }})
     needs: prepare
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 60
-    env:
-      # Whether the Apple signing secrets have been added to the repository.
-      HAS_CERT: ${{ secrets.CSC_LINK != '' }}
-    strategy:
-      fail-fast: false
-      matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          ref: ${{ needs.prepare.outputs.sha }}
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 22
-          cache: npm
-
-      - run: npm ci
-      - run: npm test
-
-      - name: Build (Linux)
-        if: matrix.name == 'Linux'
-        run: npm run dist:linux
-
-      # No Windows signing certificate yet, so SmartScreen asks once on
-      # first run: More info, then Run anyway.
-      - name: Build (Windows)
-        if: matrix.name == 'Windows'
-        run: npm run dist:win
-
-      # The Microsoft Store package. Upload it in Partner Center; the Store
-      # signs it, so Store installs show no warning.
-      - name: Build the Store package (Windows)
-        if: matrix.name == 'Windows'
-        run: npm run dist:store
-
-      # With the signing secrets set, the app is signed with the Developer ID
-      # and notarized by Apple, so it opens without any warning.
-      - name: Build, sign and notarize (macOS)
-        if: matrix.name == 'macOS' && env.HAS_CERT == 'true'
-        run: npm run dist:mac
-        env:
-          CSC_LINK: ${{ secrets.CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-
-      # Without them, sign ad-hoc: macOS then offers "Open Anyway" in Privacy
-      # & Security instead of calling the app damaged.
-      - name: Build with an ad-hoc signature (macOS)
-        if: matrix.name == 'macOS' && env.HAS_CERT != 'true'
-        run: npm run dist:mac -- -c.mac.identity=- -c.mac.hardenedRuntime=false
-        env:
-          CSC_IDENTITY_AUTO_DISCOVERY: false
-
-      - uses: actions/upload-artifact@v7
-        with:
-          name: stip-${{ matrix.name }}
-          path: ${{ matrix.files }}
-          if-no-files-found: error
-
-  # Unsigned apart from an ad-hoc signature on macOS, like the Electron build
-  # without its secrets.
-  tauri:
-    name: Build Tauri preview (${{ matrix.name }})
-    needs: prepare
-    if: github.event_name == 'workflow_dispatch' && inputs.tauri
-    runs-on: ${{ matrix.os == 'ubuntu-latest' && 'ubuntu-24.04' || matrix.os }}
     timeout-minutes: 60
     strategy:
       fail-fast: false
@@ -222,6 +149,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      # The pages import their fonts from node_modules.
       - run: npm ci
         working-directory: .
       - name: Linux libraries for the webview, tray and idle time
@@ -240,7 +168,7 @@ jobs:
       # Stages the pages and fonts in ui-dist/, which the Tauri CLI looks for
       # before it builds.
       - run: cargo check --locked
-      - name: Bundle
+      - name: Build the installers
         run: |
           case "$RUNNER_OS" in
             macOS) args=(--target universal-apple-darwin --bundles app,dmg --config '{"bundle":{"macOS":{"signingIdentity":"-"}}}') ;;
@@ -250,7 +178,7 @@ jobs:
           npx --yes @tauri-apps/cli@2.12.4 build "${args[@]}"
       - uses: actions/upload-artifact@v7
         with:
-          name: tauri-preview-${{ matrix.name }}
+          name: stip-${{ matrix.name }}
           path: |
             src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg
             src-tauri/target/release/bundle/appimage/*.AppImage
@@ -271,7 +199,6 @@ jobs:
           ref: ${{ needs.prepare.outputs.sha }}
       - name: Release notes from the changelog
         run: node scripts/release-notes.js "${{ needs.prepare.outputs.version }}" > release-notes.md
-      # Only the Electron builds; the Tauri preview stays out of releases.
       - uses: actions/download-artifact@v8
         with:
           pattern: stip-*
@@ -283,7 +210,6 @@ jobs:
           target_commitish: ${{ needs.prepare.outputs.sha }}
           name: Stip ${{ needs.prepare.outputs.version }}
           body_path: release-notes.md
-          # The Store package isn't attached: it only installs through the Store.
           files: |
             dist/*.dmg
             dist/*.AppImage
