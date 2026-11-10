@@ -13,8 +13,10 @@ name: Release
 #   macOS / Linux /    Which platforms to build. A release only carries the
 #   Windows            platforms that were built.
 #
-# The macOS app has an ad-hoc signature, so macOS offers "Open Anyway" in
-# Privacy & Security; Windows has no signature yet, so SmartScreen asks once.
+# With the Apple secrets set (CSC_LINK, CSC_KEY_PASSWORD, APPLE_ID,
+# APPLE_APP_SPECIFIC_PASSWORD, APPLE_TEAM_ID) the Mac app is signed with the
+# Developer ID and notarized; without them it's signed ad-hoc. Windows has no
+# signature yet, so SmartScreen asks once.
 #
 # Pushing a tag like v1.0.0 builds every platform and publishes a release.
 on:
@@ -134,6 +136,9 @@ jobs:
     needs: prepare
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
+    env:
+      # Whether the Apple signing secrets have been added to the repository.
+      HAS_CERT: ${{ secrets.CSC_LINK != '' }}
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
@@ -168,14 +173,68 @@ jobs:
       # Stages the pages and fonts in ui-dist/, which the Tauri CLI looks for
       # before it builds.
       - run: cargo check --locked
+      # With the signing secrets set, the Mac app is signed with the Developer
+      # ID and notarized by Apple, so it opens without any warning. The
+      # certificate goes in a keychain of its own that's thrown away after.
+      - name: Load the Developer ID certificate (macOS)
+        if: runner.os == 'macOS' && env.HAS_CERT == 'true'
+        env:
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+        run: |
+          cert="$RUNNER_TEMP/developer-id.p12"
+          keychain="$RUNNER_TEMP/stip-signing.keychain-db"
+          # electron-builder took CSC_LINK as base64 or as a link; take both.
+          case "$CSC_LINK" in
+            http*://*) curl -fsSL "$CSC_LINK" -o "$cert" ;;
+            *) printf '%s' "$CSC_LINK" | base64 --decode > "$cert" ;;
+          esac
+          password="$(openssl rand -hex 24)"
+          security create-keychain -p "$password" "$keychain"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$password" "$keychain"
+          security import "$cert" -k "$keychain" -P "$CSC_KEY_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$password" "$keychain" > /dev/null
+          security list-keychains -d user -s "$keychain" $(security list-keychains -d user | tr -d '"')
+          rm -f "$cert"
+          identity="$(security find-identity -v -p codesigning "$keychain" | sed -nE 's/.*"(Developer ID Application:[^"]+)".*/\1/p' | head -n 1)"
+          if [ -z "$identity" ]; then
+            echo "::error::No Developer ID Application certificate in CSC_LINK."
+            exit 1
+          fi
+          echo "APPLE_SIGNING_IDENTITY=$identity" >> "$GITHUB_ENV"
+
       - name: Build the installers
+        env:
+          # Notarization, used by the Tauri CLI once the app is signed.
+          APPLE_ID: ${{ env.HAS_CERT == 'true' && secrets.APPLE_ID || '' }}
+          APPLE_PASSWORD: ${{ env.HAS_CERT == 'true' && secrets.APPLE_APP_SPECIFIC_PASSWORD || '' }}
+          APPLE_TEAM_ID: ${{ env.HAS_CERT == 'true' && secrets.APPLE_TEAM_ID || '' }}
         run: |
           case "$RUNNER_OS" in
-            macOS) args=(--target universal-apple-darwin --bundles app,dmg --config '{"bundle":{"macOS":{"signingIdentity":"-"}}}') ;;
+            macOS)
+              args=(--target universal-apple-darwin --bundles app,dmg)
+              # Without the secrets, sign ad-hoc: macOS then offers "Open
+              # Anyway" in Privacy & Security instead of calling it damaged.
+              if [ -z "${APPLE_SIGNING_IDENTITY:-}" ]; then
+                args+=(--config '{"bundle":{"macOS":{"signingIdentity":"-"}}}')
+              fi
+              ;;
             Linux) args=(--bundles appimage,deb) ;;
             Windows) args=(--bundles nsis) ;;
           esac
           npx --yes @tauri-apps/cli@2.12.4 build "${args[@]}"
+
+      - name: Check the signature (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          app=target/universal-apple-darwin/release/bundle/macos/Stip.app
+          codesign --verify --deep --strict --verbose=2 "$app"
+          codesign -dv "$app" 2>&1 | grep -E "Authority|TeamIdentifier|Signature|flags"
+          if [ "$HAS_CERT" = "true" ]; then
+            xcrun stapler validate "$app"
+            spctl --assess --type execute --verbose=4 "$app"
+          fi
       - uses: actions/upload-artifact@v7
         with:
           name: stip-${{ matrix.name }}
