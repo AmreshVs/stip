@@ -189,6 +189,12 @@ function render(state) {
     custom: 'Its own days and hours, separate from breaks',
   }[schedule];
 
+  $('media-row').hidden = !state.mediaSupported;
+  $('media-hint').textContent =
+    settings.stand.pauseMedia && !state.mediaAllowed
+      ? 'Needs Accessibility access: System Settings › Privacy & Security › Accessibility'
+      : 'Plays them again when the break ends';
+
   const cli = state.cliInstall;
   $('cli-row').hidden = state.fromStore || state.sandboxed;
   if (state.sandboxed) {
@@ -302,6 +308,9 @@ function wire() {
 
   document.querySelectorAll('input[type="checkbox"][data-key]').forEach((input) => {
     input.addEventListener('change', () => save(input.dataset.key, input.checked));
+  });
+  $('media-switch').addEventListener('change', (event) => {
+    if (event.target.checked) window.stip.act('media-allow');
   });
 
   document.querySelectorAll('select[data-key]').forEach((select) => {

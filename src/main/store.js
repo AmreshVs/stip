@@ -18,6 +18,8 @@ const DEFAULTS = {
     awayMin: 3,
     // Snoozes in a row before the break can't be put off. 0 means no limit.
     maxSnoozes: 2,
+    // Pause music and videos while the break covers the screen (macOS).
+    pauseMedia: true,
   },
   water: {
     enabled: true,
