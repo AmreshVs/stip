@@ -7,6 +7,7 @@ const { Flow } = require('./flow');
 const { TrayUI } = require('./tray');
 const { BreakScreens } = require('./breaks');
 const { WaterReminder } = require('./water');
+const { Media } = require('./media');
 const { SettingsWindow } = require('./settings-window');
 const { ReportWindow } = require('./report-window');
 const { buildReport, tip } = require('./report');
@@ -36,6 +37,7 @@ let flow;
 let tray;
 let breaks;
 let water;
+let media;
 let settingsWindow;
 let reportWindow;
 let cliInstallResult = null;
@@ -62,6 +64,8 @@ function state() {
     version: app.getVersion(),
     fromStore: Boolean(process.windowsStore),
     sandboxed: SANDBOXED,
+    mediaSupported: media.supported,
+    mediaAllowed: media.allowed(),
     cliInstall: cliInstallResult,
     tip: tip(stats.range(14)),
   };
@@ -138,6 +142,8 @@ const actions = {
     settingsWindow.open(settings.get().theme);
   },
   'settings-set': (patch) => settings.set(patch),
+  // Turning on media pausing asks for the access it needs right away.
+  'media-allow': () => media.allowed(true),
   'open-privacy': () => shell.openExternal('https://amreshvs.github.io/stip/privacy.html'),
   'report-open': () => {
     tray.hide();
@@ -241,6 +247,7 @@ function announceUnlock(before, after) {
 
 function onBreakFinished(how) {
   const now = Date.now();
+  media.resume();
   if (how === 'done') {
     const before = stats.activeDays();
     stats.record('breaks');
@@ -280,7 +287,7 @@ const ready = app.whenReady().then(() => {
   const dir = app.getPath('userData');
   settings = new Settings(dir);
   stats = new Stats(dir);
-  scheduler = new Scheduler(() => settings.get());
+  scheduler = new Scheduler(() => settings.get(), Date.now(), { getGlasses: () => stats.today().glasses });
   flow = new Flow();
   meeting = new Meeting({ onProcesses: (names) => flow.updateProcesses(names) });
   meeting.start();
@@ -288,11 +295,13 @@ const ready = app.whenReady().then(() => {
   tray.preload();
   breaks = new BreakScreens({ onFinish: onBreakFinished });
   water = new WaterReminder();
+  media = new Media();
   settingsWindow = new SettingsWindow();
   reportWindow = new ReportWindow();
   scheduler.on('stand', () => {
     water.hide();
     breaks.show(settings.get(), scheduler.status(Date.now()));
+    if (settings.get().stand.pauseMedia) media.pause();
   });
   scheduler.on('stand-waiting', () => {
     if (!Notification.isSupported()) return;

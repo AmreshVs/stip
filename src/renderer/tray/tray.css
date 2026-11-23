@@ -14,6 +14,8 @@
   --row-font: 13px;
   --row-inset: 5px;
   --row-pad: 10px;
+  --panel-radius: 10px;
+  --edge: rgba(0, 0, 0, 0.14);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -24,6 +26,7 @@
     --rule: rgba(255, 255, 255, 0.12);
     --track: #48484a;
     --accent: #0a84ff;
+    --edge: rgba(255, 255, 255, 0.14);
   }
 }
 
@@ -36,6 +39,8 @@
   --row-height: 36px;
   --row-radius: 4px;
   --row-font: 14px;
+  /* Windows 11's own flyouts. */
+  --panel-radius: 8px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -57,15 +62,38 @@
   display: none !important;
 }
 
+/* The window is clear; the page draws the panel with rounded corners. */
+html {
+  background: transparent;
+}
+
+body {
+  min-height: 100vh;
+  border-radius: var(--panel-radius);
+}
+
 html,
 body {
   margin: 0;
-  background: var(--bg);
   color: var(--text);
   font: var(--row-font) -apple-system, BlinkMacSystemFont, 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif;
   overflow: hidden;
   user-select: none;
   cursor: default;
+}
+
+body {
+  background: var(--bg);
+}
+
+/* A hairline edge, since a clear window has no system border. */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  border-radius: var(--panel-radius);
+  box-shadow: inset 0 0 0 1px var(--edge);
+  pointer-events: none;
 }
 
 .panel {
@@ -186,7 +214,7 @@ hr {
   padding-left: calc(var(--row-pad) + 12px);
 }
 
-.win .mac-only {
+html:not(.mac) .mac-only {
   display: none;
 }
 
@@ -209,6 +237,45 @@ hr {
 .row:hover .bead-water,
 .row:focus-visible .bead-water {
   fill: currentColor;
+}
+
+/* macOS: the window itself is the system menu material, so the page stays
+   clear and only adds the hairline edge, rounder highlights and colours that
+   sit on glass. */
+.mac {
+  --bg: transparent;
+  --rule: rgba(0, 0, 0, 0.1);
+  --track: rgba(0, 0, 0, 0.1);
+  --row-height: 26px;
+  --row-radius: 8px;
+  --row-inset: 6px;
+  --row-pad: 9px;
+  --panel-radius: 14px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .mac {
+    --rule: rgba(255, 255, 255, 0.1);
+    --track: rgba(255, 255, 255, 0.14);
+  }
+}
+
+.mac body {
+  background: transparent;
+}
+
+.mac body::after {
+  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.35);
+}
+
+.mac .row:hover .side,
+.mac .row:focus-visible .side {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.mac hr {
+  margin-left: 14px;
+  margin-right: 14px;
 }
 
 /* A hidden window keeps running CSS animations; don't let it use CPU. */
