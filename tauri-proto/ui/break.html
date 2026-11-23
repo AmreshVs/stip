@@ -1,0 +1,21 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Break</title>
+<style>
+  html,body{margin:0;height:100%;background:#05070f;color:#f2f4ff;font:500 18px -apple-system,system-ui,sans-serif;overflow:hidden}
+  .wrap{height:100%;display:grid;place-items:center;text-align:center}
+  h1{font-size:72px;margin:0 0 12px}
+  .ring{width:160px;height:160px;border-radius:50%;margin:24px auto;border:6px solid #2f5ce8;border-top-color:transparent;animation:spin 1.2s linear infinite}
+  .glow{position:fixed;inset:-20%;background:radial-gradient(circle at 30% 40%,#2f5ce855,transparent 50%),radial-gradient(circle at 70% 60%,#8a3ce855,transparent 50%);animation:drift 8s ease-in-out infinite alternate;filter:blur(40px)}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes drift{to{transform:translate(6%,-4%) scale(1.1)}}
+  button{font:inherit;padding:10px 20px;border-radius:999px;border:0;background:#f2f4ff;color:#05070f;cursor:pointer}
+</style></head>
+<body><div class="glow"></div><div class="wrap"><div>
+  <h1>Stand up</h1><div class="ring"></div>
+  <p>Press Esc or the button to end.</p><button id="end">End break</button>
+</div></div>
+<script>
+  const end = () => window.__TAURI__.core.invoke('end_break');
+  document.getElementById('end').onclick = end;
+  addEventListener('keydown', e => { if (e.key === 'Escape') end(); });
+</script></body></html>

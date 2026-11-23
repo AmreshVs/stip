@@ -18,6 +18,8 @@ const DEFAULTS = {
     awayMin: 3,
     // Snoozes in a row before the break can't be put off. 0 means no limit.
     maxSnoozes: 2,
+    // Pause music and videos while the break covers the screen (macOS).
+    pauseMedia: true,
   },
   water: {
     enabled: true,
@@ -26,6 +28,8 @@ const DEFAULTS = {
     everyMin: 30,
     goalGlasses: 8,
     glassMl: 250,
+    // Behind on the goal (after a long lunch, say), remind more often.
+    catchUp: true,
     // 'always', 'work' or 'custom'. Unset follows the working hours switch.
     schedule: null,
     hours: { days: [0, 1, 2, 3, 4, 5, 6], start: '08:00', end: '21:00' },

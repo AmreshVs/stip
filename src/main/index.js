@@ -1,5 +1,5 @@
 const path = require('node:path');
-const { app, ipcMain, powerMonitor, Notification } = require('electron');
+const { app, ipcMain, powerMonitor, shell, Notification } = require('electron');
 const { Settings, Stats } = require('./store');
 const { Scheduler } = require('./scheduler');
 const { Meeting } = require('./meeting');
@@ -7,6 +7,7 @@ const { Flow } = require('./flow');
 const { TrayUI } = require('./tray');
 const { BreakScreens } = require('./breaks');
 const { WaterReminder } = require('./water');
+const { Media } = require('./media');
 const { SettingsWindow } = require('./settings-window');
 const { ReportWindow } = require('./report-window');
 const { buildReport, tip } = require('./report');
@@ -24,6 +25,10 @@ if (!app.requestSingleInstanceLock()) {
   app.quit();
 }
 
+// The Mac App Store sandbox can't run programs. Its screenshots use this too,
+// so they only show what that version has.
+const SANDBOXED = Boolean(process.mas || process.env.STIP_AS_APP_STORE);
+
 let settings;
 let stats;
 let scheduler;
@@ -32,6 +37,7 @@ let flow;
 let tray;
 let breaks;
 let water;
+let media;
 let settingsWindow;
 let reportWindow;
 let cliInstallResult = null;
@@ -57,6 +63,9 @@ function state() {
     platform: process.platform,
     version: app.getVersion(),
     fromStore: Boolean(process.windowsStore),
+    sandboxed: SANDBOXED,
+    mediaSupported: media.supported,
+    mediaAllowed: media.allowed(),
     cliInstall: cliInstallResult,
     tip: tip(stats.range(14)),
   };
@@ -133,6 +142,9 @@ const actions = {
     settingsWindow.open(settings.get().theme);
   },
   'settings-set': (patch) => settings.set(patch),
+  // Turning on media pausing asks for the access it needs right away.
+  'media-allow': () => media.allowed(true),
+  'open-privacy': () => shell.openExternal('https://amreshvs.github.io/stip/privacy.html'),
   'report-open': () => {
     tray.hide();
     reportWindow.open(settings.get().theme);
@@ -198,7 +210,8 @@ function cliCommand({ command, minutes, on }) {
 
 async function report() {
   const current = settings.get();
-  const { folders } = current.report;
+  // The Mac App Store sandbox can't run git, so that version leaves commits out.
+  const folders = SANDBOXED ? [] : current.report.folders;
   const commits = folders.length ? await recentCommits(folders) : null;
   return {
     report: buildReport({
@@ -210,6 +223,7 @@ async function report() {
     }),
     folders,
     theme: current.theme,
+    sandboxed: SANDBOXED,
   };
 }
 
@@ -233,6 +247,7 @@ function announceUnlock(before, after) {
 
 function onBreakFinished(how) {
   const now = Date.now();
+  media.resume();
   if (how === 'done') {
     const before = stats.activeDays();
     stats.record('breaks');
@@ -272,7 +287,7 @@ const ready = app.whenReady().then(() => {
   const dir = app.getPath('userData');
   settings = new Settings(dir);
   stats = new Stats(dir);
-  scheduler = new Scheduler(() => settings.get());
+  scheduler = new Scheduler(() => settings.get(), Date.now(), { getGlasses: () => stats.today().glasses });
   flow = new Flow();
   meeting = new Meeting({ onProcesses: (names) => flow.updateProcesses(names) });
   meeting.start();
@@ -280,11 +295,13 @@ const ready = app.whenReady().then(() => {
   tray.preload();
   breaks = new BreakScreens({ onFinish: onBreakFinished });
   water = new WaterReminder();
+  media = new Media();
   settingsWindow = new SettingsWindow();
   reportWindow = new ReportWindow();
   scheduler.on('stand', () => {
     water.hide();
     breaks.show(settings.get(), scheduler.status(Date.now()));
+    if (settings.get().stand.pauseMedia) media.pause();
   });
   scheduler.on('stand-waiting', () => {
     if (!Notification.isSupported()) return;
@@ -298,8 +315,9 @@ const ready = app.whenReady().then(() => {
     if (!breaks.open) water.show();
   });
 
-  // Test and snapshot runs keep their hands off the real command's socket.
-  if (!process.env.STIP_USER_DATA || process.env.STIP_SOCKET) startCliServer(socketPath(), cliCommand);
+  // Test and snapshot runs keep their hands off the real command's socket, and
+  // the Mac App Store sandbox can't install a command at all.
+  if (!SANDBOXED && (!process.env.STIP_USER_DATA || process.env.STIP_SOCKET)) startCliServer(socketPath(), cliCommand);
 
   ipcMain.handle('state', () => state());
   ipcMain.handle('report', () => report());

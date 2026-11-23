@@ -5,6 +5,12 @@ const MIN = 60 * 1000;
 const MEETING_GRACE_MS = 30 * 1000;
 // A break waits for a pause in your work, but not forever.
 const FLOW_MAX_WAIT_MS = 10 * MIN;
+// Catching up on water never nags more often than this.
+const WATER_MIN_GAP_MS = 15 * MIN;
+// No input for this long means you've stepped away (lunch, a walk). Water
+// reminders wait for you, and greet you shortly after you're back.
+const WATER_AWAY_SEC = 10 * 60;
+const WATER_WELCOME_MS = 2 * MIN;
 
 function minutesOfDay(hhmm) {
   const [h, m] = hhmm.split(':').map(Number);
@@ -47,6 +53,44 @@ function nextWaterStart(settings, date) {
   return nextWorkStart(schedule === 'custom' ? settings.water.hours : settings.workHours, date);
 }
 
+// Today's water window as timestamps, for pacing the daily goal. 'Always'
+// still paces over the custom hours' times, since nobody drinks all night.
+function waterWindow(settings, date) {
+  const schedule = waterSchedule(settings);
+  const hours = schedule === 'work' ? settings.workHours : settings.water.hours;
+  const at = (hhmm, offsetDays = 0) => {
+    const day = new Date(date);
+    day.setDate(day.getDate() + offsetDays);
+    const [h, m] = hhmm.split(':').map(Number);
+    day.setHours(h, m, 0, 0);
+    return day.getTime();
+  };
+  let start = at(hours.start);
+  let end = at(hours.end);
+  if (end <= start) {
+    // Runs past midnight (or all day): pick the stretch that holds now.
+    if (date.getTime() < end) start = at(hours.start, -1);
+    else end = at(hours.end, 1);
+  }
+  return { start, end };
+}
+
+// Where you stand against the daily goal: how many glasses you'd have had by
+// now at an even pace, and the gap that fits what's left in the time left.
+function waterPace(settings, glasses, now) {
+  const { goalGlasses: goal, everyMin } = settings.water;
+  const base = everyMin * MIN;
+  const { start, end } = waterWindow(settings, new Date(now));
+  const left = goal - glasses;
+  if (left <= 0 || now < start || now >= end) return { behind: 0, gapMs: base };
+  const expected = Math.floor((goal * (now - start)) / (end - start));
+  const paced = (end - now) / left;
+  return {
+    behind: Math.max(0, expected - glasses),
+    gapMs: Math.max(Math.min(base, WATER_MIN_GAP_MS), Math.min(base, paced)),
+  };
+}
+
 // When working hours next begin, as a timestamp.
 function nextWorkStart(workHours, date) {
   const [h, m] = workHours.start.split(':').map(Number);
@@ -65,9 +109,12 @@ function nextWorkStart(workHours, date) {
 // Events: 'stand' (show the break), 'stand-waiting' (due, but in a call),
 // 'water' (show the water reminder), 'status' (something changed).
 class Scheduler extends EventEmitter {
-  constructor(getSettings, now = Date.now()) {
+  // getGlasses, when given, returns today's glasses so water can catch up.
+  constructor(getSettings, now = Date.now(), { getGlasses = null } = {}) {
     super();
     this.getSettings = getSettings;
+    this.getGlasses = getGlasses;
+    this.waterAway = false;
     this.lastBreakAt = now;
     this.standDueAt = now + this.standEvery();
     this.waterDueAt = now + this.waterEvery();
@@ -83,8 +130,31 @@ class Scheduler extends EventEmitter {
     return this.getSettings().stand.everyMin * MIN;
   }
 
-  waterEvery() {
-    return this.getSettings().water.everyMin * MIN;
+  // The gap to the next water reminder. Behind on the goal (say after a long
+  // lunch), it shrinks so what's left still fits in the day.
+  waterEvery(now) {
+    const settings = this.getSettings();
+    const base = settings.water.everyMin * MIN;
+    if (now === undefined || !this.catchingUp(settings)) return base;
+    return waterPace(settings, this.getGlasses(), now).gapMs;
+  }
+
+  catchingUp(settings) {
+    return Boolean(this.getGlasses && settings.water.catchUp);
+  }
+
+  waterBehind(now) {
+    const settings = this.getSettings();
+    if (!this.getGlasses || !settings.water.enabled) return 0;
+    return waterPace(settings, this.getGlasses(), now).behind;
+  }
+
+  // Back at the desk and behind on water: ask soon, not a full gap later.
+  welcomeBack(now) {
+    const settings = this.getSettings();
+    const soon = now + WATER_WELCOME_MS;
+    const next = this.catchingUp(settings) && this.waterBehind(now) > 0 ? soon : now + this.waterEvery(now);
+    this.waterDueAt = Math.max(soon, Math.min(this.waterDueAt, next));
   }
 
   isPaused(now) {
@@ -104,9 +174,17 @@ class Scheduler extends EventEmitter {
     }
 
     if (paused || !inWaterHours(settings, new Date(now))) {
-      this.waterDueAt = Math.max(this.waterDueAt, now + this.waterEvery());
+      this.waterDueAt = Math.max(this.waterDueAt, now + this.waterEvery(now));
+      this.waterAway = false;
+    } else if (idleSec >= WATER_AWAY_SEC) {
+      // Nobody's there to drink; hold the reminder until they're back.
+      this.waterAway = true;
+    } else if (this.waterAway) {
+      this.waterAway = false;
+      this.welcomeBack(now);
+      this.emit('status');
     } else if (settings.water.enabled && now >= this.waterDueAt && !inMeeting) {
-      this.waterDueAt = now + this.waterEvery();
+      this.waterDueAt = now + this.waterEvery(now);
       this.emit('water');
     }
   }
@@ -197,7 +275,7 @@ class Scheduler extends EventEmitter {
   }
 
   sipped(now) {
-    this.waterDueAt = now + this.waterEvery();
+    this.waterDueAt = now + this.waterEvery(now);
     this.emit('status');
   }
 
@@ -209,7 +287,7 @@ class Scheduler extends EventEmitter {
   resume(now) {
     this.pausedUntil = 0;
     this.standDueAt = now + this.standEvery();
-    this.waterDueAt = now + this.waterEvery();
+    this.waterDueAt = now + this.waterEvery(now);
     this.emit('status');
   }
 
@@ -219,7 +297,8 @@ class Scheduler extends EventEmitter {
     if (this.onBreak) return;
     this.lastBreakAt = now;
     this.standDueAt = now + this.standEvery();
-    this.waterDueAt = now + this.waterEvery();
+    this.waterDueAt = now + this.waterEvery(now);
+    this.welcomeBack(now);
     this.waitingForMeeting = false;
     this.snoozeCount = 0;
     this.emit('status');
@@ -234,7 +313,7 @@ class Scheduler extends EventEmitter {
   // Settings changed: re-arm the timers from the last break.
   reschedule(now) {
     this.standDueAt = Math.max(now, this.lastBreakAt + this.standEvery());
-    this.waterDueAt = Math.min(this.waterDueAt, now + this.waterEvery());
+    this.waterDueAt = Math.min(this.waterDueAt, now + this.waterEvery(now));
     this.emit('status');
   }
 
@@ -250,6 +329,7 @@ class Scheduler extends EventEmitter {
       standEveryMs: this.standEvery(),
       sittingMs: now - this.lastBreakAt,
       msToWater: Math.max(0, this.waterDueAt - now),
+      waterBehind: waterOff ? 0 : this.waterBehind(now),
       waterOff,
       waterResumesAt: waterOff ? nextWaterStart(settings, new Date(now)) : 0,
       pausedUntil: this.isPaused(now) ? this.pausedUntil : 0,
@@ -261,4 +341,16 @@ class Scheduler extends EventEmitter {
   }
 }
 
-module.exports = { Scheduler, inWorkHours, inWaterHours, waterSchedule, nextWorkStart, MEETING_GRACE_MS, FLOW_MAX_WAIT_MS };
+module.exports = {
+  Scheduler,
+  inWorkHours,
+  inWaterHours,
+  waterSchedule,
+  waterWindow,
+  waterPace,
+  nextWorkStart,
+  MEETING_GRACE_MS,
+  FLOW_MAX_WAIT_MS,
+  WATER_AWAY_SEC,
+  WATER_WELCOME_MS,
+};
