@@ -1,0 +1,6 @@
+{
+  "identifier": "default",
+  "description": "Stip's own pages talk to the app through a few commands and events.",
+  "windows": ["*"],
+  "permissions": ["core:default"]
+}

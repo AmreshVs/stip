@@ -80,41 +80,35 @@ On Windows, the easiest way is the [Microsoft Store](https://apps.microsoft.com/
 
 For macOS and Linux, or the Windows installer, download the latest version from the [releases page](https://github.com/AmreshVs/stip/releases/latest):
 
-- **macOS:** the `.dmg` (`arm64` for Apple silicon, `x64` for Intel Macs). Releases are signed and notarized by Apple. If a build ever says it can't be opened, open **System Settings → Privacy & Security** and choose **Open Anyway**, or run `xattr -cr /Applications/Stip.app`.
+- **macOS:** the `.dmg`, one universal build for Apple silicon and Intel Macs. Releases are signed and notarized by Apple. If a build ever says it can't be opened, open **System Settings → Privacy & Security** and choose **Open Anyway**, or run `xattr -cr /Applications/Stip.app`.
 - **Linux:** the `.AppImage` (make it executable, then run it) or the `.deb` for Debian and Ubuntu.
 - **Windows:** the [Microsoft Store](https://apps.microsoft.com/detail/9MSN24PF9CD5), or the `.exe` installer. The installer isn't code-signed yet, so the first time Windows SmartScreen says "Windows protected your PC": choose **More info**, then **Run anyway**.
 
 ## Built with Tauri
 
-Stip is built with [Tauri](https://tauri.app/): a small Rust core with the screens drawn in the system's own web view, so the app stays light and starts fast. The Tauri app lives in `tauri-proto/`. It already does the hard parts: break windows over every display and above full-screen apps, the click-through water reminder, the tray panel and idle detection. The rest of Stip is being moved over from the original Electron version in `src/`, and until that's done the installers on the releases page are still built from `src/`.
+Stip is built with [Tauri](https://tauri.app/): a small Rust core with the screens drawn in the system's own web view, so the download is small and the app stays light. The app lives in `src-tauri/`. Its pages are the ones in `src/renderer/`, which `src-tauri/build.rs` copies in at build time, so the screens look the same as before. [src-tauri/README.md](src-tauri/README.md) explains how each part maps across from the earlier Electron version, which stays in `src/` for reference.
 
-To run the Tauri app from source, install [Rust](https://www.rust-lang.org/tools/install) and [Tauri's prerequisites](https://tauri.app/start/prerequisites/) for your platform, then:
+To run it from source, install [Rust](https://www.rust-lang.org/tools/install), [Tauri's prerequisites](https://tauri.app/start/prerequisites/) for your platform and Node.js 20 or newer (for the fonts the pages use), then:
 
 ```bash
 git clone https://github.com/AmreshVs/stip.git
-cd stip/tauri-proto
-cargo run                 # run the app
-STIP_PROBE=1 cargo run    # run each window check on its own and print a JSON report
-```
-
-To run the Electron version that the current releases come from:
-
-```bash
 cd stip
-npm install
-npm start
+npm install               # once, for the fonts
+cd src-tauri
+cargo run                 # the app, in the menu bar or system tray
 ```
 
-Tauri installers aren't set up yet (bundling is off in `tauri-proto/tauri.conf.json`). Until they are, build installers from the Electron version:
+Dev runs should keep their data apart from your real settings: `STIP_USER_DATA=/tmp/stip-dev cargo run`.
+
+To build an installer yourself, from `src-tauri/`:
 
 ```bash
-npm run dist:mac      # DMG, on macOS
-npm run dist:linux    # AppImage and .deb, on Linux
-npm run dist:win      # installer, on Windows
-npm run dist          # whatever fits the platform you're on
+npx @tauri-apps/cli@2.12.4 build --bundles app,dmg            # macOS
+npx @tauri-apps/cli@2.12.4 build --bundles appimage,deb       # Linux
+npx @tauri-apps/cli@2.12.4 build --bundles nsis               # Windows
 ```
 
-They land in `dist/`. Build each platform on that platform.
+They land in `src-tauri/target/release/bundle/`. Build each platform on that platform.
 
 ## Releases
 
@@ -128,7 +122,7 @@ Pushing a tag such as `v1.0.0` from your machine also builds and publishes a rel
 
 ### Microsoft Store
 
-Each release build also makes `Stip-<version>-x64.appx`, the Microsoft Store package for **Stip: Stand and Sip**. Download it from the run's page (Actions → Release → the run → Artifacts → `stip-Windows`), then upload it in Partner Center as a new submission. The Store signs it, so Store installs show no warning. Stip's Store page is [apps.microsoft.com/detail/9MSN24PF9CD5](https://apps.microsoft.com/detail/9MSN24PF9CD5), and every GitHub release links to it. The package identity is set under `build.appx` in `package.json`, and the tile images are made by `npm run icons`.
+The release workflow builds only the Tauri installers, so the Microsoft Store package still comes from the Electron version: run `npm run dist:store` on Windows to make `Stip-<version>-x64.appx` in `dist/`, then upload it in Partner Center as a new submission. The Store signs it, so Store installs show no warning. Stip's Store page is [apps.microsoft.com/detail/9MSN24PF9CD5](https://apps.microsoft.com/detail/9MSN24PF9CD5), and every GitHub release links to it. The package identity is set under `build.appx` in `package.json`, and the tile images are made by `npm run icons`.
 
 ### Signing and notarizing for macOS
 
@@ -148,7 +142,7 @@ You can add each one from the terminal; `gh` asks for the value so it never land
 gh secret set CSC_LINK
 ```
 
-The release builds need Node.js 20 or newer. The Tauri app needs Rust and Tauri's prerequisites.
+You need Rust, Tauri's prerequisites and Node.js 20 or newer.
 
 ## Using Stip
 
@@ -169,20 +163,18 @@ Stip makes no network requests and has no analytics. Settings and stats are JSON
 
 ## Develop
 
-The Tauri app:
-
 ```bash
-cd tauri-proto
+cd src-tauri
 cargo run                 # run the app
-STIP_PROBE=1 cargo run    # check the windows and print a JSON report
+cargo test                # unit tests for the timing rules, stats and report
+STIP_PROBE=1 cargo run    # self-check: opens every window, checks it, prints a JSON report
+cargo run -- --show=tray  # open one screen at once: break, water, tray, settings, report
 ```
 
-The Electron version, which the releases, tests and screenshots still use:
+The Electron version in `src/` still has its own tools, used for the screenshots, the site and the store packages:
 
 ```bash
-npm start                 # run the app
-npm test                  # unit tests for the timing rules and stats
-npm run e2e               # end-to-end test: drives the real app with hidden windows
+npm test                  # the Electron unit tests
 npm run screenshots       # refresh the screenshots in docs/
 npm run icons             # render the icon PNGs from the SVGs in assets/
 npm run site              # preview the landing page at http://localhost:4173
@@ -191,10 +183,11 @@ npm run site              # preview the landing page at http://localhost:4173
 The [contributing guide](CONTRIBUTING.md) explains fast test timings, previewing any screen with `--show`, and how the code is laid out.
 
 ```
-tauri-proto/       The Tauri app: Rust core in src/main.rs, windows in ui/
-src/main/          Electron main process: scheduler, stats, tray and windows
-src/renderer/      One folder per window: break, water, tray, settings
-src/preload.js     The small API the windows use to talk to the main process
+src-tauri/         The app: Rust core in src/, Tauri config, icons
+src/renderer/      One folder per window: break, water, tray, settings (shared)
+src/main/          The earlier Electron main process, kept for reference
+src/preload.js     The Electron side of window.stip (src-tauri/src/bridge.js in Tauri)
+tauri-proto/       The first prototype of the hard window parts
 assets/            Icon sources and generated PNGs
 docs/              The landing page, served by GitHub Pages
 e2e/               End-to-end test
@@ -207,7 +200,7 @@ Bug reports, ideas and pull requests are welcome. Please read the [contributing 
 
 ## Credits
 
-- Built with [Tauri](https://tauri.app/). The release builds still use [Electron](https://www.electronjs.org/) while the port finishes.
+- Built with [Tauri](https://tauri.app/). Earlier versions used [Electron](https://www.electronjs.org/).
 - Fonts: [Bricolage Grotesque](https://fonts.google.com/specimen/Bricolage+Grotesque), [DM Sans](https://fonts.google.com/specimen/DM+Sans), [Instrument Serif](https://fonts.google.com/specimen/Instrument+Serif) and [Manrope](https://fonts.google.com/specimen/Manrope), all under the SIL Open Font License, bundled through [Fontsource](https://fontsource.org/).
 - Every picture in Stip is drawn in code for it, and no images are borrowed. The jokes are a mix of Stip's own and classic programming one-liners.
 
