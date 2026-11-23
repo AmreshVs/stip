@@ -4,15 +4,6 @@ All notable changes to Stip are listed here. The format follows [Keep a Changelo
 
 ## [Unreleased]
 
-## [1.2.0] - 2026-11-23
-
-### Changed
-
-- Stip now runs on Tauri instead of Electron, so the download is a fraction of the size. Your settings, stats and streak carry over the first time it starts.
-- The macOS download is now one universal DMG for Apple silicon and Intel Macs.
-
-## [1.1.0] - 2026-11-23
-
 ### Added
 
 - Stip is on the [Microsoft Store](https://apps.microsoft.com/detail/9MSN24PF9CD5). The website, README and release notes link to it.
@@ -29,6 +20,8 @@ All notable changes to Stip are listed here. The format follows [Keep a Changelo
 
 ### Changed
 
+- Stip now runs on Tauri instead of Electron, so the download is a fraction of the size. Your settings, stats and streak carry over the first time it starts.
+- The macOS download is now one universal DMG for Apple silicon and Intel Macs.
 - The tray panel now looks and behaves like a system menu: system font, light and dark mode, arrow keys and shortcuts. It gives a tip when it spots a pattern in your skipped breaks.
 - The tray panel opens instantly, even the first time, and Esc closes it. On macOS it opens over full-screen apps.
 - Opening Stip while it's already running shows the tray panel.
@@ -62,7 +55,5 @@ The first release.
 - Unit tests, an end-to-end test that drives the real app, and CI on macOS, Windows and Linux.
 - macOS DMG (signed and notarized), Linux AppImage and .deb, and a Windows installer, made by CI for every release.
 
-[Unreleased]: https://github.com/AmreshVs/stip/compare/v1.2.0...HEAD
-[1.2.0]: https://github.com/AmreshVs/stip/compare/v1.1.0...v1.2.0
-[1.1.0]: https://github.com/AmreshVs/stip/compare/v1.0.0...v1.1.0
+[Unreleased]: https://github.com/AmreshVs/stip/compare/v1.0.0...HEAD
 [1.0.0]: https://github.com/AmreshVs/stip/releases/tag/v1.0.0
