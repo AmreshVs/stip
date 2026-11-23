@@ -4,6 +4,11 @@ All notable changes to Stip are listed here. The format follows [Keep a Changelo
 
 ## [Unreleased]
 
+### Changed
+
+- Stip now runs on Tauri instead of Electron, so the download is a fraction of the size. Your settings, stats and streak carry over the first time it starts.
+- The macOS download is now one universal DMG for Apple silicon and Intel Macs.
+
 ## [1.1.0] - 2026-11-23
 
 ### Added
