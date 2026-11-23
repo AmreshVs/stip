@@ -211,6 +211,49 @@ hr {
   fill: currentColor;
 }
 
+/* macOS: the window itself is the system menu material, so the page stays
+   clear and only adds the hairline edge, rounder highlights and colours that
+   sit on glass. */
+.mac {
+  --bg: transparent;
+  --rule: rgba(0, 0, 0, 0.1);
+  --track: rgba(0, 0, 0, 0.1);
+  --row-height: 26px;
+  --row-radius: 8px;
+  --row-inset: 6px;
+  --row-pad: 9px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .mac {
+    --rule: rgba(255, 255, 255, 0.1);
+    --track: rgba(255, 255, 255, 0.14);
+  }
+}
+
+.mac body {
+  background: transparent;
+}
+
+.mac body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  border-radius: var(--panel-radius, 14px);
+  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.35);
+  pointer-events: none;
+}
+
+.mac .row:hover .side,
+.mac .row:focus-visible .side {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.mac hr {
+  margin-left: 14px;
+  margin-right: 14px;
+}
+
 /* A hidden window keeps running CSS animations; don't let it use CPU. */
 .asleep * {
   animation-play-state: paused !important;

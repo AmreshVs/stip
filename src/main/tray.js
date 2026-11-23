@@ -6,6 +6,7 @@ const ICONS = path.join(__dirname, '..', '..', 'assets', 'generated');
 const PRELOAD = path.join(__dirname, '..', 'preload.js');
 const PANEL = { width: process.platform === 'win32' ? 320 : 300, height: 400 };
 // Solid window colours, matching the panel in the system's light or dark mode.
+const MAC = process.platform === 'darwin';
 const panelColor = () => {
   if (process.platform === 'win32') return nativeTheme.shouldUseDarkColors ? '#2c2c2c' : '#f9f9f9';
   return nativeTheme.shouldUseDarkColors ? '#2a2a2c' : '#f6f6f6';
@@ -76,13 +77,23 @@ class TrayUI {
       skipTaskbar: true,
       alwaysOnTop: true,
       hasShadow: true,
-      // A macOS panel opens over full-screen apps without switching spaces.
-      ...(process.platform === 'darwin' ? { type: 'panel' } : {}),
-      backgroundColor: panelColor(),
+      // On macOS: a panel opens over full-screen apps without switching
+      // spaces, and the system's menu material gives the same translucent,
+      // rounded look as every other menu bar extra.
+      ...(MAC
+        ? {
+            type: 'panel',
+            transparent: true,
+            vibrancy: 'menu',
+            visualEffectState: 'active',
+            roundedCorners: true,
+            backgroundColor: '#00000000',
+          }
+        : { backgroundColor: panelColor() }),
       webPreferences: { preload: PRELOAD, sandbox: true },
     });
     this.panel.loadFile(path.join(__dirname, '..', 'renderer', 'tray', 'index.html'));
-    nativeTheme.on('updated', () => this.panel?.setBackgroundColor(panelColor()));
+    if (!MAC) nativeTheme.on('updated', () => this.panel?.setBackgroundColor(panelColor()));
     this.panel.on('blur', () => {
       this.closedAt = Date.now();
       this.hide();

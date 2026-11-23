@@ -56,6 +56,7 @@ function reportHeight() {
 function render(state) {
   const { settings, status, today, streak, meeting, tip, platform } = state;
   document.documentElement.classList.toggle('win', platform === 'win32');
+  document.documentElement.classList.toggle('mac', platform === 'darwin');
   const now = Date.now();
   const paused = status.pausedUntil > 0;
   const set = (label, side, clock) => {
