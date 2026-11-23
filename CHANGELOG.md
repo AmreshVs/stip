@@ -4,6 +4,8 @@ All notable changes to Stip are listed here. The format follows [Keep a Changelo
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-11-23
+
 ### Changed
 
 - Stip now runs on Tauri instead of Electron, so the download is a fraction of the size. Your settings, stats and streak carry over the first time it starts.
@@ -60,6 +62,7 @@ The first release.
 - Unit tests, an end-to-end test that drives the real app, and CI on macOS, Windows and Linux.
 - macOS DMG (signed and notarized), Linux AppImage and .deb, and a Windows installer, made by CI for every release.
 
-[Unreleased]: https://github.com/AmreshVs/stip/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/AmreshVs/stip/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/AmreshVs/stip/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/AmreshVs/stip/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/AmreshVs/stip/releases/tag/v1.0.0
