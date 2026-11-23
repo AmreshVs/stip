@@ -14,6 +14,7 @@ mod flow;
 mod git_history;
 #[cfg(target_os = "macos")]
 mod mac;
+mod media;
 mod meeting;
 mod probe;
 mod report;

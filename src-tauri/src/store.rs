@@ -23,7 +23,9 @@ pub fn defaults() -> Value {
             "resetWhenAway": true,
             "awayMin": 3,
             // Snoozes in a row before the break can't be put off. 0 means no limit.
-            "maxSnoozes": 2
+            "maxSnoozes": 2,
+            // Pause music and videos while the break covers the screen (macOS).
+            "pauseMedia": true
         },
         "water": {
             "enabled": true,
@@ -32,6 +34,8 @@ pub fn defaults() -> Value {
             "everyMin": 30,
             "goalGlasses": 8,
             "glassMl": 250,
+            // Behind on the goal (after a long lunch, say), remind more often.
+            "catchUp": true,
             // "always", "work" or "custom". Null follows the working hours switch.
             "schedule": null,
             "hours": { "days": [0, 1, 2, 3, 4, 5, 6], "start": "08:00", "end": "21:00" }
@@ -104,6 +108,12 @@ pub struct Stand {
     pub reset_when_away: bool,
     pub away_min: f64,
     pub max_snoozes: f64,
+    #[serde(default = "yes")]
+    pub pause_media: bool,
+}
+
+fn yes() -> bool {
+    true
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -117,6 +127,8 @@ pub struct Water {
     pub goal_glasses: f64,
     #[allow(dead_code)]
     pub glass_ml: f64,
+    #[serde(default = "yes")]
+    pub catch_up: bool,
     pub schedule: Option<String>,
     pub hours: Window,
 }

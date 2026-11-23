@@ -144,6 +144,8 @@ pub fn state_of(c: &Core, app: &AppHandle, sandboxed: bool) -> Value {
         "version": app.package_info().version.to_string(),
         "fromStore": false,
         "sandboxed": sandboxed,
+        "mediaSupported": crate::media::supported(sandboxed),
+        "mediaAllowed": crate::media::supported(sandboxed) && crate::media::allowed(false),
         "cliInstall": c.cli_install,
         "tip": report::tip(&c.stats.range(14, 0, &date)),
     })
@@ -207,6 +209,11 @@ pub fn drain(app: &AppHandle) {
             Event::Stand => {
                 windows::water_hide(app);
                 windows::break_show(app);
+                let s = shared(app);
+                let pause = s.core().settings.config().stand.pause_media;
+                if pause && !s.hidden && crate::media::supported(s.sandboxed) {
+                    crate::media::pause();
+                }
             }
             Event::StandWaiting => notify(app, "Stand break is waiting for you", "You're on a call, so it starts 30 seconds after the call ends."),
             Event::Water => {
@@ -235,11 +242,15 @@ fn record_sip(app: &AppHandle) {
     let mut c = s.core();
     let now = now_ms();
     c.stats.record(Kind::Glasses, &local(now));
+    c.scheduler.glasses = Some(c.stats.today(&local(now)).glasses as i64);
     c.scheduler.sipped(now);
 }
 
 pub fn on_break_finished(app: &AppHandle, how: &str) {
     let s = shared(app);
+    if !s.hidden && crate::media::supported(s.sandboxed) {
+        crate::media::resume();
+    }
     let now = now_ms();
     let date = local(now);
     let mut unlock = None;
@@ -410,6 +421,12 @@ pub fn handle_action(app: &AppHandle, name: &str, payload: &Value) {
             windows::settings_open(app, None);
         }
         "settings-set" => set_settings(app, payload),
+        // Turning on media pausing asks for the access it needs right away.
+        "media-allow" => {
+            if crate::media::supported(s.sandboxed) {
+                crate::media::allowed(true);
+            }
+        }
         "open-privacy" => {
             use tauri_plugin_opener::OpenerExt;
             let _ = app.opener().open_url(PRIVACY_URL, None::<&str>);
@@ -568,6 +585,8 @@ pub fn start_clock(app: &AppHandle) {
                 let idle_sec = user_idle::UserIdle::get_time().map(|t| t.as_seconds() as f64).unwrap_or(0.0);
                 let title = {
                     let mut c = s.core();
+                    // Water catches up against today's glasses.
+                    c.scheduler.glasses = Some(c.stats.today(&local(now)).glasses as i64);
                     if restart {
                         c.scheduler.restart(now);
                     }

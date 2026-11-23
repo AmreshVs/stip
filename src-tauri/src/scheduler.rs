@@ -10,6 +10,12 @@ const MIN: i64 = 60 * 1000;
 pub const MEETING_GRACE_MS: i64 = 30 * 1000;
 // A break waits for a pause in your work, but not forever.
 pub const FLOW_MAX_WAIT_MS: i64 = 10 * MIN;
+// Catching up on water never nags more often than this.
+const WATER_MIN_GAP_MS: i64 = 15 * MIN;
+// No input for this long means you've stepped away (lunch, a walk). Water
+// reminders wait for you, and greet you shortly after you're back.
+pub const WATER_AWAY_SEC: f64 = 10.0 * 60.0;
+pub const WATER_WELCOME_MS: i64 = 2 * MIN;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Event {
@@ -83,6 +89,48 @@ pub fn next_water_start(c: &Config, date: &DateTime<Local>) -> Option<i64> {
     }
 }
 
+fn at_time(date: &DateTime<Local>, hhmm: &str, offset_days: i64) -> i64 {
+    let minutes = minutes_of_day(hhmm);
+    let day = date.date_naive() + Duration::days(offset_days);
+    day.and_hms_opt((minutes / 60) as u32, (minutes % 60) as u32, 0)
+        .and_then(|naive| Local.from_local_datetime(&naive).earliest())
+        .map(|at| at.timestamp_millis())
+        .unwrap_or_else(|| date.timestamp_millis())
+}
+
+/// Today's water window as timestamps, for pacing the daily goal. "Always"
+/// still paces over the custom hours' times, since nobody drinks all night.
+pub fn water_window(c: &Config, date: &DateTime<Local>) -> (i64, i64) {
+    let hours = if water_schedule(c) == "work" { &c.work_hours.window } else { &c.water.hours };
+    let now = date.timestamp_millis();
+    let mut start = at_time(date, &hours.start, 0);
+    let mut end = at_time(date, &hours.end, 0);
+    if end <= start {
+        // Runs past midnight (or all day): pick the stretch that holds now.
+        if now < end {
+            start = at_time(date, &hours.start, -1);
+        } else {
+            end = at_time(date, &hours.end, 1);
+        }
+    }
+    (start, end)
+}
+
+/// Where you stand against the daily goal: how many glasses behind an even
+/// pace you are, and the gap that fits what's left into the time left.
+pub fn water_pace(c: &Config, glasses: i64, now: i64) -> (i64, i64) {
+    let goal = c.water.goal_glasses as i64;
+    let base = (c.water.every_min * MIN as f64) as i64;
+    let (start, end) = water_window(c, &local(now));
+    let left = goal - glasses;
+    if left <= 0 || now < start || now >= end {
+        return (0, base);
+    }
+    let expected = (goal * (now - start)) / (end - start);
+    let paced = (end - now) / left;
+    ((expected - glasses).max(0), base.min(paced).max(base.min(WATER_MIN_GAP_MS)))
+}
+
 /// When the window next begins, as a timestamp.
 pub fn next_work_start(w: &Window, date: &DateTime<Local>) -> Option<i64> {
     let start = minutes_of_day(&w.start);
@@ -113,6 +161,7 @@ pub struct Status {
     pub waiting_for_flow: bool,
     pub on_break: bool,
     pub snoozes_left: Option<i64>,
+    pub water_behind: i64,
 }
 
 #[derive(Clone, Copy, Debug, Default)]
@@ -130,6 +179,10 @@ pub struct Scheduler {
     pub paused_until: i64,
     pub on_break: bool,
     pub waiting_for_meeting: bool,
+    /// Today's glasses, kept up to date by the caller so water can catch up.
+    /// None turns catching up off.
+    pub glasses: Option<i64>,
+    water_away: bool,
     meeting_ended_at: i64,
     snooze_count: i64,
     flow_wait_started_at: i64,
@@ -146,6 +199,8 @@ impl Scheduler {
             paused_until: 0,
             on_break: false,
             waiting_for_meeting: false,
+            glasses: None,
+            water_away: false,
             meeting_ended_at: 0,
             snooze_count: 0,
             flow_wait_started_at: 0,
@@ -154,6 +209,30 @@ impl Scheduler {
         s.stand_due_at = now + s.stand_every();
         s.water_due_at = now + s.water_every();
         s
+    }
+
+    /// The gap to the next water reminder. Behind on the goal (say after a
+    /// long lunch), it shrinks so what's left still fits in the day.
+    pub fn water_gap(&self, now: i64) -> i64 {
+        match self.glasses {
+            Some(glasses) if self.config.water.catch_up => water_pace(&self.config, glasses, now).1,
+            _ => self.water_every(),
+        }
+    }
+
+    pub fn water_behind(&self, now: i64) -> i64 {
+        match self.glasses {
+            Some(glasses) if self.config.water.enabled => water_pace(&self.config, glasses, now).0,
+            _ => 0,
+        }
+    }
+
+    /// Back at the desk and behind on water: ask soon, not a full gap later.
+    fn welcome_back(&mut self, now: i64) {
+        let soon = now + WATER_WELCOME_MS;
+        let catching_up = self.glasses.is_some() && self.config.water.catch_up;
+        let next = if catching_up && self.water_behind(now) > 0 { soon } else { now + self.water_gap(now) };
+        self.water_due_at = soon.max(self.water_due_at.min(next));
     }
 
     /// The events since the last call, oldest first.
@@ -192,9 +271,16 @@ impl Scheduler {
         }
 
         if paused || !in_water_hours(&self.config, &date) {
-            self.water_due_at = self.water_due_at.max(now + self.water_every());
+            self.water_due_at = self.water_due_at.max(now + self.water_gap(now));
+            self.water_away = false;
+        } else if t.idle_sec >= WATER_AWAY_SEC {
+            // Nobody's there to drink; hold the reminder until they're back.
+            self.water_away = true;
+        } else if self.water_away {
+            self.water_away = false;
+            self.welcome_back(now);
         } else if self.config.water.enabled && now >= self.water_due_at && !t.in_meeting {
-            self.water_due_at = now + self.water_every();
+            self.water_due_at = now + self.water_gap(now);
             self.emit(Event::Water);
         }
     }
@@ -282,7 +368,7 @@ impl Scheduler {
     }
 
     pub fn sipped(&mut self, now: i64) {
-        self.water_due_at = now + self.water_every();
+        self.water_due_at = now + self.water_gap(now);
     }
 
     pub fn pause(&mut self, now: i64, minutes: i64) {
@@ -292,7 +378,7 @@ impl Scheduler {
     pub fn resume(&mut self, now: i64) {
         self.paused_until = 0;
         self.stand_due_at = now + self.stand_every();
-        self.water_due_at = now + self.water_every();
+        self.water_due_at = now + self.water_gap(now);
     }
 
     /// After sleep or a locked screen the user was away, so start fresh
@@ -303,7 +389,8 @@ impl Scheduler {
         }
         self.last_break_at = now;
         self.stand_due_at = now + self.stand_every();
-        self.water_due_at = now + self.water_every();
+        self.water_due_at = now + self.water_gap(now);
+        self.welcome_back(now);
         self.waiting_for_meeting = false;
         self.snooze_count = 0;
     }
@@ -318,7 +405,7 @@ impl Scheduler {
     pub fn reschedule(&mut self, config: Config, now: i64) {
         self.config = config;
         self.stand_due_at = now.max(self.last_break_at + self.stand_every());
-        self.water_due_at = self.water_due_at.min(now + self.water_every());
+        self.water_due_at = self.water_due_at.min(now + self.water_gap(now));
     }
 
     pub fn status(&self, now: i64) -> Status {
@@ -340,6 +427,7 @@ impl Scheduler {
             waiting_for_flow: self.flow_wait_started_at > 0,
             on_break: self.on_break,
             snoozes_left: self.snoozes_left(),
+            water_behind: if water_off { 0 } else { self.water_behind(now) },
         }
     }
 }
@@ -703,10 +791,72 @@ mod tests {
         let r = Run::new(json!({}));
         let v = serde_json::to_value(r.s.status(MIN)).unwrap();
         for key in ["offHours", "resumesAt", "msToStand", "standEveryMs", "sittingMs", "msToWater", "waterOff",
-            "waterResumesAt", "pausedUntil", "waitingForMeeting", "waitingForFlow", "onBreak", "snoozesLeft"] {
+            "waterResumesAt", "pausedUntil", "waitingForMeeting", "waitingForFlow", "onBreak", "snoozesLeft", "waterBehind"] {
             assert!(v.get(key).is_some(), "{key}");
         }
         assert_eq!(v["msToStand"], 39 * MIN);
         assert_eq!(v["resumesAt"], 0);
+    }
+
+    // Water pacing over a 9-to-5 Monday with an 8-glass goal.
+    fn paced(glasses: i64, patch: Value) -> Run {
+        let day = json!({ "water": { "schedule": "custom", "goalGlasses": 8, "hours": { "days": [1], "start": "09:00", "end": "17:00" } } });
+        let mut r = Run::at(merge(&day, &patch), ms(9, 0));
+        r.s.glasses = Some(glasses);
+        r
+    }
+
+    #[test]
+    fn water_pace_counts_how_far_behind_the_goal_you_are() {
+        let r = paced(1, json!({}));
+        // Halfway through the day, 4 glasses is on pace.
+        assert_eq!(r.s.status(ms(13, 0)).water_behind, 3);
+    }
+
+    #[test]
+    fn behind_on_water_reminders_come_sooner_so_the_goal_still_fits() {
+        let r = paced(1, json!({}));
+        // 7 glasses left in 3 hours: about every 26 minutes, not 30.
+        assert_eq!((r.s.water_gap(ms(14, 0)) as f64 / MIN as f64).round() as i64, 26);
+        // But never closer than 15 minutes apart.
+        assert_eq!(r.s.water_gap(ms(16, 30)), 15 * MIN);
+    }
+
+    #[test]
+    fn on_pace_water_keeps_its_usual_gap() {
+        let r = paced(5, json!({}));
+        assert_eq!(r.s.water_gap(ms(13, 0)), 30 * MIN);
+    }
+
+    #[test]
+    fn catch_up_can_be_switched_off() {
+        let r = paced(1, json!({ "water": { "catchUp": false } }));
+        assert_eq!(r.s.water_gap(ms(16, 30)), 30 * MIN);
+    }
+
+    #[test]
+    fn water_waits_while_you_are_away_and_greets_you_soon_after() {
+        let mut r = paced(0, json!({ "stand": { "everyMin": 600 } }));
+        let at_desk = Tick::default();
+        let away = |min: f64| Tick { idle_sec: min * 60.0, ..Tick::default() };
+        r.tick_with(ms(12, 0), at_desk);
+        assert_eq!(r.events, vec![Water]);
+        // A long lunch: nobody is at the desk, so nothing shows.
+        r.tick_with(ms(12, 40), away(40.0));
+        r.tick_with(ms(13, 30), away(90.0));
+        assert_eq!(r.events, vec![Water]);
+        // Back at the desk and behind: a reminder in a couple of minutes.
+        r.tick_with(ms(13, 31), at_desk);
+        assert_eq!(r.events, vec![Water]);
+        assert_eq!(r.s.status(ms(13, 31)).ms_to_water, 2 * MIN);
+        r.tick_with(ms(13, 33), at_desk);
+        assert_eq!(r.events, vec![Water, Water]);
+    }
+
+    #[test]
+    fn unlocking_after_lunch_brings_water_sooner_when_behind() {
+        let mut r = paced(1, json!({}));
+        r.s.restart(ms(14, 0));
+        assert_eq!(r.s.status(ms(14, 0)).ms_to_water, 2 * MIN);
     }
 }
