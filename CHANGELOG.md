@@ -4,6 +4,8 @@ All notable changes to Stip are listed here. The format follows [Keep a Changelo
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-11-23
+
 ### Added
 
 - Stip is on the [Microsoft Store](https://apps.microsoft.com/detail/9MSN24PF9CD5). The website, README and release notes link to it.
@@ -55,5 +57,6 @@ The first release.
 - Unit tests, an end-to-end test that drives the real app, and CI on macOS, Windows and Linux.
 - macOS DMG (signed and notarized), Linux AppImage and .deb, and a Windows installer, made by CI for every release.
 
-[Unreleased]: https://github.com/AmreshVs/stip/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/AmreshVs/stip/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/AmreshVs/stip/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/AmreshVs/stip/releases/tag/v1.0.0
