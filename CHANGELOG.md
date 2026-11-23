@@ -15,6 +15,8 @@ All notable changes to Stip are listed here. The format follows [Keep a Changelo
 - A Mac App Store build (`npm run dist:mas`). Apple's sandbox rules out automatic call and build detection, the `stip` command and the commit comparison, so that version leaves them out.
 - A link to the privacy policy in Settings → General.
 - The `stip` terminal command: `status`, `break`, `water`, `sip`, `pause`, `resume` and `meeting`. Install it from settings. Try `npm run build && stip break`.
+- Water catches up after a long lunch: when you're behind your goal, reminders come sooner so the day still adds up, and they wait while you're away. Turn it off in Settings → Water.
+- Music and videos pause while a break covers the screen, and play again after (macOS). It needs Accessibility access, and can be turned off in Settings → Stand breaks.
 
 ### Changed
 
@@ -23,6 +25,7 @@ All notable changes to Stip are listed here. The format follows [Keep a Changelo
 - Opening Stip while it's already running shows the tray panel.
 - Stip uses almost no CPU while idle: the hidden tray panel no longer runs its animations.
 - A smaller download: only the English language files are included.
+- The tray panel has rounded corners on every platform, and on macOS it uses the system's translucent menu material.
 
 ### Fixed
 
