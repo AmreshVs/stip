@@ -270,19 +270,24 @@ pub fn water_hide(app: &AppHandle) {
 
 // ---- The tray panel --------------------------------------------------------------------
 
-fn panel_color(win: &WebviewWindow) -> Color {
-    let dark = win.theme().map(|t| t == tauri::Theme::Dark).unwrap_or(false);
-    match (cfg!(windows), dark) {
-        (true, true) => hex("#2c2c2c"),
-        (true, false) => hex("#f9f9f9"),
-        (false, true) => hex("#2a2a2c"),
-        (false, false) => hex("#f6f6f6"),
-    }
-}
-
 /// Built up front, so the first click opens it at once.
 pub fn panel_build(app: &AppHandle) -> tauri::Result<WebviewWindow> {
-    let win = page(app, "panel", TRAY_PAGE)
+    // A clear window, so the page rounds its own corners everywhere. On macOS
+    // the system's menu material sits behind it, translucent and rounded like
+    // every other menu bar extra. Elsewhere the page paints its own colours,
+    // and a system shadow would draw a square edge around the round corners.
+    let builder = page(app, "panel", TRAY_PAGE).transparent(true);
+    #[cfg(target_os = "macos")]
+    let builder = builder.shadow(true).effects(
+        tauri::window::EffectsBuilder::new()
+            .effect(tauri::window::Effect::Menu)
+            .state(tauri::window::EffectState::Active)
+            .radius(14.0)
+            .build(),
+    );
+    #[cfg(not(target_os = "macos"))]
+    let builder = builder.shadow(false);
+    let win = builder
         .title("Stip")
         .decorations(false)
         .resizable(false)
@@ -291,11 +296,9 @@ pub fn panel_build(app: &AppHandle) -> tauri::Result<WebviewWindow> {
         .skip_taskbar(true)
         .always_on_top(true)
         .visible_on_all_workspaces(true)
-        .shadow(true)
         .inner_size(PANEL_W, PANEL_H)
         .visible(false)
         .build()?;
-    let _ = win.set_background_color(Some(panel_color(&win)));
     raise(&win, false);
     let handle = app.clone();
     win.on_window_event(move |e| match e {
@@ -315,11 +318,6 @@ pub fn panel_build(app: &AppHandle) -> tauri::Result<WebviewWindow> {
                     let _ = p.hide();
                 }
                 let _ = handle.emit_to("panel", "show", json!({ "visible": false }));
-            }
-        }
-        WindowEvent::ThemeChanged(_) => {
-            if let Some(p) = handle.get_webview_window("panel") {
-                let _ = p.set_background_color(Some(panel_color(&p)));
             }
         }
         _ => {}
