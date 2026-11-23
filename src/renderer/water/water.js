@@ -15,6 +15,8 @@ const LINES = [
 
 let glasses = 0;
 let goal = 8;
+let behind = 0;
+let ml = 250;
 let answered = false;
 let character = 'orb';
 let look = {};
@@ -43,6 +45,12 @@ function renderDots(count) {
   dots.setAttribute('aria-label', `${count} of ${goal} glasses today`);
 }
 
+function renderCount() {
+  const litres = Number(((glasses * ml) / 1000).toFixed(2));
+  const pace = behind > 0 ? ` · ${behind} behind` : '';
+  $('count').textContent = `${glasses} of ${goal} glasses · ${litres} L today${pace}`;
+}
+
 // Matches --leave in water.css: the window closes once the exit has played.
 const LEAVE_MS = 700;
 
@@ -59,7 +67,8 @@ async function init() {
   document.body.classList.toggle('no-dim', !state.settings.water.dimScreen);
   glasses = state.today.glasses;
   goal = state.settings.water.goalGlasses;
-  const ml = state.settings.water.glassMl;
+  ml = state.settings.water.glassMl;
+  behind = state.status.waterBehind || 0;
   character = state.settings.water.character;
   const { level, neglected } = characters.growth(character, state.activeDays, state.daysSinceBreak);
   look = { level, neglected };
@@ -68,7 +77,7 @@ async function init() {
 
   $('line').innerHTML = LINES[Math.floor(Math.random() * LINES.length)];
   $('since').textContent = `Sitting for ${fmt.minutes(state.status.sittingMs)}`;
-  $('count').textContent = `${glasses} of ${goal} glasses · ${(glasses * ml) / 1000} L today`;
+  renderCount();
   $('plus').textContent = `+${ml} ml`;
   renderDots(glasses);
   setLevel(glasses);
@@ -87,7 +96,8 @@ async function init() {
     glasses += 1;
     setLevel(glasses, glasses - 1);
     renderDots(glasses);
-    $('count').textContent = `${glasses} of ${goal} glasses · ${(glasses * ml) / 1000} L today`;
+    behind = Math.max(0, behind - 1);
+    renderCount();
     document.getElementById('orb').classList.add('happy');
     setTimeout(() => close('water-close'), 1800);
   });

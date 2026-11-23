@@ -280,7 +280,7 @@ const ready = app.whenReady().then(() => {
   const dir = app.getPath('userData');
   settings = new Settings(dir);
   stats = new Stats(dir);
-  scheduler = new Scheduler(() => settings.get());
+  scheduler = new Scheduler(() => settings.get(), Date.now(), { getGlasses: () => stats.today().glasses });
   flow = new Flow();
   meeting = new Meeting({ onProcesses: (names) => flow.updateProcesses(names) });
   meeting.start();

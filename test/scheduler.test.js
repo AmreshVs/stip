@@ -280,3 +280,63 @@ test('no water days means no reminders and no return time', () => {
   assert.equal(scheduler.status(at(10).getTime()).waterOff, true);
   assert.equal(scheduler.status(at(10).getTime()).waterResumesAt, null);
 });
+
+// A Monday at a given time, for water pacing.
+function monday(h, m = 0) {
+  return new Date(2026, 10, 23, h, m).getTime();
+}
+
+function pacedSetup(glasses, patch = {}) {
+  const settings = merge(merge(DEFAULTS, BASE), merge({ water: { schedule: 'custom', goalGlasses: 8, hours: { days: [1], start: '09:00', end: '17:00' } } }, patch));
+  const count = { glasses };
+  const scheduler = new Scheduler(() => settings, monday(9), { getGlasses: () => count.glasses });
+  const events = [];
+  scheduler.on('water', () => events.push('water'));
+  return { scheduler, events, count, settings };
+}
+
+test('water pace counts how far behind the goal you are', () => {
+  const { scheduler } = pacedSetup(1);
+  // Halfway through an 8-hour day with an 8-glass goal, 4 is on pace.
+  assert.equal(scheduler.status(monday(13)).waterBehind, 3);
+});
+
+test('behind on water, reminders come sooner so the goal still fits', () => {
+  const { scheduler } = pacedSetup(1);
+  // 7 glasses left in 3 hours: about every 26 minutes, not 30.
+  assert.equal(Math.round(scheduler.waterEvery(monday(14)) / MIN), 26);
+  // But never closer than 15 minutes apart.
+  assert.equal(scheduler.waterEvery(monday(16, 30)), 15 * MIN);
+});
+
+test('on pace, water keeps its usual gap', () => {
+  const { scheduler } = pacedSetup(5);
+  assert.equal(scheduler.waterEvery(monday(13)), 30 * MIN);
+});
+
+test('catch up can be switched off', () => {
+  const { scheduler } = pacedSetup(1, { water: { catchUp: false } });
+  assert.equal(scheduler.waterEvery(monday(16, 30)), 30 * MIN);
+});
+
+test('water waits while you are away and greets you soon after', () => {
+  const { scheduler, events } = pacedSetup(0, { stand: { everyMin: 600 } });
+  scheduler.tick(monday(12), { idleSec: 0 });
+  assert.deepEqual(events, ['water']);
+  // A long lunch: nobody is at the desk, so nothing shows.
+  scheduler.tick(monday(12, 40), { idleSec: 40 * 60 });
+  scheduler.tick(monday(13, 30), { idleSec: 90 * 60 });
+  assert.deepEqual(events, ['water']);
+  // Back at the desk and behind: a reminder in a couple of minutes.
+  scheduler.tick(monday(13, 31), { idleSec: 0 });
+  assert.deepEqual(events, ['water']);
+  assert.equal(scheduler.status(monday(13, 31)).msToWater, 2 * MIN);
+  scheduler.tick(monday(13, 33), { idleSec: 0 });
+  assert.deepEqual(events, ['water', 'water']);
+});
+
+test('unlocking after lunch brings water sooner when behind', () => {
+  const { scheduler } = pacedSetup(1);
+  scheduler.restart(monday(14));
+  assert.equal(scheduler.status(monday(14)).msToWater, 2 * MIN);
+});
