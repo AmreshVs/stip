@@ -84,16 +84,28 @@ For macOS and Linux, or the Windows installer, download the latest version from 
 - **Linux:** the `.AppImage` (make it executable, then run it) or the `.deb` for Debian and Ubuntu.
 - **Windows:** the [Microsoft Store](https://apps.microsoft.com/detail/9MSN24PF9CD5), or the `.exe` installer. The installer isn't code-signed yet, so the first time Windows SmartScreen says "Windows protected your PC": choose **More info**, then **Run anyway**.
 
-To run it from source instead:
+## Built with Tauri
+
+Stip is built with [Tauri](https://tauri.app/): a small Rust core with the screens drawn in the system's own web view, so the app stays light and starts fast. The Tauri app lives in `tauri-proto/`. It already does the hard parts: break windows over every display and above full-screen apps, the click-through water reminder, the tray panel and idle detection. The rest of Stip is being moved over from the original Electron version in `src/`, and until that's done the installers on the releases page are still built from `src/`.
+
+To run the Tauri app from source, install [Rust](https://www.rust-lang.org/tools/install) and [Tauri's prerequisites](https://tauri.app/start/prerequisites/) for your platform, then:
 
 ```bash
 git clone https://github.com/AmreshVs/stip.git
+cd stip/tauri-proto
+cargo run                 # run the app
+STIP_PROBE=1 cargo run    # run each window check on its own and print a JSON report
+```
+
+To run the Electron version that the current releases come from:
+
+```bash
 cd stip
 npm install
 npm start
 ```
 
-To build an installer yourself:
+Tauri installers aren't set up yet (bundling is off in `tauri-proto/tauri.conf.json`). Until they are, build installers from the Electron version:
 
 ```bash
 npm run dist:mac      # DMG, on macOS
@@ -136,7 +148,7 @@ You can add each one from the terminal; `gh` asks for the value so it never land
 gh secret set CSC_LINK
 ```
 
-You need Node.js 20 or newer.
+The release builds need Node.js 20 or newer. The Tauri app needs Rust and Tauri's prerequisites.
 
 ## Using Stip
 
@@ -157,6 +169,16 @@ Stip makes no network requests and has no analytics. Settings and stats are JSON
 
 ## Develop
 
+The Tauri app:
+
+```bash
+cd tauri-proto
+cargo run                 # run the app
+STIP_PROBE=1 cargo run    # check the windows and print a JSON report
+```
+
+The Electron version, which the releases, tests and screenshots still use:
+
 ```bash
 npm start                 # run the app
 npm test                  # unit tests for the timing rules and stats
@@ -169,6 +191,7 @@ npm run site              # preview the landing page at http://localhost:4173
 The [contributing guide](CONTRIBUTING.md) explains fast test timings, previewing any screen with `--show`, and how the code is laid out.
 
 ```
+tauri-proto/       The Tauri app: Rust core in src/main.rs, windows in ui/
 src/main/          Electron main process: scheduler, stats, tray and windows
 src/renderer/      One folder per window: break, water, tray, settings
 src/preload.js     The small API the windows use to talk to the main process
@@ -184,7 +207,7 @@ Bug reports, ideas and pull requests are welcome. Please read the [contributing 
 
 ## Credits
 
-- Built with [Electron](https://www.electronjs.org/).
+- Built with [Tauri](https://tauri.app/). The release builds still use [Electron](https://www.electronjs.org/) while the port finishes.
 - Fonts: [Bricolage Grotesque](https://fonts.google.com/specimen/Bricolage+Grotesque), [DM Sans](https://fonts.google.com/specimen/DM+Sans), [Instrument Serif](https://fonts.google.com/specimen/Instrument+Serif) and [Manrope](https://fonts.google.com/specimen/Manrope), all under the SIL Open Font License, bundled through [Fontsource](https://fontsource.org/).
 - Every picture in Stip is drawn in code for it, and no images are borrowed. The jokes are a mix of Stip's own and classic programming one-liners.
 
