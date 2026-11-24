@@ -163,18 +163,40 @@ pub fn run(app: AppHandle) {
         check(&mut out, &mut failures, "panel_hides_on_blur", !open_after_blur && hidden, json!({ "hidden": hidden }));
         // Clicking the icon while it's open blurs it first; that click
         // mustn't reopen it.
-        windows::panel_toggle(&app, tray);
-        sleep(600);
-        if let Some(w) = app.get_webview_window("settings") {
-            let _ = w.set_focus();
+        // Waits for the panel to have focus rather than a fixed time: on a
+        // busy runner it can take longer, or lose focus on its own, and then
+        // the click below lands after the guard has run out.
+        let mut guard = None;
+        for _ in 0..3 {
+            windows::panel_toggle(&app, tray);
+            let started = Instant::now();
+            let focused = || app.get_webview_window("panel").is_some_and(|p| p.is_focused().unwrap_or(false));
+            while !focused() && started.elapsed() < Duration::from_secs(3) {
+                sleep(20);
+            }
+            sleep(200);
+            if !(shared(&app).ui().panel_open && focused()) {
+                windows::panel_hide(&app);
+                sleep(300);
+                continue;
+            }
+            if let Some(w) = app.get_webview_window("settings") {
+                let _ = w.set_focus();
+            }
+            let started = Instant::now();
+            while shared(&app).ui().panel_open && started.elapsed() < Duration::from_secs(2) {
+                sleep(5);
+            }
+            let closed_ms = started.elapsed().as_millis();
+            windows::panel_toggle(&app, tray);
+            guard = Some((shared(&app).ui().panel_open, closed_ms));
+            break;
         }
-        let started = Instant::now();
-        while shared(&app).ui().panel_open && started.elapsed() < Duration::from_secs(2) {
-            sleep(5);
-        }
-        windows::panel_toggle(&app, tray);
-        let reopened = shared(&app).ui().panel_open;
-        check(&mut out, &mut failures, "panel_click_guard", !reopened, json!("a click right after closing doesn't reopen it"));
+        let detail = match guard {
+            Some((reopened, closed_ms)) => json!({ "reopened": reopened, "closed_after_ms": closed_ms }),
+            None => json!("the panel never kept focus long enough to try"),
+        };
+        check(&mut out, &mut failures, "panel_click_guard", matches!(guard, Some((false, _))), detail);
         windows::panel_hide(&app);
         if let Some(w) = other {
             let _ = w.destroy();
