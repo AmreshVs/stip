@@ -3,9 +3,11 @@
 <head>
   <meta charset="utf-8">
   <title>Stip DMG background</title>
-  <!-- Rendered to background.png by scripts/build-dmg-background.js. The
-       window is 540x380; Finder draws the two icons at (140, 200) and
-       (400, 200), so nothing important sits under them. -->
+  <!-- Rendered to background.png by scripts/build-dmg-background.js and used by
+       src-tauri/tauri.conf.json (bundle > macOS > dmg). The
+       page is 540x380 (the window is taller by its title bar); Finder draws
+       the two 128px icons and their names centred on (140, 196) and
+       (400, 196), so nothing important sits under them. -->
   <link rel="stylesheet" href="../node_modules/@fontsource/bricolage-grotesque/800.css">
   <link rel="stylesheet" href="../node_modules/@fontsource/dm-sans/500.css">
   <link rel="stylesheet" href="../node_modules/@fontsource/dm-sans/700.css">
@@ -80,12 +82,12 @@
       height: 64px;
     }
 
-    /* Kept clear of Finder's status bar, which covers the bottom 30px. */
+    /* Below the icons' names. */
     .hint {
       position: absolute;
       left: 0;
       right: 0;
-      bottom: 58px;
+      bottom: 30px;
       text-align: center;
       font-size: 14px;
       font-weight: 700;

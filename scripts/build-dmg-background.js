@@ -1,6 +1,7 @@
 // Renders build/dmg-background.html into the DMG window background, at
-// normal and Retina size. Run with `npm run dmg-background` after changing
-// the HTML; the PNGs are committed.
+// normal and Retina size, and on macOS joins them into background.tiff, the
+// one file the DMG uses (Finder picks the size for the screen). Run with
+// `npm run dmg-background` after changing the HTML; the images are committed.
 //
 // Uses headless Chrome (or set CHROME to another Chromium browser), so the
 // page loads the app's own fonts from node_modules.
@@ -57,7 +58,13 @@ async function main() {
       .toFile(path.join(buildDir, file));
   }
   fs.rmSync(tmp, { recursive: true, force: true });
-  console.log('DMG background written to build/background.png and build/background@2x.png');
+  if (process.platform === 'darwin') {
+    const [one, two, tiff] = ['background.png', 'background@2x.png', 'background.tiff'].map((f) => path.join(buildDir, f));
+    execFileSync('tiffutil', ['-cathidpicheck', one, two, '-out', tiff], { stdio: 'ignore' });
+    console.log('DMG background written to build/background.png, background@2x.png and background.tiff');
+  } else {
+    console.log('DMG background written to build/background.png and background@2x.png (make background.tiff on a Mac)');
+  }
 }
 
 main().catch((err) => {

@@ -178,6 +178,7 @@ cargo run -- --show=tray  # open one screen at once: break, water, tray, setting
 From the repository root:
 
 ```bash
+npm start                     # the app (cargo run in src-tauri/); add -- --show=tray etc.
 npm test                      # unit tests for the stip command and the characters
 npm run screenshots           # refresh the screenshots in docs/ (runs the app; macOS)
 npm run screenshots:appstore  # the Mac App Store screenshots in build/app-store/

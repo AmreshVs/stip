@@ -16,6 +16,15 @@
     "category": "HealthcareAndFitness",
     "shortDescription": "Stand up and drink water: a calm break reminder",
     "icon": ["icons/icon.png", "icons/icon.icns", "icons/icon.ico"],
-    "macOS": { "minimumSystemVersion": "11.0", "infoPlist": "Info.plist" }
+    "macOS": {
+      "minimumSystemVersion": "11.0",
+      "infoPlist": "Info.plist",
+      "dmg": {
+        "background": "../build/background.tiff",
+        "windowSize": { "width": 540, "height": 412 },
+        "appPosition": { "x": 140, "y": 196 },
+        "applicationFolderPosition": { "x": 400, "y": 196 }
+      }
+    }
   }
 }
