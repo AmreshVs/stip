@@ -1,0 +1,133 @@
+name: Publish a tested build
+
+# Releases installers that a Release run already built, once you've tried
+# them. Nothing is built again: it tags the commit that run built, and
+# publishes a GitHub release with that run's installers and that version's
+# changelog notes.
+#
+#   1. Actions → Release → Run workflow, with "Publish a release" unticked
+#      (and a bump if this is a new version).
+#   2. Download the installers from that run's page and try them.
+#   3. Actions → Publish a tested build → Run workflow, with the run's ID:
+#      the number at the end of its URL, .../actions/runs/<ID>.
+#
+# The run must have finished without errors and be from after this workflow
+# was added (it reads the version and commit the run noted down). GitHub
+# keeps a run's files for 90 days.
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: ID of the Release run to publish (the number at the end of its URL)
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    env:
+      RUN_ID: ${{ inputs.run_id }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Check the run
+        shell: bash
+        run: |
+          if ! [[ "$RUN_ID" =~ ^[0-9]+$ ]]; then
+            echo "::error::\"$RUN_ID\" isn't a run ID. Use the number at the end of the run's URL."
+            exit 1
+          fi
+          run="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID")" || {
+            echo "::error::No run $RUN_ID in $GITHUB_REPOSITORY."
+            exit 1
+          }
+          workflow="$(jq -r .path <<<"$run")"
+          conclusion="$(jq -r .conclusion <<<"$run")"
+          if [ "$workflow" != ".github/workflows/release.yml" ]; then
+            echo "::error::Run $RUN_ID is from $workflow, not the Release workflow."
+            exit 1
+          fi
+          if [ "$(jq -r .status <<<"$run")" != "completed" ]; then
+            echo "::error::Run $RUN_ID is still running. Publish it once it has finished."
+            exit 1
+          fi
+          if [ "$conclusion" != "success" ]; then
+            echo "::error::Run $RUN_ID didn't finish cleanly ($conclusion). Publish a run where every build passed."
+            exit 1
+          fi
+          echo "Run $RUN_ID: $(jq -r .html_url <<<"$run")"
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: release-info
+          path: release-info
+          run-id: ${{ inputs.run_id }}
+          github-token: ${{ github.token }}
+
+      - name: Read the version and commit
+        id: info
+        shell: bash
+        run: |
+          version="$(jq -r .version release-info/release-info.json)"
+          sha="$(jq -r .sha release-info/release-info.json)"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "Version $version, commit $sha"
+
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ steps.info.outputs.sha }}
+
+      - name: Check the version can be released
+        shell: bash
+        env:
+          VERSION: ${{ steps.info.outputs.version }}
+        run: |
+          if [ "$(node -p "require('./package.json').version")" != "$VERSION" ]; then
+            echo "::error::package.json at that commit isn't version $VERSION."
+            exit 1
+          fi
+          if git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" > /dev/null; then
+            echo "::error::v$VERSION is already released. Build a new version with a bump, then publish that run."
+            exit 1
+          fi
+          if ! grep -q "## \[$VERSION\]" CHANGELOG.md; then
+            echo "::error::CHANGELOG.md has no section for $VERSION at that commit."
+            exit 1
+          fi
+
+      - name: Release notes from the changelog
+        run: node scripts/release-notes.js "${{ steps.info.outputs.version }}" > release-notes.md
+
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: stip-*
+          path: dist
+          merge-multiple: true
+          run-id: ${{ inputs.run_id }}
+          github-token: ${{ github.token }}
+
+      - name: List the installers
+        run: ls -l dist
+
+      - uses: softprops/action-gh-release@v3
+        with:
+          tag_name: v${{ steps.info.outputs.version }}
+          target_commitish: ${{ steps.info.outputs.sha }}
+          name: Stip ${{ steps.info.outputs.version }}
+          body_path: release-notes.md
+          files: |
+            dist/*.dmg
+            dist/*.AppImage
+            dist/*.deb
+            dist/*.exe

@@ -40,6 +40,11 @@ const pkg = JSON.parse(fs.readFileSync(file('package.json'), 'utf8'));
 const current = pkg.version;
 const version = next(current, process.argv[2]);
 if (version === current) fail(`Already at ${current}.`);
+const order = (a, b) => {
+  const [x, y] = [a, b].map((v) => v.split('.').map(Number));
+  return x[0] - y[0] || x[1] - y[1] || x[2] - y[2];
+};
+if (order(version, current) < 0) fail(`${version} is lower than the current ${current}. Pick a higher version.`);
 const today = new Date().toISOString().slice(0, 10);
 
 // package.json and package-lock.json

@@ -115,10 +115,13 @@ They land in `src-tauri/target/release/bundle/`. Build each platform on that pla
 Releases are built and published by GitHub Actions. Before a release, list the changes under **Unreleased** in `CHANGELOG.md`. Then open **Actions → Release → Run workflow** and pick:
 
 - **Bump the version:** `patch`, `minor` or `major`. CI updates `package.json` and `CHANGELOG.md` and commits that to `main`. Pick `none` to release the version that's already there.
+- **Or set an exact version:** type one, like `1.2.0`, and leave the bump at `none`. It must be higher than the current version.
 - **Build for macOS / Linux / Windows:** untick the platforms you don't need. A release carries only the platforms that were built, so leave all three ticked for a normal release.
 - **Tag this version and publish a GitHub release:** tick it to tag the version and publish a release with the DMG, AppImage, .deb and Windows installer, using that version's changelog notes as the release text. Leave it unticked to only build the installers, which you can download from the run's page.
 
-Pushing a tag such as `v1.0.0` from your machine also builds and publishes a release. To bump locally instead of in CI, run `npm run bump -- patch` (or `minor`, `major`, or an exact version).
+To try the installers before releasing them, run **Release** with **Tag this version and publish a GitHub release** unticked (with a bump, if it's a new version), and download the installers from the run's page. Once they work, open **Actions → Publish a tested build → Run workflow** and give it that run's ID, the number at the end of its URL. It tags the commit that run built and publishes a release with those same installers and that version's changelog notes, without building again. The run must have passed on every platform it built, and GitHub keeps its files for 90 days.
+
+Pushing a tag such as `v1.0.0` from your machine also builds and publishes a release. To bump locally instead of in CI, run `npm run bump -- patch` (or `minor`, `major`, or an exact version like `npm run bump -- 1.2.0`), then push.
 
 ### Microsoft Store
 
