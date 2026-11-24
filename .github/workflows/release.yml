@@ -21,6 +21,11 @@ name: Release
 # signature yet, so SmartScreen asks once.
 #
 # Pushing a tag like v1.0.0 builds every platform and publishes a release.
+#
+# To test before releasing: run it with "Publish a release" unticked, try the
+# installers from the run's page, then run "Publish a tested build"
+# (publish.yml) with this run's ID. That tags the commit this run built and
+# publishes these same installers, without building again.
 on:
   push:
     tags: ['v*']
@@ -110,6 +115,19 @@ jobs:
             echo "publish=false" >> "$GITHUB_OUTPUT"
           fi
           echo "Version $version"
+
+      # What this run built, so "Publish a tested build" (publish.yml) can
+      # release these exact installers later without building again.
+      - name: Note the version and commit
+        shell: bash
+        run: |
+          mkdir -p release-info
+          printf '{ "version": "%s", "sha": "%s" }\n' "${{ steps.version.outputs.version }}" "${{ steps.version.outputs.sha }}" > release-info/release-info.json
+          cat release-info/release-info.json
+      - uses: actions/upload-artifact@v7
+        with:
+          name: release-info
+          path: release-info/release-info.json
 
       # A tag push builds everything; a manual run builds the ticked platforms.
       - name: Choose platforms

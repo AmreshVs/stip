@@ -118,6 +118,8 @@ Releases are built and published by GitHub Actions. Before a release, list the c
 - **Build for macOS / Linux / Windows:** untick the platforms you don't need. A release carries only the platforms that were built, so leave all three ticked for a normal release.
 - **Tag this version and publish a GitHub release:** tick it to tag the version and publish a release with the DMG, AppImage, .deb and Windows installer, using that version's changelog notes as the release text. Leave it unticked to only build the installers, which you can download from the run's page.
 
+To try the installers before releasing them, run **Release** with **Tag this version and publish a GitHub release** unticked (with a bump, if it's a new version), and download the installers from the run's page. Once they work, open **Actions → Publish a tested build → Run workflow** and give it that run's ID, the number at the end of its URL. It tags the commit that run built and publishes a release with those same installers and that version's changelog notes, without building again. The run must have passed on every platform it built, and GitHub keeps its files for 90 days.
+
 Pushing a tag such as `v1.0.0` from your machine also builds and publishes a release. To bump locally instead of in CI, run `npm run bump -- patch` (or `minor`, `major`, or an exact version).
 
 ### Microsoft Store
