@@ -9,6 +9,8 @@ name: Release
 #   Bump the version   none, patch, minor or major. Updates package.json (the
 #                      app reads its version from there) and CHANGELOG.md,
 #                      and commits that to the branch the workflow ran on.
+#   Exact version      Or type a version, like 1.2.0, to set it instead
+#                      (leave Bump at none). It must be higher than now.
 #   Publish a release  Tags the version and publishes a GitHub release with
 #                      the installers and that version's changelog notes.
 #                      Unticked, it only builds them.
@@ -36,6 +38,10 @@ on:
         type: choice
         options: [none, patch, minor, major]
         default: none
+      version:
+        description: Or set an exact version, like 1.2.0 (leave Bump at none)
+        type: string
+        default: ''
       release:
         description: Tag this version and publish a GitHub release
         type: boolean
@@ -80,11 +86,26 @@ jobs:
           node-version: 22
 
       - name: Bump the version
-        if: github.event_name == 'workflow_dispatch' && inputs.bump != 'none'
+        if: github.event_name == 'workflow_dispatch' && (inputs.bump != 'none' || inputs.version != '')
+        shell: bash
+        env:
+          BUMP: ${{ inputs.bump }}
+          EXACT: ${{ inputs.version }}
         run: |
+          # Trims spaces and a leading v, so " v1.2.0" works too.
+          exact="$(printf '%s' "$EXACT" | tr -d '[:space:]')"
+          exact="${exact#v}"
+          if [ -n "$exact" ] && [ "$BUMP" != "none" ]; then
+            echo "::error::Pick a bump or type a version, not both."
+            exit 1
+          fi
+          if [ -n "$exact" ] && ! [[ "$exact" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::\"$EXACT\" isn't a version. Use three numbers, like 1.2.0."
+            exit 1
+          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          node scripts/bump.js "${{ inputs.bump }}"
+          node scripts/bump.js "${exact:-$BUMP}"
           git push origin "HEAD:$GITHUB_REF_NAME"
 
       - name: Work out the version
