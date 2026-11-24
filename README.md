@@ -4,7 +4,7 @@
 
 <h1 align="center">Stip</h1>
 
-<p align="center"><strong>Stand. Sip. Ship.</strong><br>A small desktop app that gets you off your chair and drinking water, for people who forget to move.</p>
+<p align="center"><strong>Stand. Sip. Ship.</strong><br>A small desktop app that gets you off your chair and reminds to drink water, for people who forget to move and take adequate water.</p>
 
 <p align="center"><a href="https://amreshvs.github.io/stip">amreshvs.github.io/stip</a>: try a break right in your browser</p>
 
