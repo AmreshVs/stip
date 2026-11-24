@@ -13,18 +13,29 @@ fn sleep(ms: u64) {
 }
 
 fn screenshot(name: &str) -> Value {
-    let Ok(dir) = std::env::var("STIP_PROBE_SHOTS") else { return Value::Null };
+    let Ok(dir) = std::env::var("STIP_PROBE_SHOTS") else {
+        return Value::Null;
+    };
     let path = format!("{dir}/{name}.png");
     #[cfg(target_os = "macos")]
-    let ok = std::process::Command::new("screencapture").args(["-x", &path]).status().is_ok_and(|s| s.success());
+    let ok = std::process::Command::new("screencapture")
+        .args(["-x", &path])
+        .status()
+        .is_ok_and(|s| s.success());
     #[cfg(not(target_os = "macos"))]
     let ok = false;
-    if ok { json!(path) } else { Value::Null }
+    if ok {
+        json!(path)
+    } else {
+        Value::Null
+    }
 }
 
 /// Asks a page what it shows: its title and the start of its text.
 fn dom(app: &AppHandle, label: &str, extra: &str) -> Value {
-    let Some(win) = app.get_webview_window(label) else { return json!("no window") };
+    let Some(win) = app.get_webview_window(label) else {
+        return json!("no window");
+    };
     shared(app).ui().probe.remove(label);
     let js = format!(
         "window.__TAURI__.core.invoke('probe_dom', {{ info: {{ title: document.title, stip: typeof window.stip, \
@@ -48,7 +59,8 @@ fn level(win: &WebviewWindow) -> Value {
     let _ = win.run_on_main_thread(move || {
         let _ = tx.send(crate::mac::describe(&w));
     });
-    rx.recv_timeout(Duration::from_secs(2)).unwrap_or(Value::Null)
+    rx.recv_timeout(Duration::from_secs(2))
+        .unwrap_or(Value::Null)
 }
 
 #[cfg(not(target_os = "macos"))]
@@ -60,7 +72,13 @@ fn today(app: &AppHandle) -> Value {
     app::state(app)["today"].clone()
 }
 
-fn check(out: &mut Map<String, Value>, failures: &mut Vec<String>, name: &str, ok: bool, detail: Value) {
+fn check(
+    out: &mut Map<String, Value>,
+    failures: &mut Vec<String>,
+    name: &str,
+    ok: bool,
+    detail: Value,
+) {
     if !ok {
         failures.push(name.to_string());
     }
@@ -80,14 +98,24 @@ pub fn run(app: AppHandle) {
         let shown_ms = started.elapsed().as_millis() as u64;
         sleep(2500);
         let monitors = app.available_monitors().map(|m| m.len()).unwrap_or(0);
-        let breaks: Vec<(String, WebviewWindow)> = app.webview_windows().into_iter().filter(|(l, _)| l.starts_with("break-")).collect();
+        let breaks: Vec<(String, WebviewWindow)> = app
+            .webview_windows()
+            .into_iter()
+            .filter(|(l, _)| l.starts_with("break-"))
+            .collect();
         let windows_info: Vec<Value> = breaks
             .iter()
             .map(|(label, w)| json!({ "label": label, "visible": w.is_visible().unwrap_or(false), "mac": level(w) }))
             .collect();
-        let main = dom(&app, "break-0", "document.getElementById('main-view').hidden === false");
+        let main = dom(
+            &app,
+            "break-0",
+            "document.getElementById('main-view').hidden === false",
+        );
         let shot = screenshot("break");
-        let on_break = app::state(&app)["status"]["onBreak"].as_bool().unwrap_or(false);
+        let on_break = app::state(&app)["status"]["onBreak"]
+            .as_bool()
+            .unwrap_or(false);
         check(
             &mut out,
             &mut failures,
@@ -96,23 +124,49 @@ pub fn run(app: AppHandle) {
             json!({ "monitors": monitors, "windows": windows_info, "page": main, "show_ms": shown_ms, "shot": shot }),
         );
         let key = breaks.first().map(|(_, w)| level(w)).unwrap_or(Value::Null);
-        check(&mut out, &mut failures, "break_has_keyboard", key["key"] == true || !cfg!(target_os = "macos"), key);
+        check(
+            &mut out,
+            &mut failures,
+            "break_has_keyboard",
+            key["key"] == true || !cfg!(target_os = "macos"),
+            key,
+        );
         app::handle_action(&app, "break-finish", &json!({ "how": "done" }));
         sleep(500);
         let after = today(&app)["breaks"].as_u64().unwrap_or(0);
-        let left = app.webview_windows().keys().filter(|l| l.starts_with("break-")).count();
-        check(&mut out, &mut failures, "break_finishes", after == before + 1 && left == 0, json!({ "breaks": [before, after], "windows_left": left }));
+        let left = app
+            .webview_windows()
+            .keys()
+            .filter(|l| l.starts_with("break-"))
+            .count();
+        check(
+            &mut out,
+            &mut failures,
+            "break_finishes",
+            after == before + 1 && left == 0,
+            json!({ "breaks": [before, after], "windows_left": left }),
+        );
 
         // Water: transparent, reports its buttons, and logging a sip counts.
         let glasses = today(&app)["glasses"].as_u64().unwrap_or(0);
         app::handle_action(&app, "water-now", &Value::Null);
         sleep(2500);
         let hit = shared(&app).ui().water_hit.clone();
-        let page = dom(&app, "water", "document.getElementById('count').textContent");
+        let page = dom(
+            &app,
+            "water",
+            "document.getElementById('count').textContent",
+        );
         let shot = screenshot("water");
         let water = app.get_webview_window("water");
         let mac = water.as_ref().map(level).unwrap_or(Value::Null);
-        check(&mut out, &mut failures, "water_shows", water.is_some() && !hit.is_empty() && page["stip"] == "object", json!({ "hit": hit, "page": page, "mac": mac, "shot": shot }));
+        check(
+            &mut out,
+            &mut failures,
+            "water_shows",
+            water.is_some() && !hit.is_empty() && page["stip"] == "object",
+            json!({ "hit": hit, "page": page, "mac": mac, "shot": shot }),
+        );
         // The pointer over the card turns clicks on; leaving turns them off
         // and the page hears it leave. A stand-in pointer, so the real one
         // stays where the user left it.
@@ -131,7 +185,16 @@ pub fn run(app: AppHandle) {
             shared(&app).ui().fake_cursor = None;
             Some(json!({ "over": over["ignoresMouse"], "away": away["ignoresMouse"] }))
         });
-        check(&mut out, &mut failures, "water_click_through", hover.as_ref().is_some_and(|h| h["over"] == false && h["away"] == true) || !cfg!(target_os = "macos"), json!(hover));
+        check(
+            &mut out,
+            &mut failures,
+            "water_click_through",
+            hover
+                .as_ref()
+                .is_some_and(|h| h["over"] == false && h["away"] == true)
+                || !cfg!(target_os = "macos"),
+            json!(hover),
+        );
         // The button's own handler logs the sip and closes the reminder.
         if let Some(w) = &water {
             let _ = w.eval("document.getElementById('sipped').click()");
@@ -139,7 +202,13 @@ pub fn run(app: AppHandle) {
         sleep(2800);
         sleep(300);
         let now = today(&app)["glasses"].as_u64().unwrap_or(0);
-        check(&mut out, &mut failures, "water_sip", now == glasses + 1 && app.get_webview_window("water").is_none(), json!({ "glasses": [glasses, now] }));
+        check(
+            &mut out,
+            &mut failures,
+            "water_sip",
+            now == glasses + 1 && app.get_webview_window("water").is_none(),
+            json!({ "glasses": [glasses, now] }),
+        );
         if app.get_webview_window("water").is_some() {
             app::handle_action(&app, "water-close", &Value::Null);
         }
@@ -148,33 +217,91 @@ pub fn run(app: AppHandle) {
         let tray = app.tray_by_id("main").and_then(|t| t.rect().ok().flatten());
         windows::panel_toggle(&app, tray);
         sleep(1200);
-        let placed = app.get_webview_window("panel").and_then(|p| p.outer_position().ok()).map(|p| json!([p.x, p.y]));
-        let tray_at = tray.map(|r| { let p = r.position.to_physical::<f64>(1.0); json!([p.x, p.y]) });
-        let page = dom(&app, "panel", "document.getElementById('status-text').textContent");
-        let size = app.get_webview_window("panel").and_then(|p| p.inner_size().ok()).map(|s| json!([s.width, s.height]));
+        let placed = app
+            .get_webview_window("panel")
+            .and_then(|p| p.outer_position().ok())
+            .map(|p| json!([p.x, p.y]));
+        let tray_at = tray.map(|r| {
+            let p = r.position.to_physical::<f64>(1.0);
+            json!([p.x, p.y])
+        });
+        let page = dom(
+            &app,
+            "panel",
+            "document.getElementById('status-text').textContent",
+        );
+        let size = app
+            .get_webview_window("panel")
+            .and_then(|p| p.inner_size().ok())
+            .map(|s| json!([s.width, s.height]));
         let shot = screenshot("panel");
-        let visible = app.get_webview_window("panel").is_some_and(|p| p.is_visible().unwrap_or(false));
-        check(&mut out, &mut failures, "panel_shows", visible && page["extra"].as_str().is_some_and(|t| !t.is_empty()), json!({ "page": page, "size": size, "placed": placed, "tray": tray_at, "shot": shot }));
+        let visible = app
+            .get_webview_window("panel")
+            .is_some_and(|p| p.is_visible().unwrap_or(false));
+        check(
+            &mut out,
+            &mut failures,
+            "panel_shows",
+            visible && page["extra"].as_str().is_some_and(|t| !t.is_empty()),
+            json!({ "page": page, "size": size, "placed": placed, "tray": tray_at, "shot": shot }),
+        );
         // Clicking anywhere else closes it, as a menu does.
         let other = windows::settings_open(&app, None);
         sleep(800);
         let open_after_blur = shared(&app).ui().panel_open;
-        let hidden = app.get_webview_window("panel").is_some_and(|p| !p.is_visible().unwrap_or(true));
-        check(&mut out, &mut failures, "panel_hides_on_blur", !open_after_blur && hidden, json!({ "hidden": hidden }));
+        let hidden = app
+            .get_webview_window("panel")
+            .is_some_and(|p| !p.is_visible().unwrap_or(true));
+        check(
+            &mut out,
+            &mut failures,
+            "panel_hides_on_blur",
+            !open_after_blur && hidden,
+            json!({ "hidden": hidden }),
+        );
         // Clicking the icon while it's open blurs it first; that click
         // mustn't reopen it.
-        windows::panel_toggle(&app, tray);
-        sleep(600);
-        if let Some(w) = app.get_webview_window("settings") {
-            let _ = w.set_focus();
+        // Waits for the panel to have focus rather than a fixed time: on a
+        // busy runner it can take longer, or lose focus on its own, and then
+        // the click below lands after the guard has run out.
+        let mut guard = None;
+        for _ in 0..3 {
+            windows::panel_toggle(&app, tray);
+            let started = Instant::now();
+            let focused = || {
+                app.get_webview_window("panel")
+                    .is_some_and(|p| p.is_focused().unwrap_or(false))
+            };
+            while !focused() && started.elapsed() < Duration::from_secs(3) {
+                sleep(20);
+            }
+            sleep(200);
+            let ready = shared(&app).ui().panel_open && focused();
+            if !ready {
+                windows::panel_hide(&app);
+                sleep(300);
+                continue;
+            }
+            if let Some(w) = app.get_webview_window("settings") {
+                let _ = w.set_focus();
+            }
+            let started = Instant::now();
+            while shared(&app).ui().panel_open && started.elapsed() < Duration::from_secs(2) {
+                sleep(5);
+            }
+            let closed_ms = started.elapsed().as_millis();
+            windows::panel_toggle(&app, tray);
+            guard = Some((shared(&app).ui().panel_open, closed_ms));
+            break;
         }
-        let started = Instant::now();
-        while shared(&app).ui().panel_open && started.elapsed() < Duration::from_secs(2) {
-            sleep(5);
-        }
-        windows::panel_toggle(&app, tray);
-        let reopened = shared(&app).ui().panel_open;
-        check(&mut out, &mut failures, "panel_click_guard", !reopened, json!("a click right after closing doesn't reopen it"));
+        let ok = matches!(guard, Some((false, _)));
+        let detail = match guard {
+            Some((reopened, closed_ms)) => {
+                json!({ "reopened": reopened, "closed_after_ms": closed_ms })
+            }
+            None => json!("the panel never kept focus long enough to try"),
+        };
+        check(&mut out, &mut failures, "panel_click_guard", ok, detail);
         windows::panel_hide(&app);
         if let Some(w) = other {
             let _ = w.destroy();
@@ -187,11 +314,27 @@ pub fn run(app: AppHandle) {
         let page = dom(&app, "settings", "document.querySelectorAll('.nav').length");
         let shot = screenshot("settings");
         let every = app::state(&app)["settings"]["stand"]["everyMin"].clone();
-        app::handle_action(&app, "settings-set", &json!({ "stand": { "everyMin": 31 } }));
-        let saved = std::fs::read_to_string(shared(&app).dir.join("settings.json")).unwrap_or_default();
-        let saved_ok = serde_json::from_str::<Value>(&saved).is_ok_and(|v| v["stand"]["everyMin"] == 31);
-        app::handle_action(&app, "settings-set", &json!({ "stand": { "everyMin": every } }));
-        check(&mut out, &mut failures, "settings", page["extra"].as_u64().unwrap_or(0) > 0 && saved_ok, json!({ "page": page, "saved": saved_ok, "shot": shot }));
+        app::handle_action(
+            &app,
+            "settings-set",
+            &json!({ "stand": { "everyMin": 31 } }),
+        );
+        let saved =
+            std::fs::read_to_string(shared(&app).dir.join("settings.json")).unwrap_or_default();
+        let saved_ok =
+            serde_json::from_str::<Value>(&saved).is_ok_and(|v| v["stand"]["everyMin"] == 31);
+        app::handle_action(
+            &app,
+            "settings-set",
+            &json!({ "stand": { "everyMin": every } }),
+        );
+        check(
+            &mut out,
+            &mut failures,
+            "settings",
+            page["extra"].as_u64().unwrap_or(0) > 0 && saved_ok,
+            json!({ "page": page, "saved": saved_ok, "shot": shot }),
+        );
         if let Some(w) = app.get_webview_window("settings") {
             let _ = w.destroy();
         }
@@ -201,12 +344,20 @@ pub fn run(app: AppHandle) {
         sleep(2500);
         let page = dom(&app, "report", "document.body.className + ' ' + (document.getElementById('verdict')?.textContent || '')");
         let shot = screenshot("report");
-        let png = app.get_webview_window("report").and_then(|w| windows::snapshot(&w));
+        let png = app
+            .get_webview_window("report")
+            .and_then(|w| windows::snapshot(&w));
         let png_ok = png.as_ref().is_some_and(|p| p.starts_with(b"\x89PNG"));
         if let (Some(png), Ok(dir)) = (&png, std::env::var("STIP_PROBE_SHOTS")) {
             let _ = std::fs::write(format!("{dir}/report-snapshot.png"), png);
         }
-        check(&mut out, &mut failures, "report", page["stip"] == "object" && png_ok, json!({ "page": page, "snapshot_bytes": png.map(|p| p.len()), "shot": shot }));
+        check(
+            &mut out,
+            &mut failures,
+            "report",
+            page["stip"] == "object" && png_ok,
+            json!({ "page": page, "snapshot_bytes": png.map(|p| p.len()), "shot": shot }),
+        );
         if let Some(w) = app.get_webview_window("report") {
             let _ = w.destroy();
         }
@@ -217,12 +368,27 @@ pub fn run(app: AppHandle) {
             let socket = crate::cli::socket_path();
             let status = crate::cli::send(&json!({ "command": "status" }), &socket);
             let sip = crate::cli::send(&json!({ "command": "sip" }), &socket);
-            let ok = status.as_ref().is_ok_and(|s| s["status"]["msToStand"].is_number())
-                && sip.as_ref().is_ok_and(|s| s["message"].as_str().is_some_and(|m| m.starts_with("Logged.")));
-            check(&mut out, &mut failures, "cli", ok, json!({ "status": status.map(|s| crate::cli::describe(&s)).map_err(|e| e.to_string()), "sip": sip.map_err(|e| e.to_string()) }));
+            let ok = status
+                .as_ref()
+                .is_ok_and(|s| s["status"]["msToStand"].is_number())
+                && sip.as_ref().is_ok_and(|s| {
+                    s["message"]
+                        .as_str()
+                        .is_some_and(|m| m.starts_with("Logged."))
+                });
+            check(
+                &mut out,
+                &mut failures,
+                "cli",
+                ok,
+                json!({ "status": status.map(|s| crate::cli::describe(&s)).map_err(|e| e.to_string()), "sip": sip.map_err(|e| e.to_string()) }),
+            );
         }
 
-        out.insert("idle_sec".into(), json!(user_idle::UserIdle::get_time().map(|t| t.as_seconds()).ok()));
+        out.insert(
+            "idle_sec".into(),
+            json!(user_idle::UserIdle::get_time().map(|t| t.as_seconds()).ok()),
+        );
         out.insert("failures".into(), json!(failures));
         let report = Value::Object(out);
         println!("PROBE {report}");
@@ -239,7 +405,10 @@ pub fn run(app: AppHandle) {
 pub fn show_requested_view(app: AppHandle, view: String) {
     std::thread::spawn(move || {
         sleep(300);
-        let (name, theme) = view.split_once(':').map(|(n, t)| (n.to_string(), Some(t.to_string()))).unwrap_or((view.clone(), None));
+        let (name, theme) = view
+            .split_once(':')
+            .map(|(n, t)| (n.to_string(), Some(t.to_string())))
+            .unwrap_or((view.clone(), None));
         if let Some(theme) = theme {
             shared(&app).core().settings.set(&json!({ "theme": theme }));
         }
@@ -268,8 +437,13 @@ pub fn show_requested_view(app: AppHandle, view: String) {
                 app.get_webview_window("panel")
             }
         };
-        let Ok(file) = std::env::var("STIP_SNAPSHOT") else { return };
-        let delay = std::env::var("STIP_SNAPSHOT_DELAY").ok().and_then(|d| d.parse().ok()).unwrap_or(1500);
+        let Ok(file) = std::env::var("STIP_SNAPSHOT") else {
+            return;
+        };
+        let delay = std::env::var("STIP_SNAPSHOT_DELAY")
+            .ok()
+            .and_then(|d| d.parse().ok())
+            .unwrap_or(1500);
         sleep(delay);
         // Hidden WebKit windows don't run CSS animations, so things that fade
         // in would never appear. Move them on to where they'd be by now.
