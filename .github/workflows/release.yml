@@ -186,7 +186,7 @@ jobs:
         run: |
           cert="$RUNNER_TEMP/developer-id.p12"
           keychain="$RUNNER_TEMP/stip-signing.keychain-db"
-          # electron-builder took CSC_LINK as base64 or as a link; take both.
+          # CSC_LINK may be the base64 of the .p12 or a link to it; take both.
           case "$CSC_LINK" in
             http*://*) curl -fsSL "$CSC_LINK" -o "$cert" ;;
             *) printf '%s' "$CSC_LINK" | base64 --decode > "$cert" ;;

@@ -4,16 +4,15 @@
 //
 // Run it on Windows after `tauri build`, which leaves the app in
 // src-tauri/target/release/stip.exe. The Store identity comes from
-// package.json under build.appx (the same values the Electron build used), and
-// the tiles from build/appx/. Partner Center signs the package when it
-// publishes it, so it isn't signed here.
+// package.json under msix, and the tiles from build/appx/. Partner Center
+// signs the package when it publishes it, so it isn't signed here.
 const fs = require('node:fs');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 
 const root = path.join(__dirname, '..');
 const pkg = require(path.join(root, 'package.json'));
-const appx = pkg.build.appx;
+const appx = pkg.msix;
 const fail = (message) => {
   console.error(message);
   process.exit(1);

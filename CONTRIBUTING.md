@@ -11,19 +11,20 @@ Thanks for wanting to help. Stip is small on purpose, so the best contributions 
 
 ## Set up
 
-You need Node.js 20 or newer.
+You need [Rust](https://www.rust-lang.org/tools/install), [Tauri's prerequisites](https://tauri.app/start/prerequisites/) for your platform, and Node.js 20 or newer (for the fonts the pages use).
 
 ```bash
 git clone https://github.com/AmreshVs/stip.git
 cd stip
 npm install
-npm start
+cd src-tauri
+cargo run
 ```
 
-Use a separate data folder while developing, so your real settings and stats stay untouched:
+Use a separate data folder while developing, so your real settings and stats stay untouched. A run with its own data folder can also run beside your installed Stip:
 
 ```bash
-STIP_USER_DATA=/tmp/stip-dev npm start
+STIP_USER_DATA=/tmp/stip-dev cargo run
 ```
 
 To make the timers fast while you work on a screen, put this in `/tmp/stip-dev/settings.json` (times in minutes):
@@ -35,7 +36,7 @@ To make the timers fast while you work on a screen, put this in `/tmp/stip-dev/s
 You can also open any screen straight away with `--show`:
 
 ```bash
-STIP_USER_DATA=/tmp/stip-dev npm start -- --show=break:aurora
+STIP_USER_DATA=/tmp/stip-dev cargo run -- --show=break:aurora
 ```
 
 Views are `tray`, `tray.meeting` (tray with meeting mode on), `break`, `water`, `settings` and `settings.<page>` (for example `settings.stats`). Themes are `flat` and `aurora`.
@@ -52,26 +53,27 @@ Then open http://localhost:4173. If that port is taken, use another one: `PORT=4
 
 ## Before you open a pull request
 
-1. Run the unit tests: `npm test`
-2. Run the end-to-end test: `npm run e2e`. It starts the real app with hidden windows and clicks through the tray, breaks, water reminder and settings.
+1. Run the unit tests: `cargo test` in `src-tauri/`, and `npm test` in the root.
+2. Run the self-check: `STIP_PROBE=1 STIP_USER_DATA=/tmp/stip-probe cargo run` in `src-tauri/`. It opens a break, the water reminder, the tray, settings and the report, checks each, and prints a JSON report. CI runs it on macOS too.
 3. If you changed a screen, check it in both themes and attach before and after screenshots. `STIP_SNAPSHOT=/tmp/shot.png` with `--show` saves one without opening a window.
 4. If you changed an icon in `assets/`, run `npm run icons` and commit the generated PNGs.
 
 ## How the code is laid out
 
 ```
-src/main/scheduler.js   All the timing rules. Plain JavaScript, fully unit tested.
-src/main/store.js       Settings and stats, saved as JSON in the user data folder.
-src/main/index.js       Wires everything together and handles actions from the windows.
-src/main/*.js           One file per window: breaks, water, tray, settings.
-src/renderer/<window>/  The HTML, CSS and JS for each window.
-src/preload.js          The small, safe API the windows use to talk to the main process.
+src-tauri/src/scheduler.rs  All the timing rules, fully unit tested.
+src-tauri/src/store.rs      Settings and stats, saved as JSON in the app's data folder.
+src-tauri/src/app.rs        Wires everything together and handles actions from the windows.
+src-tauri/src/windows.rs    The windows: breaks, water, tray, settings, report.
+src-tauri/src/bridge.js     window.stip, the small API the windows use to talk to the app.
+src/renderer/<window>/      The HTML, CSS and JS for each window.
+src/cli.js                  The stip command's client.
 ```
 
 A few rules the code follows:
 
-- Windows never get Node.js access. They talk to the main process only through `window.stip` from the preload script.
-- Timing logic lives in `scheduler.js` and has a test. If you change when something fires, add a test for it.
+- Windows only talk to the app through `window.stip`, from `bridge.js`.
+- Timing logic lives in `scheduler.rs` and has a test. If you change when something fires, add a test for it.
 - Both themes share the same markup. Theme differences live in CSS under `[data-theme='aurora']`.
 - Stip never sends data anywhere. Please keep it that way: no analytics, no network calls.
 

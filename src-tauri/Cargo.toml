@@ -9,7 +9,9 @@ default-run = "stip"
 
 [features]
 # The Mac App Store build: no process listing, git or terminal command.
-mas = []
+# Open at login goes through SMAppService there, since the sandbox can't
+# write a LaunchAgent.
+mas = ["dep:objc2-service-management"]
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
@@ -34,6 +36,7 @@ objc2-app-kit = { version = "0.3", features = ["NSWindow", "NSApplication", "NSR
 objc2-web-kit = { version = "0.3", features = ["WKWebView", "WKSnapshotConfiguration", "block2", "objc2-app-kit"] }
 block2 = "0.6"
 core-foundation = "0.10"
+objc2-service-management = { version = "0.3", features = ["SMAppService"], optional = true }
 
 [dev-dependencies]
 tempfile = "3"

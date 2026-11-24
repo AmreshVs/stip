@@ -54,7 +54,7 @@ async function main() {
   await trayGlyph(36, '#000', 'trayTemplate@2x.png');
   // Windows and Linux trays: lime glyph that reads on dark and light bars.
   await trayGlyph(32, '#8fd14f', 'tray.png');
-  // Microsoft Store package tiles, read by electron-builder from build/appx.
+  // Microsoft Store package tiles, read by scripts/msix.js from build/appx.
   await storeTile(50, 50, 'StoreLogo.png');
   await storeTile(44, 44, 'Square44x44Logo.png');
   await storeTile(71, 71, 'SmallTile.png');

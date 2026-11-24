@@ -2,37 +2,65 @@
 // normal and Retina size. Run with `npm run dmg-background` after changing
 // the HTML; the PNGs are committed.
 //
-// It runs inside Electron so the page uses the app's own fonts.
-const path = require('node:path');
+// Uses headless Chrome (or set CHROME to another Chromium browser), so the
+// page loads the app's own fonts from node_modules.
 const fs = require('node:fs');
-const { app, BrowserWindow } = require('electron');
+const path = require('node:path');
+const { pathToFileURL } = require('node:url');
+const os = require('node:os');
+const { execFileSync } = require('node:child_process');
+const sharp = require('sharp');
 
 const WIDTH = 540;
 const HEIGHT = 380;
 const buildDir = path.join(__dirname, '..', 'build');
 
-async function render(win, scale, file) {
-  win.webContents.setZoomFactor(scale);
-  win.setContentSize(WIDTH * scale, HEIGHT * scale);
-  await new Promise((resolve) => setTimeout(resolve, 600));
-  const image = await win.webContents.capturePage();
-  // Displays may capture at their own pixel density; pin the exact size.
-  const sized = image.resize({ width: WIDTH * scale, height: HEIGHT * scale, quality: 'best' });
-  fs.writeFileSync(path.join(buildDir, file), sized.toPNG());
+const candidates = [
+  process.env.CHROME,
+  '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+  '/Applications/Chromium.app/Contents/MacOS/Chromium',
+  '/Applications/Brave Browser.app/Contents/MacOS/Brave Browser',
+  'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+  '/usr/bin/google-chrome',
+  '/usr/bin/chromium',
+  '/usr/bin/chromium-browser',
+].filter(Boolean);
+const chrome = candidates.find((file) => fs.existsSync(file));
+if (!chrome) {
+  console.error('No Chrome found. Set CHROME to a Chrome or Chromium binary.');
+  process.exit(1);
 }
 
-app.whenReady().then(async () => {
-  const win = new BrowserWindow({
-    show: false,
-    width: WIDTH,
-    height: HEIGHT,
-    useContentSize: true,
-    webPreferences: { backgroundThrottling: false },
-  });
-  await win.loadFile(path.join(buildDir, 'dmg-background.html'));
-  await win.webContents.executeJavaScript('document.fonts.ready.then(() => true)');
-  await render(win, 1, 'background.png');
-  await render(win, 2, 'background@2x.png');
+const page = pathToFileURL(path.join(buildDir, 'dmg-background.html')).href;
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'stip-dmg-'));
+
+async function main() {
+  for (const [scale, file] of [[1, 'background.png'], [2, 'background@2x.png']]) {
+    const shot = path.join(tmp, file);
+    // Headless Chrome counts some window chrome in --window-size, so render in
+    // a taller window and crop to the page, which is a fixed 540x380.
+    execFileSync(chrome, [
+      '--headless',
+      '--disable-gpu',
+      '--hide-scrollbars',
+      '--allow-file-access-from-files',
+      // Gives the fonts time to load before the picture is taken.
+      '--virtual-time-budget=3000',
+      `--window-size=${WIDTH},${HEIGHT + 400}`,
+      `--force-device-scale-factor=${scale}`,
+      `--screenshot=${shot}`,
+      page,
+    ], { stdio: 'ignore' });
+    await sharp(shot)
+      .extract({ left: 0, top: 0, width: WIDTH * scale, height: HEIGHT * scale })
+      .png()
+      .toFile(path.join(buildDir, file));
+  }
+  fs.rmSync(tmp, { recursive: true, force: true });
   console.log('DMG background written to build/background.png and build/background@2x.png');
-  app.exit(0);
+}
+
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
 });

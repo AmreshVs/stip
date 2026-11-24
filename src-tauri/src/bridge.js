@@ -1,5 +1,5 @@
-// window.stip for the Tauri app: the same calls the Electron preload gave the
-// pages, on top of Tauri's invoke and events. Injected before page scripts.
+// window.stip, the calls the pages make, on top of Tauri's invoke and
+// events. Injected before page scripts.
 (() => {
   const T = window.__TAURI__;
   if (!T || window.stip) return;

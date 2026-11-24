@@ -10,8 +10,8 @@ permissions:
 
 jobs:
   unit:
-    # The Node tests: the stip command (src/cli.js) and the characters the
-    # pages draw are shared with the Tauri app.
+    # The Node tests: the stip command's client (src/cli.js) and the
+    # characters the pages draw.
     name: JS tests (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
@@ -28,7 +28,7 @@ jobs:
       - run: npm ci
       - run: npm test
 
-  # The Tauri port in src-tauri/: Rust unit tests and a release build on every
+  # The app in src-tauri/: Rust unit tests and a release build on every
   # platform. npm ci fetches the fonts the pages import.
   tauri:
     name: Tauri tests and build (${{ matrix.os }})

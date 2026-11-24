@@ -1,10 +1,10 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const net = require('node:net');
 const os = require('node:os');
 const path = require('node:path');
 const { parseArgs, parseDuration, send } = require('../src/cli');
-const { startCliServer, installCommand } = require('../src/main/cli-server');
 
 test('durations', () => {
   assert.equal(parseDuration('30m'), 30);
@@ -25,26 +25,20 @@ test('commands', () => {
   assert.ok(parseArgs(['dance']).error);
 });
 
+// The app's side (src-tauri/src/cli_server.rs) has its own tests; this
+// checks that the command sends one JSON line and reads the reply.
 test('a request reaches the app and the reply comes back', async () => {
   const socket = process.platform === 'win32'
     ? `\\\\.\\pipe\\stip-test-${process.pid}`
     : path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'stip-')), 's.sock');
-  const server = startCliServer(socket, ({ command }) => ({ message: `got ${command}` }));
-  await new Promise((resolve) => server.once('listening', resolve));
+  const server = net.createServer((client) => {
+    let data = '';
+    client.on('data', (chunk) => {
+      data += chunk;
+      if (data.includes('\n')) client.end(JSON.stringify({ message: `got ${JSON.parse(data).command}` }));
+    });
+  });
+  await new Promise((resolve) => server.listen(socket, resolve));
   assert.deepEqual(await send({ command: 'break' }, socket), { message: 'got break' });
   await new Promise((resolve) => server.close(resolve));
-});
-
-test('install writes a launcher', { skip: process.platform === 'win32' }, () => {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'stip-home-'));
-  const original = os.homedir;
-  os.homedir = () => home;
-  try {
-    const { file } = installCommand({ exe: '/Apps/Stip', cli: '/Apps/app.asar/src/cli.js' });
-    const script = fs.readFileSync(file, 'utf8');
-    assert.match(script, /ELECTRON_RUN_AS_NODE=1 exec "\/Apps\/Stip" "\/Apps\/app\.asar\/src\/cli\.js" "\$@"/);
-    assert.ok(fs.statSync(file).mode & 0o100);
-  } finally {
-    os.homedir = original;
-  }
 });

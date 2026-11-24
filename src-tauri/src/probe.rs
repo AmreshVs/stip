@@ -246,7 +246,15 @@ pub fn show_requested_view(app: AppHandle, view: String) {
         let win = match name.as_str() {
             "break" => {
                 app::handle_action(&app, "stand-now", &Value::Null);
-                app.get_webview_window("break-0")
+                // The window is built on the main thread; wait for it.
+                let started = Instant::now();
+                loop {
+                    let win = app.get_webview_window("break-0");
+                    if win.is_some() || started.elapsed() > Duration::from_secs(5) {
+                        break win;
+                    }
+                    sleep(50);
+                }
             }
             "water" => windows::water_show(&app),
             "report" => windows::report_open(&app),
@@ -263,6 +271,12 @@ pub fn show_requested_view(app: AppHandle, view: String) {
         let Ok(file) = std::env::var("STIP_SNAPSHOT") else { return };
         let delay = std::env::var("STIP_SNAPSHOT_DELAY").ok().and_then(|d| d.parse().ok()).unwrap_or(1500);
         sleep(delay);
+        // Hidden WebKit windows don't run CSS animations, so things that fade
+        // in would never appear. Move them on to where they'd be by now.
+        if let Some(win) = &win {
+            let _ = win.eval(format!("document.getAnimations().forEach((a) => {{ try {{ a.currentTime = {delay}; }} catch (e) {{}} }})"));
+            sleep(300);
+        }
         if let Some(png) = win.as_ref().and_then(windows::snapshot) {
             let _ = std::fs::write(&file, png);
         } else {

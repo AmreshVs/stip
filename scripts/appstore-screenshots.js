@@ -5,11 +5,12 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
-const electron = require('electron');
+const { appBinary } = require('./app-binary');
 const sharp = require('sharp');
 
 const root = path.join(__dirname, '..');
 const outDir = path.join(root, 'build', 'app-store');
+const stip = appBinary();
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'stip-appstore-'));
 const WIDTH = 2880;
 const HEIGHT = 1800;
@@ -46,7 +47,7 @@ function capture(view, delayMs = 2500) {
   const dir = path.join(tmp, view.replace(/\W/g, '-'));
   seed(dir);
   const file = path.join(tmp, `${view.replace(/\W/g, '-')}.png`);
-  execFileSync(electron, [root, `--show=${view}:aurora`], {
+  execFileSync(stip, [`--show=${view}:aurora`], {
     env: { ...process.env, STIP_AS_APP_STORE: '1', STIP_USER_DATA: dir, STIP_SNAPSHOT: file, STIP_SNAPSHOT_DELAY: String(delayMs), STIP_SNAPSHOT_SIZE: '1440x900' },
     stdio: 'ignore',
   });
