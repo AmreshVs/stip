@@ -77,6 +77,28 @@ pub fn is_sandboxed() -> bool {
     cfg!(feature = "mas") || std::env::var_os("APP_SANDBOX_CONTAINER_ID").is_some() || std::env::var_os("STIP_AS_APP_STORE").is_some()
 }
 
+/// Whether this is the Microsoft Store (MSIX) install. Windows then owns
+/// "open at login" through the package's startup task, so Stip's own switch
+/// is hidden and the Run key left alone.
+pub fn is_store_package() -> bool {
+    #[cfg(windows)]
+    {
+        static PACKAGED: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+        *PACKAGED.get_or_init(|| {
+            use windows_sys::Win32::Foundation::APPMODEL_ERROR_NO_PACKAGE;
+            use windows_sys::Win32::Storage::Packaging::Appx::GetCurrentPackageFullName;
+            let mut len = 0u32;
+            // An unpackaged process gets APPMODEL_ERROR_NO_PACKAGE; a packaged
+            // one is told the buffer is too small.
+            unsafe { GetCurrentPackageFullName(&mut len, std::ptr::null_mut()) != APPMODEL_ERROR_NO_PACKAGE }
+        })
+    }
+    #[cfg(not(windows))]
+    {
+        false
+    }
+}
+
 pub fn platform() -> &'static str {
     if cfg!(target_os = "macos") {
         "darwin"
@@ -142,7 +164,7 @@ pub fn state_of(c: &Core, app: &AppHandle, sandboxed: bool) -> Value {
         "meeting": { "manual": c.meeting.manual(now), "active": c.meeting.active(now), "until": c.meeting.manual_until },
         "platform": platform(),
         "version": app.package_info().version.to_string(),
-        "fromStore": false,
+        "fromStore": is_store_package(),
         "sandboxed": sandboxed,
         "mediaSupported": crate::media::supported(sandboxed),
         "mediaAllowed": crate::media::supported(sandboxed) && crate::media::allowed(false),
@@ -302,7 +324,7 @@ fn settings_changed(app: &AppHandle) {
 
 fn apply_login_item(app: &AppHandle, on: bool) {
     // Dev and test runs keep their hands off the real login items.
-    if std::env::var_os("STIP_USER_DATA").is_some() {
+    if std::env::var_os("STIP_USER_DATA").is_some() || is_store_package() {
         return;
     }
     use tauri_plugin_autostart::ManagerExt;

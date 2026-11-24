@@ -2,6 +2,8 @@ name: Release
 
 # Builds the Tauri app (src-tauri/): a universal macOS DMG, a Linux AppImage
 # and .deb, and a Windows installer, and publishes them as a GitHub release.
+# The Windows build also makes the Microsoft Store package (.msix), which
+# stays on the run's page under Artifacts.
 #
 # From the Actions tab ("Run workflow"):
 #   Bump the version   none, patch, minor or major. Updates package.json (the
@@ -225,6 +227,13 @@ jobs:
           esac
           npx --yes @tauri-apps/cli@2.12.4 build "${args[@]}"
 
+      # The Microsoft Store package. Tauri only makes installers, so this packs
+      # the same stip.exe into an MSIX. Upload it in Partner Center; the Store
+      # signs it, so Store installs show no warning.
+      - name: Build the Store package (Windows)
+        if: runner.os == 'Windows'
+        run: node ../scripts/msix.js
+
       # The Tauri CLI notarizes the app but not the disk image around it, and
       # Gatekeeper turns away a downloaded image that isn't notarized.
       - name: Notarize the disk image (macOS)
@@ -255,7 +264,8 @@ jobs:
           fi
 
       # One flat folder, so each artifact holds just its installers and the
-      # release step finds them in dist/.
+      # release step finds them in dist/. The MSIX is already there; it goes
+      # to the Store, not the GitHub release.
       - name: Collect the installers
         run: |
           mkdir -p ../dist
