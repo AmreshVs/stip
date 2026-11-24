@@ -42,7 +42,7 @@
     "bump": "node scripts/bump.js",
     "dmg-background": "electron scripts/build-dmg-background.js",
     "dist:win": "electron-builder --win --publish never",
-    "dist:store": "electron-builder --win appx --publish never",
+    "dist:store": "node scripts/msix.js",
     "dist:mas": "electron-builder --mac mas --universal"
   },
   "dependencies": {

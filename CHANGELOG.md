@@ -4,6 +4,10 @@ All notable changes to Stip are listed here. The format follows [Keep a Changelo
 
 ## [Unreleased]
 
+### Fixed
+
+- Windows builds make the Microsoft Store package (`.msix`) again; it went missing in the move to Tauri. The Store version leaves "open at login" to Windows Settings → Apps → Startup.
+
 ## [1.1.0] - 2026-11-23
 
 ### Added
