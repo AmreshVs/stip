@@ -28,6 +28,7 @@
     "node": ">=20"
   },
   "scripts": {
+    "start": "cargo run --manifest-path src-tauri/Cargo.toml --",
     "test": "node --test",
     "icons": "node scripts/build-icons.js",
     "screenshots": "node scripts/screenshots.js",

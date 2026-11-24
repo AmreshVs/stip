@@ -208,6 +208,9 @@ jobs:
 
       - name: Build the installers
         env:
+          # Tauri skips the DMG's background and icon layout (a Finder
+          # AppleScript) when CI is set; this keeps it.
+          TAURI_BUNDLER_DMG_IGNORE_CI: 'true'
           # Notarization, used by the Tauri CLI once the app is signed.
           APPLE_ID: ${{ env.HAS_CERT == 'true' && secrets.APPLE_ID || '' }}
           APPLE_PASSWORD: ${{ env.HAS_CERT == 'true' && secrets.APPLE_APP_SPECIFIC_PASSWORD || '' }}

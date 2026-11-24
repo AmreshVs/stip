@@ -17,14 +17,13 @@ You need [Rust](https://www.rust-lang.org/tools/install), [Tauri's prerequisites
 git clone https://github.com/AmreshVs/stip.git
 cd stip
 npm install
-cd src-tauri
-cargo run
+npm start                 # cargo run in src-tauri/; rebuilds when Rust or a page changes
 ```
 
 Use a separate data folder while developing, so your real settings and stats stay untouched. A run with its own data folder can also run beside your installed Stip:
 
 ```bash
-STIP_USER_DATA=/tmp/stip-dev cargo run
+STIP_USER_DATA=/tmp/stip-dev npm start
 ```
 
 To make the timers fast while you work on a screen, put this in `/tmp/stip-dev/settings.json` (times in minutes):
@@ -36,7 +35,7 @@ To make the timers fast while you work on a screen, put this in `/tmp/stip-dev/s
 You can also open any screen straight away with `--show`:
 
 ```bash
-STIP_USER_DATA=/tmp/stip-dev cargo run -- --show=break:aurora
+STIP_USER_DATA=/tmp/stip-dev npm start -- --show=break:aurora
 ```
 
 Views are `tray`, `tray.meeting` (tray with meeting mode on), `break`, `water`, `settings` and `settings.<page>` (for example `settings.stats`). Themes are `flat` and `aurora`.
