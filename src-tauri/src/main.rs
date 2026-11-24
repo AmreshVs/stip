@@ -139,10 +139,14 @@ fn main() {
         std::process::exit(cli::main(args[1..].to_vec()));
     }
 
-    tauri::Builder::default()
-        // Stip lives in the tray, so only one copy runs. Opening it again
-        // shows the panel.
-        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| windows::panel_open(app)))
+    let mut builder = tauri::Builder::default();
+    // Stip lives in the tray, so only one copy runs. Opening it again shows
+    // the panel. Runs with their own data folder (tests, screenshots) may run
+    // beside the real app.
+    if std::env::var_os("STIP_USER_DATA").is_none() {
+        builder = builder.plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| windows::panel_open(app)));
+    }
+    builder
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_opener::init())

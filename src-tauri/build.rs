@@ -1,5 +1,5 @@
-// Copies the renderer pages (shared with the Electron app) and the fonts they
-// import into ui-dist/, keeping their relative paths, so Tauri can embed them
+// Copies the renderer pages (src/renderer/) and the fonts they import into
+// ui-dist/, keeping their relative paths, so Tauri can embed them
 // without pulling in the rest of node_modules.
 use std::fs;
 use std::path::{Path, PathBuf};

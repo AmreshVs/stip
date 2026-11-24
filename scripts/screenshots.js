@@ -5,11 +5,12 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
-const electron = require('electron');
+const { appBinary } = require('./app-binary');
 const sharp = require('sharp');
 
 const root = path.join(__dirname, '..');
 const outDir = path.join(root, 'docs', 'screenshots');
+const stip = appBinary();
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'stip-shots-'));
 
 function dayKey(offset) {
@@ -41,7 +42,7 @@ function capture(view, theme, delayMs = 1800) {
   const dir = path.join(tmp, theme);
   if (!fs.existsSync(dir)) seed(dir);
   const file = path.join(tmp, `${view}-${theme}.png`);
-  execFileSync(electron, [root, `--show=${view}:${theme}`], {
+  execFileSync(stip, [`--show=${view}:${theme}`], {
     env: {
       ...process.env,
       STIP_USER_DATA: dir,

@@ -107,7 +107,7 @@ fn suggestion(settings: &Config, longest: u64, skipped: u64, water_days: usize) 
     None
 }
 
-// Whole numbers stay whole in the saved settings, as they were in Electron.
+// Whole numbers stay whole in the saved settings.
 fn num(x: f64) -> Value {
     if x.fract() == 0.0 { json!(x as i64) } else { json!(x) }
 }
@@ -367,7 +367,7 @@ mod tests {
     }
 
     #[test]
-    fn suggestion_text_reads_like_the_electron_one() {
+    fn suggestion_text_reads_well() {
         let r = report(&[(0, json!({ "breaks": 2, "longestSitMin": 130 }))]);
         assert_eq!(r.suggestion.unwrap().text, "a break every 25 min instead of 30");
     }
@@ -405,7 +405,7 @@ mod tests {
     }
 
     #[test]
-    fn the_report_serializes_like_the_electron_one() {
+    fn the_report_serializes_as_the_page_expects() {
         let v = serde_json::to_value(report(&[(0, json!({ "breaks": 1 }))])).unwrap();
         assert_eq!(v["key"], "2026-W45");
         assert_eq!(v["number"], 45);

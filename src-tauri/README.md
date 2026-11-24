@@ -1,10 +1,9 @@
 # Stip on Tauri
 
-A Rust port of the Electron main process (`src/main/*.js`). The pages in
-`src/renderer/` are shared with the Electron app and are not changed: at build
-time `build.rs` copies them, plus the fonts they import from `node_modules`,
-into `ui-dist/`, and Tauri embeds that folder in the binary. The Electron code
-stays in place until this app reaches parity everywhere.
+The app: a Rust core with the pages in `src/renderer/` drawn in the system's
+web view. At build time `build.rs` copies those pages, plus the fonts they
+import from `node_modules`, into `ui-dist/`, and Tauri embeds that folder in
+the binary.
 
 ## Run it
 
@@ -32,17 +31,17 @@ STIP_USER_DATA=/tmp/stip-dev STIP_SOCKET=/tmp/stip-dev.sock ./target/debug/stip
 | `STIP_AS_APP_STORE=1` | Behaves like the Mac App Store build (also the `mas` cargo feature, or a real sandbox). |
 | `--cli <command>` | The `stip` terminal command, built in. |
 
-## How it maps
+## How it's laid out
 
-| Electron | Tauri |
+| File | What it does |
 | --- | --- |
-| `preload.js` (`window.stip`) | `src/bridge.js`, injected as an initialization script: same `getState`, `getReport`, `act`, `onState`, `onShow`, on `invoke` and events. |
-| `index.js` | `app.rs` (state, actions, the 1 s clock, CLI commands) and `main.rs` (tray, setup). |
-| `scheduler.js`, `flow.js`, `meeting.js`, `store.js`, `report.js`, `git-history.js` | `scheduler.rs`, `flow.rs`, `meeting.rs`, `store.rs`, `report.rs`, `git_history.rs`, with their tests ported. |
-| `breaks.js`, `water.js`, `tray.js`, `settings-window.js`, `report-window.js`, `snapshot.js` | `windows.rs`, `mac.rs`, `probe.rs`. |
-| `cli-server.js`, `cli.js` | `cli_server.rs` (tokio Unix socket / named pipe) and `cli.rs`. `src/cli.js` still works against the same socket. |
-| `powerMonitor` resume / unlock | A gap of over 30 s between ticks (sleep), and on macOS the session's screen-lock flag. |
-| `process.mas` | `app::is_sandboxed()`: the `mas` feature, `APP_SANDBOX_CONTAINER_ID`, or `STIP_AS_APP_STORE`. Process listing, git and the CLI are off there, as before. |
+| `src/bridge.js` | `window.stip` for the pages (`getState`, `getReport`, `act`, `onState`, `onShow`), injected as an initialization script, on `invoke` and events. |
+| `app.rs`, `main.rs` | State, actions, the 1 s clock and CLI commands; the tray and setup. |
+| `scheduler.rs`, `flow.rs`, `meeting.rs`, `store.rs`, `report.rs`, `git_history.rs` | The timing rules, flow and call detection, settings and stats, the Spine report and its commit counts, each with unit tests. |
+| `windows.rs`, `mac.rs`, `probe.rs` | The windows, the macOS window levels, snapshots and login item, and the self-check. |
+| `cli_server.rs`, `cli.rs` | The `stip` command: a tokio Unix socket / named pipe, and the client built into the binary (`stip --cli`). `src/cli.js` speaks the same protocol. |
+| Sleep and screen lock | A gap of over 30 s between ticks (sleep), and on macOS the session's screen-lock flag. |
+| `app::is_sandboxed()` | The `mas` feature, `APP_SANDBOX_CONTAINER_ID`, or `STIP_AS_APP_STORE`. Process listing, git and the CLI are off there. |
 
 Things Tauri does differently, and how they're handled:
 
@@ -51,32 +50,29 @@ Things Tauri does differently, and how they're handled:
 - **`-webkit-app-region: drag`** isn't supported by WebKit or WebView2, so the bridge starts a window drag from `.drag` and `.head`.
 - **The pages' CSP** allows only `'self'`; the staged copies also allow `ipc:` so Tauri's IPC isn't refused.
 - **Report image.** `WKWebView takeSnapshot` and `NSPasteboard` on macOS.
-- **The `stip` command.** Electron's launcher ran `cli.js` with `ELECTRON_RUN_AS_NODE`. There's no Node here, so the launcher runs `<app binary> --cli "$@"` instead.
+- **The `stip` command.** There's no Node in the app, so the launcher it installs runs `<app binary> --cli "$@"`.
 
-## Data folder (changed)
+## Data folder
 
-Electron kept settings in `<config dir>/Stip`; Tauri uses its app data dir,
-named after the identifier:
+Settings and stats live in Tauri's app data dir, named after the identifier:
+`~/Library/Application Support/dev.amreshvs.stip` on macOS,
+`%APPDATA%\dev.amreshvs.stip` on Windows and `~/.local/share/dev.amreshvs.stip`
+on Linux.
 
-| | Electron | Tauri |
-| --- | --- | --- |
-| macOS | `~/Library/Application Support/Stip` | `~/Library/Application Support/dev.amreshvs.stip` |
-| Windows | `%APPDATA%\Stip` | `%APPDATA%\dev.amreshvs.stip` |
-| Linux | `~/.config/Stip` | `~/.local/share/dev.amreshvs.stip` |
+Versions before 1.1.0 kept them in `<config dir>/Stip`. On first run, if the
+new folder has no `settings.json` or `stats.json` and the old one does, both
+are copied over (never moved, never twice). The file format and defaults are
+unchanged, and unknown keys are kept.
 
-On first run, if the new folder has no `settings.json` or `stats.json` and the
-old one does, both are copied over (never moved, never twice). The file
-format and defaults are unchanged, and unknown keys are kept.
-
-## CI
+## CI and packaging
 
 - `ci.yml`: the `tauri` job runs `cargo test` and a release build on Ubuntu 24.04, macOS and Windows; `tauri-probe` runs the self-check on macOS and keeps its JSON report.
-- `release.yml`: builds only the Tauri app on this branch: a universal DMG (signed with the Developer ID, then the app and the DMG notarized and stapled, when the Apple secrets are set), an AppImage and .deb, and an NSIS installer.
+- `release.yml`: a universal DMG (signed with the Developer ID, then the app and the DMG notarized and stapled, when the Apple secrets are set), an AppImage and .deb, an NSIS installer, and the Microsoft Store MSIX (`scripts/msix.js`).
+- Mac App Store: `npm run dist:mas` (`scripts/mas.js`) builds with `--features mas`, signs with the sandbox entitlements in `build/entitlements.mas.plist` and the provisioning profile, uses `Info.mas.plist`, and wraps it in a signed `.pkg`. Open at login goes through `SMAppService` there (macOS 13 and later).
 
 ## Left to do
 
-- **Windows and Linux**: the Windows code type-checks (`cargo check --target x86_64-pc-windows-msvc`), but neither has been run. Not done yet on either: picture of the report page (Copy / Save PNG), and screen-unlock detection (sleep is covered).
-- **Packaging**: a universal `.app` and DMG build and run on macOS (`npx @tauri-apps/cli@2.12.4 build --target universal-apple-darwin --bundles app,dmg`, after a `cargo check` to stage `ui-dist/`). The AppImage, .deb and NSIS builds are only in the release workflow and haven't been run yet.
-- **Windows signing** (the Mac build is signed with the Developer ID and notarized by `release.yml`), the **Mac App Store** build (sandbox entitlements, `mas` feature, a login item through `SMAppService`), and the **MSIX / Store** build.
-- The menu bar title doesn't use monospaced digits, as Electron's `fontType: 'monospacedDigit'` did.
-- Notifications and launch at login use Tauri's plugins. They need a bundled app with an identifier to show up properly, so they haven't been checked yet.
+- **Windows and Linux**: picture of the report page (Copy / Save PNG), and screen-unlock detection (sleep is covered).
+- **Windows signing.** The installer isn't code-signed yet; Store installs are signed by the Store.
+- The menu bar title doesn't use monospaced digits.
+- Notifications and launch at login use Tauri's plugins (`SMAppService` in the Mac App Store build) and haven't been checked in every packaged build yet.

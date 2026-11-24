@@ -14,7 +14,7 @@
     "url": "https://github.com/AmreshVs/stip/issues"
   },
   "keywords": [
-    "electron",
+    "tauri",
     "break-reminder",
     "stand-up",
     "hydration",
@@ -23,27 +23,20 @@
     "productivity",
     "tray-app"
   ],
-  "main": "src/main/index.js",
   "private": true,
   "engines": {
     "node": ">=20"
   },
   "scripts": {
-    "start": "electron .",
     "test": "node --test",
     "icons": "node scripts/build-icons.js",
-    "dist": "electron-builder",
-    "e2e": "electron e2e/run.js",
     "screenshots": "node scripts/screenshots.js",
     "screenshots:appstore": "node scripts/appstore-screenshots.js",
     "site": "node scripts/serve-site.js",
-    "dist:mac": "electron-builder --mac --publish never",
-    "dist:linux": "electron-builder --linux --publish never",
     "bump": "node scripts/bump.js",
-    "dmg-background": "electron scripts/build-dmg-background.js",
-    "dist:win": "electron-builder --win --publish never",
+    "dmg-background": "node scripts/build-dmg-background.js",
     "dist:store": "node scripts/msix.js",
-    "dist:mas": "electron-builder --mac mas --universal"
+    "dist:mas": "node scripts/mas.js"
   },
   "dependencies": {
     "@fontsource/bricolage-grotesque": "5.3.0",
@@ -52,117 +45,17 @@
     "@fontsource/manrope": "5.3.0"
   },
   "devDependencies": {
-    "electron": "44.7.2",
-    "electron-builder": "26.17.0",
     "sharp": "0.35.5"
   },
-  "build": {
-    "appId": "dev.amreshvs.stip",
-    "productName": "Stip",
-    "electronLanguages": [
-      "en",
+  "msix": {
+    "identityName": "AmreshVenkatesanSuresh.StipStandandSip",
+    "publisher": "CN=B816EEFE-E307-4467-A119-53E4B4207BCA",
+    "publisherDisplayName": "Amresh Venkatesan Suresh",
+    "displayName": "Stip: Stand and Sip",
+    "applicationId": "Stip",
+    "backgroundColor": "#141414",
+    "languages": [
       "en-US"
-    ],
-    "files": [
-      "src/**/*",
-      "assets/generated/**/*",
-      "package.json"
-    ],
-    "directories": {
-      "output": "dist"
-    },
-    "mac": {
-      "category": "public.app-category.healthcare-fitness",
-      "icon": "assets/generated/icon.png",
-      "target": [
-        {
-          "target": "dmg",
-          "arch": [
-            "arm64",
-            "x64"
-          ]
-        }
-      ],
-      "extendInfo": {
-        "LSUIElement": true
-      },
-      "hardenedRuntime": true,
-      "gatekeeperAssess": false,
-      "entitlements": "build/entitlements.mac.plist",
-      "entitlementsInherit": "build/entitlements.mac.plist"
-    },
-    "mas": {
-      "hardenedRuntime": false,
-      "entitlements": "build/entitlements.mas.plist",
-      "entitlementsInherit": "build/entitlements.mas.inherit.plist",
-      "provisioningProfile": "build/Stip_App_Store.provisionprofile",
-      "extendInfo": {
-        "LSUIElement": true,
-        "ElectronTeamID": "DRQUZF86A2",
-        "ITSAppUsesNonExemptEncryption": false
-      }
-    },
-    "win": {
-      "icon": "assets/generated/icon.png",
-      "target": [
-        {
-          "target": "nsis",
-          "arch": [
-            "x64"
-          ]
-        }
-      ]
-    },
-    "nsis": {
-      "oneClick": true,
-      "perMachine": false
-    },
-    "linux": {
-      "icon": "assets/generated/icon.png",
-      "category": "Utility",
-      "target": [
-        "AppImage",
-        "deb"
-      ],
-      "maintainer": "Amresh Vs <amreshcse007@gmail.com>",
-      "synopsis": "Stand up and drink water: a calm break reminder"
-    },
-    "artifactName": "Stip-${version}-${arch}.${ext}",
-    "publish": null,
-    "dmg": {
-      "title": "Stip ${version}",
-      "background": "build/background.png",
-      "iconSize": 96,
-      "window": {
-        "width": 540,
-        "height": 380
-      },
-      "contents": [
-        {
-          "x": 140,
-          "y": 196,
-          "type": "file"
-        },
-        {
-          "x": 400,
-          "y": 196,
-          "type": "link",
-          "path": "/Applications"
-        }
-      ]
-    },
-    "appx": {
-      "identityName": "AmreshVenkatesanSuresh.StipStandandSip",
-      "publisher": "CN=B816EEFE-E307-4467-A119-53E4B4207BCA",
-      "publisherDisplayName": "Amresh Venkatesan Suresh",
-      "displayName": "Stip: Stand and Sip",
-      "applicationId": "Stip",
-      "backgroundColor": "#141414",
-      "addAutoLaunchExtension": true,
-      "languages": [
-        "en-US"
-      ],
-      "artifactName": "Stip-${version}-${arch}.${ext}"
-    }
+    ]
   }
 }

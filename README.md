@@ -86,7 +86,7 @@ For macOS and Linux, or the Windows installer, download the latest version from 
 
 ## Built with Tauri
 
-Stip is built with [Tauri](https://tauri.app/): a small Rust core with the screens drawn in the system's own web view, so the download is small and the app stays light. The app lives in `src-tauri/`. Its pages are the ones in `src/renderer/`, which `src-tauri/build.rs` copies in at build time, so the screens look the same as before. [src-tauri/README.md](src-tauri/README.md) explains how each part maps across from the earlier Electron version, which stays in `src/` for reference.
+Stip is built with [Tauri](https://tauri.app/): a small Rust core with the screens drawn in the system's own web view, so the download is small and the app stays light. The app lives in `src-tauri/`. Its pages are the ones in `src/renderer/`, which `src-tauri/build.rs` copies in at build time so Tauri can embed them. [src-tauri/README.md](src-tauri/README.md) explains how the app is put together.
 
 To run it from source, install [Rust](https://www.rust-lang.org/tools/install), [Tauri's prerequisites](https://tauri.app/start/prerequisites/) for your platform and Node.js 20 or newer (for the fonts the pages use), then:
 
@@ -122,7 +122,11 @@ Pushing a tag such as `v1.0.0` from your machine also builds and publishes a rel
 
 ### Microsoft Store
 
-The release workflow builds only the Tauri installers, so the Microsoft Store package still comes from the Electron version: run `npm run dist:store` on Windows to make `Stip-<version>-x64.appx` in `dist/`, then upload it in Partner Center as a new submission. The Store signs it, so Store installs show no warning. Stip's Store page is [apps.microsoft.com/detail/9MSN24PF9CD5](https://apps.microsoft.com/detail/9MSN24PF9CD5), and every GitHub release links to it. The package identity is set under `build.appx` in `package.json`, and the tile images are made by `npm run icons`.
+The Windows build in the release workflow also packs the app into `Stip-<version>-x64.msix`, which stays on the run's page under Artifacts. To make it yourself, run `npm run dist:store` on Windows after building the app. Upload it in Partner Center as a new submission; the Store signs it, so Store installs show no warning. Stip's Store page is [apps.microsoft.com/detail/9MSN24PF9CD5](https://apps.microsoft.com/detail/9MSN24PF9CD5), and every GitHub release links to it. The package identity is set under `msix` in `package.json`, and the tile images are made by `npm run icons`.
+
+### Mac App Store
+
+`npm run dist:mas` builds the sandboxed Mac App Store version (the `mas` cargo feature, which leaves out call detection, build spotting, git and the `stip` command) and signs it into `dist/Stip-<version>-universal.pkg` for Transporter. It needs the store's provisioning profile at `build/Stip_App_Store.provisionprofile` and the Mac App Store distribution and installer certificates in your keychain; [scripts/mas.js](scripts/mas.js) lists the details.
 
 ### Signing and notarizing for macOS
 
@@ -171,26 +175,27 @@ STIP_PROBE=1 cargo run    # self-check: opens every window, checks it, prints a 
 cargo run -- --show=tray  # open one screen at once: break, water, tray, settings, report
 ```
 
-The Electron version in `src/` still has its own tools, used for the screenshots, the site and the store packages:
+From the repository root:
 
 ```bash
-npm test                  # the Electron unit tests
-npm run screenshots       # refresh the screenshots in docs/
-npm run icons             # render the icon PNGs from the SVGs in assets/
-npm run site              # preview the landing page at http://localhost:4173
+npm test                      # unit tests for the stip command and the characters
+npm run screenshots           # refresh the screenshots in docs/ (runs the app; macOS)
+npm run screenshots:appstore  # the Mac App Store screenshots in build/app-store/
+npm run icons                 # render the icon PNGs from the SVGs in assets/
+npm run dmg-background        # render build/dmg-background.html (needs Chrome)
+npm run site                  # preview the landing page at http://localhost:4173
 ```
 
 The [contributing guide](CONTRIBUTING.md) explains fast test timings, previewing any screen with `--show`, and how the code is laid out.
 
 ```
 src-tauri/         The app: Rust core in src/, Tauri config, icons
-src/renderer/      One folder per window: break, water, tray, settings (shared)
-src/main/          The earlier Electron main process, kept for reference
-src/preload.js     The Electron side of window.stip (src-tauri/src/bridge.js in Tauri)
+src/renderer/      One folder per window: break, water, tray, settings, report
+src/cli.js         The stip command's client, also run by the tests
 tauri-proto/       The first prototype of the hard window parts
 assets/            Icon sources and generated PNGs
 docs/              The landing page, served by GitHub Pages
-e2e/               End-to-end test
+scripts/           Screenshots, icons, store packages, version bumps
 test/              Unit tests
 ```
 
@@ -200,7 +205,7 @@ Bug reports, ideas and pull requests are welcome. Please read the [contributing 
 
 ## Credits
 
-- Built with [Tauri](https://tauri.app/). Earlier versions used [Electron](https://www.electronjs.org/).
+- Built with [Tauri](https://tauri.app/).
 - Fonts: [Bricolage Grotesque](https://fonts.google.com/specimen/Bricolage+Grotesque), [DM Sans](https://fonts.google.com/specimen/DM+Sans), [Instrument Serif](https://fonts.google.com/specimen/Instrument+Serif) and [Manrope](https://fonts.google.com/specimen/Manrope), all under the SIL Open Font License, bundled through [Fontsource](https://fontsource.org/).
 - Every picture in Stip is drawn in code for it, and no images are borrowed. The jokes are a mix of Stip's own and classic programming one-liners.
 

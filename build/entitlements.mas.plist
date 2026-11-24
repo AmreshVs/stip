@@ -1,16 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<!-- The Mac App Store requires the sandbox. The file access is only for the
-     files people pick themselves: saving a report image and adding a folder. -->
+<!-- The Mac App Store requires the sandbox. Used by scripts/mas.js.
+     - File access is only for the files people pick themselves: saving a
+       report image and adding a folder.
+     - network.client: WebKit's helper processes need it to show any page in
+       a sandboxed app, even the app's own. Without it every window is blank.
+       Stip itself makes no network requests.
+     - The two identifiers match the provisioning profile, which TestFlight
+       and App Store Connect check. -->
 <plist version="1.0">
 <dict>
   <key>com.apple.security.app-sandbox</key>
   <true/>
-  <key>com.apple.security.application-groups</key>
-  <array>
-    <string>DRQUZF86A2.dev.amreshvs.stip</string>
-  </array>
+  <key>com.apple.application-identifier</key>
+  <string>DRQUZF86A2.dev.amreshvs.stip</string>
+  <key>com.apple.developer.team-identifier</key>
+  <string>DRQUZF86A2</string>
   <key>com.apple.security.files.user-selected.read-write</key>
+  <true/>
+  <key>com.apple.security.network.client</key>
   <true/>
 </dict>
 </plist>

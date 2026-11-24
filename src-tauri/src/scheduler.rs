@@ -414,7 +414,7 @@ impl Scheduler {
         let off_hours = !in_work_hours(&self.config.work_hours, &date);
         Status {
             off_hours,
-            // Electron sent 0 for "not off hours" and null for "never".
+            // The pages read 0 as "not off hours" and null as "never".
             resumes_at: if off_hours { next_work_start(&self.config.work_hours.window, &date) } else { Some(0) },
             ms_to_stand: (self.stand_due_at - now).max(0),
             stand_every_ms: self.stand_every(),
@@ -787,7 +787,7 @@ mod tests {
     }
 
     #[test]
-    fn status_matches_the_electron_shape() {
+    fn status_has_the_shape_the_pages_expect() {
         let r = Run::new(json!({}));
         let v = serde_json::to_value(r.s.status(MIN)).unwrap();
         for key in ["offHours", "resumesAt", "msToStand", "standEveryMs", "sittingMs", "msToWater", "waterOff",

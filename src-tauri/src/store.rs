@@ -1,5 +1,5 @@
 // Settings and stats, kept as JSON in the app's data folder. The file format
-// and defaults match the Electron app's store.js, so existing data loads.
+// and defaults are the same as in earlier versions, so existing data loads.
 use chrono::{DateTime, Datelike, Duration, Local, NaiveDate, Timelike};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
@@ -506,7 +506,7 @@ mod tests {
     }
 
     #[test]
-    fn reads_an_electron_stats_file() {
+    fn reads_a_stats_file_from_earlier_versions() {
         let dir = tempfile::tempdir().unwrap();
         fs::write(
             dir.path().join("stats.json"),

@@ -65,7 +65,8 @@ pub fn snapshot(win: &tauri::WebviewWindow) -> Option<Vec<u8>> {
     if ok.is_err() {
         return None;
     }
-    rx.recv_timeout(Duration::from_secs(5)).ok().flatten()
+    // A hidden window with moving backgrounds (the aurora theme) can take ~10 s.
+    rx.recv_timeout(Duration::from_secs(20)).ok().flatten()
 }
 
 /// Puts a PNG on the clipboard. Main thread only.
@@ -99,4 +100,27 @@ pub fn screen_locked() -> bool {
         .and_then(|v| v.downcast::<CFBoolean>())
         .map(bool::from)
         .unwrap_or(false)
+}
+
+/// Open at login for the Mac App Store build. The sandbox can't write a
+/// LaunchAgent, so it registers the app itself with SMAppService (macOS 13+;
+/// older versions keep it off).
+#[cfg(feature = "mas")]
+pub fn set_login_item(on: bool) {
+    use objc2_service_management::{SMAppService, SMAppServiceStatus};
+    if !objc2::available!(macos = 13.0) {
+        return;
+    }
+    unsafe {
+        let service = SMAppService::mainAppService();
+        let status = service.status();
+        let registered = status == SMAppServiceStatus::Enabled || status == SMAppServiceStatus::RequiresApproval;
+        if registered == on {
+            return;
+        }
+        let result = if on { service.registerAndReturnError() } else { service.unregisterAndReturnError() };
+        if let Err(err) = result {
+            eprintln!("open at login: {}", err.localizedDescription());
+        }
+    }
 }

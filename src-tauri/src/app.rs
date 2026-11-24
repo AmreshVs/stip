@@ -327,10 +327,18 @@ fn apply_login_item(app: &AppHandle, on: bool) {
     if std::env::var_os("STIP_USER_DATA").is_some() || is_store_package() {
         return;
     }
-    use tauri_plugin_autostart::ManagerExt;
-    let launcher = app.autolaunch();
-    if launcher.is_enabled().unwrap_or(false) != on {
-        let _ = if on { launcher.enable() } else { launcher.disable() };
+    #[cfg(all(target_os = "macos", feature = "mas"))]
+    {
+        let _ = app;
+        crate::mac::set_login_item(on);
+    }
+    #[cfg(not(all(target_os = "macos", feature = "mas")))]
+    {
+        use tauri_plugin_autostart::ManagerExt;
+        let launcher = app.autolaunch();
+        if launcher.is_enabled().unwrap_or(false) != on {
+            let _ = if on { launcher.enable() } else { launcher.disable() };
+        }
     }
 }
 
@@ -589,8 +597,7 @@ pub fn start_clock(app: &AppHandle) {
                 std::thread::sleep(Duration::from_millis(1000 - (now_ms() % 1000) as u64));
                 let now = now_ms();
                 let s = shared(&app);
-                // A long gap means the computer slept; start fresh, as
-                // Electron did on powerMonitor's resume.
+                // A long gap means the computer slept; start fresh.
                 let slept = now - last > 30_000;
                 last = now;
                 // Coming back to a locked screen is the same: the user was away.

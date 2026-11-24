@@ -10,13 +10,22 @@ use tokio::io::{AsyncBufReadExt, AsyncRead, AsyncWrite, AsyncWriteExt, BufReader
 static SOCKET: Mutex<Option<PathBuf>> = Mutex::new(None);
 
 async fn serve<S: AsyncRead + AsyncWrite + Unpin>(stream: S, app: AppHandle) {
+    answer(stream, move |request| app::cli_command(&app, &request)).await
+}
+
+/// Reads one request line, runs `handle` off the async threads, writes the reply.
+async fn answer<S, F>(stream: S, handle: F)
+where
+    S: AsyncRead + AsyncWrite + Unpin,
+    F: FnOnce(Value) -> Value + Send + 'static,
+{
     let mut reader = BufReader::new(stream);
     let mut line = String::new();
     if reader.read_line(&mut line).await.is_err() {
         return;
     }
     let reply = match serde_json::from_str::<Value>(&line) {
-        Ok(request) => tauri::async_runtime::spawn_blocking(move || app::cli_command(&app, &request))
+        Ok(request) => tauri::async_runtime::spawn_blocking(move || handle(request))
             .await
             .unwrap_or_else(|_| json!({ "error": "Stip didn't understand that." })),
         Err(_) => json!({ "error": "Stip didn't understand that." }),
@@ -70,5 +79,33 @@ pub fn start(app: &AppHandle, socket: PathBuf) {
 pub fn cleanup() {
     if let Some(path) = SOCKET.lock().unwrap().take() {
         let _ = std::fs::remove_file(path);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tokio::io::AsyncReadExt;
+
+    #[tokio::test]
+    async fn a_request_reaches_the_app_and_the_reply_comes_back() {
+        let (mut client, server) = tokio::io::duplex(1024);
+        let task = tokio::spawn(answer(server, |request| json!({ "message": format!("got {}", request["command"].as_str().unwrap()) })));
+        client.write_all(b"{\"command\":\"break\"}\n").await.unwrap();
+        let mut reply = String::new();
+        client.read_to_string(&mut reply).await.unwrap();
+        task.await.unwrap();
+        assert_eq!(serde_json::from_str::<Value>(&reply).unwrap(), json!({ "message": "got break" }));
+    }
+
+    #[tokio::test]
+    async fn a_garbled_request_gets_an_error() {
+        let (mut client, server) = tokio::io::duplex(1024);
+        let task = tokio::spawn(answer(server, |_| json!({})));
+        client.write_all(b"not json\n").await.unwrap();
+        let mut reply = String::new();
+        client.read_to_string(&mut reply).await.unwrap();
+        task.await.unwrap();
+        assert_eq!(serde_json::from_str::<Value>(&reply).unwrap()["error"], "Stip didn't understand that.");
     }
 }
