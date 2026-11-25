@@ -4,6 +4,8 @@ All notable changes to Stip are listed here. The format follows [Keep a Changelo
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-11-25
+
 ### Fixed
 
 - Windows builds make the Microsoft Store package (`.msix`) again; it went missing in the move to Tauri. The Store version leaves "open at login" to Windows Settings → Apps → Startup.
@@ -61,6 +63,7 @@ The first release.
 - Unit tests, an end-to-end test that drives the real app, and CI on macOS, Windows and Linux.
 - macOS DMG (signed and notarized), Linux AppImage and .deb, and a Windows installer, made by CI for every release.
 
-[Unreleased]: https://github.com/AmreshVs/stip/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/AmreshVs/stip/compare/v1.1.1...HEAD
+[1.1.1]: https://github.com/AmreshVs/stip/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/AmreshVs/stip/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/AmreshVs/stip/releases/tag/v1.0.0
