@@ -8,17 +8,26 @@ on:
 permissions:
   contents: read
 
+# A newer push to the same branch or pull request makes the older run
+# pointless, so stop it: macOS runners are few, and queued runs hold the line
+# for everything else (a release build too).
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   unit:
     # The Node tests: the stip command's client (src/cli.js) and the
-    # characters the pages draw.
+    # characters the pages draw. Not on macOS: the only OS-specific part is
+    # the Unix socket, which Linux tests the same way, and the two Tauri jobs
+    # below already cover the Mac.
     name: JS tests (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest]
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
