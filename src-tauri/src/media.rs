@@ -1,7 +1,6 @@
 // Pauses music and videos while a break covers the screen, and plays them
-// again after. Ported from src/main/media.js. macOS only: it presses the
-// keyboard's play/pause key, which goes to whatever is playing (YouTube in a
-// browser, Spotify, Music...).
+// again after. macOS only: Stip posts the keyboard's play/pause key itself,
+// which goes to whatever is playing (YouTube in a browser, Spotify, Music...).
 //
 // Pressing that key when nothing plays would start something, so Stip only
 // presses it when the system says sound is coming out, and undoes the press
@@ -28,8 +27,10 @@ pub fn supported(sandboxed: bool) -> bool {
     cfg!(target_os = "macos") && !sandboxed
 }
 
-/// Posting a key press needs Accessibility access. With `prompt`, macOS asks
-/// for it (once; after that the user turns it on in System Settings).
+/// Posting a key press needs Accessibility access. With `prompt`, Stip asks
+/// for it: macOS adds Stip to the Accessibility list (switched off) and shows
+/// its dialog the first time; after that the user turns it on in System
+/// Settings.
 pub fn allowed(prompt: bool) -> bool {
     #[cfg(target_os = "macos")]
     {
@@ -65,7 +66,8 @@ fn parse_pmset(out: &str, ours: u32) -> HashSet<u32> {
             continue;
         }
         if let Some(rest) = trimmed.strip_prefix("Created for PID: ") {
-            owner = rest.trim_end_matches('.').trim().parse().ok();
+            // pmset ends the line with ". " on newer macOS, so trim spaces first.
+            owner = rest.trim().trim_end_matches('.').parse().ok();
         }
         if trimmed.starts_with("Resources:") && trimmed.split_whitespace().any(|w| w == "audio-out") {
             if let Some(pid) = owner.filter(|&p| p != ours) {
@@ -76,18 +78,9 @@ fn parse_pmset(out: &str, ours: u32) -> HashSet<u32> {
     pids
 }
 
-// The play/pause media key, as the keyboard sends it.
-const PRESS_PLAY_PAUSE: &str = r#"
-ObjC.import('Cocoa');
-ObjC.import('CoreGraphics');
-for (const flags of [0xa00, 0xb00]) {
-  const event = $.NSEvent.otherEventWithTypeLocationModifierFlagsTimestampWindowNumberContextSubtypeData1Data2(
-    14, $.NSMakePoint(0, 0), flags, 0, 0, $(), 8, (16 << 16) | flags, -1);
-  $.CGEventPost(0, event.CGEvent);
-}"#;
-
 fn press_play_pause() {
-    let _ = std::process::Command::new("/usr/bin/osascript").args(["-l", "JavaScript", "-e", PRESS_PLAY_PAUSE]).output();
+    #[cfg(target_os = "macos")]
+    mac::press_play_pause();
 }
 
 /// The break started: pause whatever is playing. Runs off the caller's thread.
@@ -160,19 +153,77 @@ mod mac {
     use core_foundation::boolean::CFBoolean;
     use core_foundation::dictionary::{CFDictionary, CFDictionaryRef};
     use core_foundation::string::{CFString, CFStringRef};
+    use objc2::runtime::{AnyClass, AnyObject};
+    use objc2::msg_send;
+    use objc2_foundation::NSPoint;
+    use std::ffi::c_void;
 
     #[link(name = "ApplicationServices", kind = "framework")]
     extern "C" {
         static kAXTrustedCheckOptionPrompt: CFStringRef;
         fn AXIsProcessTrustedWithOptions(options: CFDictionaryRef) -> bool;
+        fn CGPreflightPostEventAccess() -> bool;
+        fn CGRequestPostEventAccess() -> bool;
+        fn CGEventPost(tap: u32, event: *mut c_void);
     }
 
+    // Asking through CGRequestPostEventAccess is what puts Stip in the
+    // Accessibility list; the AX call alone could leave it out, so there was
+    // nothing to switch on.
     pub fn trusted(prompt: bool) -> bool {
         unsafe {
+            if CGPreflightPostEventAccess() {
+                return true;
+            }
+            if !prompt {
+                return false;
+            }
             let key = CFString::wrap_under_get_rule(kAXTrustedCheckOptionPrompt);
-            let options = CFDictionary::from_CFType_pairs(&[(key, CFBoolean::from(prompt))]);
-            AXIsProcessTrustedWithOptions(options.as_concrete_TypeRef())
+            let options = CFDictionary::from_CFType_pairs(&[(key, CFBoolean::from(true))]);
+            let ax = AXIsProcessTrustedWithOptions(options.as_concrete_TypeRef());
+            CGRequestPostEventAccess() || ax
         }
+    }
+
+    const NX_SYSDEFINED: usize = 14;
+    const NX_SUBTYPE_AUX_CONTROL_BUTTONS: i16 = 8;
+    const NX_KEYTYPE_PLAY: isize = 16;
+    const HID_EVENT_TAP: u32 = 0;
+
+    /// Presses and releases the play/pause key, from Stip itself so macOS
+    /// checks Stip's own Accessibility switch.
+    pub fn press_play_pause() {
+        objc2::rc::autoreleasepool(|_| {
+            for down in [true, false] {
+                let event = play_pause_event(down);
+                if event.is_null() {
+                    return;
+                }
+                unsafe { CGEventPost(HID_EVENT_TAP, event) };
+            }
+        });
+    }
+
+    /// The key event, as the keyboard sends it. It lives until the
+    /// surrounding autorelease pool drains.
+    pub fn play_pause_event(down: bool) -> *mut c_void {
+        let Some(class) = AnyClass::get(c"NSEvent") else { return std::ptr::null_mut() };
+        let flags: usize = if down { 0xa00 } else { 0xb00 };
+        let event: *mut AnyObject = unsafe {
+            msg_send![class, otherEventWithType: NX_SYSDEFINED,
+                location: NSPoint::new(0.0, 0.0),
+                modifierFlags: flags,
+                timestamp: 0.0_f64,
+                windowNumber: 0_isize,
+                context: std::ptr::null_mut::<AnyObject>(),
+                subtype: NX_SUBTYPE_AUX_CONTROL_BUTTONS,
+                data1: (NX_KEYTYPE_PLAY << 16) | flags as isize,
+                data2: -1_isize]
+        };
+        if event.is_null() {
+            return std::ptr::null_mut();
+        }
+        unsafe { msg_send![event, CGEvent] }
     }
 }
 
@@ -182,8 +233,8 @@ mod tests {
 
     const SAMPLE: &str = r#"Listed by owning process:
    pid 647(coreaudiod): [0x1] 00:03:40 PreventUserIdleSystemSleep named: "com.apple.audio.context1.preventuseridlesleep"
-	Created for PID: 4321.
-	Resources: audio-out BuiltInSpeakerDevice
+	Created for PID: 4321. 
+	Resources: audio-out BuiltInSpeakerDevice 
    pid 647(coreaudiod): [0x2] 01:14:02 PreventUserIdleSystemSleep named: "com.apple.audio.AudioTap.context.preventuseridlesleep"
 	Created for PID: 976.
 	Resources: audio-in 03055878
@@ -199,5 +250,14 @@ mod tests {
     fn finds_programs_playing_sound_but_not_recording_or_us() {
         let pids = parse_pmset(SAMPLE, 99);
         assert_eq!(pids, HashSet::from([4321]));
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn makes_the_play_pause_key() {
+        objc2::rc::autoreleasepool(|_| {
+            assert!(!mac::play_pause_event(true).is_null());
+            assert!(!mac::play_pause_event(false).is_null());
+        });
     }
 }

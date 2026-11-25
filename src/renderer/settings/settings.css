@@ -762,6 +762,17 @@ input[type='time'] {
   background: var(--alert);
 }
 
+.hint-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 .outline {
   height: 48px;
   border-radius: 14px;

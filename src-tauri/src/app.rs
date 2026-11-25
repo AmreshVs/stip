@@ -16,6 +16,7 @@ use std::sync::{Mutex, MutexGuard};
 use std::time::{Duration, Instant};
 use tauri::{AppHandle, Emitter, Manager};
 
+pub const ACCESSIBILITY_URL: &str = "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility";
 pub const PRIVACY_URL: &str = "https://amreshvs.github.io/stip/privacy.html";
 
 pub struct Core {
@@ -452,9 +453,12 @@ pub fn handle_action(app: &AppHandle, name: &str, payload: &Value) {
         }
         "settings-set" => set_settings(app, payload),
         // Turning on media pausing asks for the access it needs right away.
+        // macOS shows its dialog only once, so after that open the list
+        // where the switch is.
         "media-allow" => {
-            if crate::media::supported(s.sandboxed) {
-                crate::media::allowed(true);
+            if crate::media::supported(s.sandboxed) && !crate::media::allowed(true) {
+                use tauri_plugin_opener::OpenerExt;
+                let _ = app.opener().open_url(ACCESSIBILITY_URL, None::<&str>);
             }
         }
         "open-privacy" => {

@@ -190,10 +190,11 @@ function render(state) {
   }[schedule];
 
   $('media-row').hidden = !state.mediaSupported;
-  $('media-hint').textContent =
-    settings.stand.pauseMedia && !state.mediaAllowed
-      ? 'Needs Accessibility access: System Settings › Privacy & Security › Accessibility'
-      : 'Plays them again when the break ends';
+  const needsAccess = settings.stand.pauseMedia && !state.mediaAllowed;
+  $('media-hint').textContent = needsAccess
+    ? 'Needs Accessibility access for Stip.'
+    : 'Plays them again when the break ends';
+  $('media-access').hidden = !needsAccess;
 
   const cli = state.cliInstall;
   $('cli-row').hidden = state.fromStore || state.sandboxed;
