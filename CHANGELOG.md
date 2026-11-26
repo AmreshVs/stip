@@ -4,6 +4,8 @@ All notable changes to Stip are listed here. The format follows [Keep a Changelo
 
 ## [Unreleased]
 
+## [1.1.2] - 2026-11-26
+
 ## [1.1.1] - 2026-11-25
 
 ### Fixed
@@ -63,7 +65,8 @@ The first release.
 - Unit tests, an end-to-end test that drives the real app, and CI on macOS, Windows and Linux.
 - macOS DMG (signed and notarized), Linux AppImage and .deb, and a Windows installer, made by CI for every release.
 
-[Unreleased]: https://github.com/AmreshVs/stip/compare/v1.1.1...HEAD
+[Unreleased]: https://github.com/AmreshVs/stip/compare/v1.1.2...HEAD
+[1.1.2]: https://github.com/AmreshVs/stip/compare/v1.1.1...v1.1.2
 [1.1.1]: https://github.com/AmreshVs/stip/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/AmreshVs/stip/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/AmreshVs/stip/releases/tag/v1.0.0
