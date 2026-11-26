@@ -49,7 +49,23 @@ pub fn playing_pids() -> HashSet<u32> {
     let Ok(out) = std::process::Command::new("/usr/bin/pmset").args(["-g", "assertions"]).output() else {
         return HashSet::new();
     };
-    parse_pmset(&String::from_utf8_lossy(&out.stdout), std::process::id())
+    let mut pids = parse_pmset(&String::from_utf8_lossy(&out.stdout), std::process::id());
+    pids.retain(|&pid| !is_system_sound(pid));
+    pids
+}
+
+// Alert and notification sounds come from these, not from anything the
+// play/pause key could stop. Counting them made Stip press the key with
+// nothing playing, which opens Music.
+const SYSTEM_SOUNDS: [&str; 1] = ["systemsoundserverd"];
+
+fn is_system_sound(pid: u32) -> bool {
+    let Ok(out) = std::process::Command::new("/bin/ps").args(["-o", "comm=", "-p", &pid.to_string()]).output() else {
+        return false;
+    };
+    let name = String::from_utf8_lossy(&out.stdout);
+    let name = name.trim().rsplit('/').next().unwrap_or("");
+    SYSTEM_SOUNDS.contains(&name)
 }
 
 fn parse_pmset(out: &str, ours: u32) -> HashSet<u32> {
@@ -102,6 +118,7 @@ pub fn pause() {
             state().needs_access = true;
             return;
         }
+        let music_was_open = music_open();
         press_play_pause();
         {
             let mut s = state();
@@ -113,17 +130,80 @@ pub fn pause() {
             }
             s.paused = true;
         }
-        // Long enough for a player that wasn't playing to start making sound.
-        std::thread::sleep(std::time::Duration::from_secs(4));
-        if state().session != session || !state().paused {
-            return;
-        }
-        // Something new started playing: the key went to an idle player.
-        if playing_pids().iter().any(|pid| !before.contains(pid)) {
-            state().paused = false;
-            press_play_pause();
+        // With nothing to take it, macOS hands the key to Music, which opens
+        // a moment later. Then the key paused nothing: close Music again, and
+        // don't press the key when the break ends, or it opens once more.
+        let paused_something = if !music_was_open && music_opened_within(std::time::Duration::from_secs(4)) {
+            quit_music();
+            false
+        } else {
+            settle(session, &before)
+        };
+        if !paused_something {
+            let mut s = state();
+            if s.session == session {
+                s.paused = false;
+            }
         }
     });
+}
+
+/// After the key press: whether it paused what was playing. Core Audio keeps
+/// a player's flag up for several seconds after it goes quiet, so this waits
+/// for one of them to drop. A new player making sound means the key went to
+/// an idle one instead, so that press is undone.
+fn settle(session: u64, before: &HashSet<u32>) -> bool {
+    for _ in 0..12 {
+        std::thread::sleep(std::time::Duration::from_secs(1));
+        if state().session != session || !state().paused {
+            return true;
+        }
+        let now = playing_pids();
+        if now.iter().any(|pid| !before.contains(pid)) {
+            state().paused = false;
+            press_play_pause();
+            return false;
+        }
+        // Gone quiet while still running: paused. A program that quit or
+        // finished on its own was never ours to play again.
+        if before.iter().any(|&pid| !now.contains(&pid) && running(pid)) {
+            return true;
+        }
+    }
+    false
+}
+
+fn running(pid: u32) -> bool {
+    std::process::Command::new("/bin/ps").args(["-p", &pid.to_string()]).output().is_ok_and(|o| o.status.success())
+}
+
+fn music_opened_within(wait: std::time::Duration) -> bool {
+    let started = std::time::Instant::now();
+    loop {
+        if music_open() {
+            return true;
+        }
+        if started.elapsed() >= wait {
+            return false;
+        }
+        std::thread::sleep(std::time::Duration::from_millis(250));
+    }
+}
+
+fn music_open() -> bool {
+    #[cfg(target_os = "macos")]
+    {
+        mac::music_open()
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        false
+    }
+}
+
+fn quit_music() {
+    #[cfg(target_os = "macos")]
+    mac::quit_music();
 }
 
 /// The break ended: play again what the break paused.
@@ -183,6 +263,25 @@ mod mac {
             let ax = AXIsProcessTrustedWithOptions(options.as_concrete_TypeRef());
             CGRequestPostEventAccess() || ax
         }
+    }
+
+    const MUSIC: &str = "com.apple.Music";
+
+    fn music_apps() -> objc2::rc::Retained<objc2_foundation::NSArray<objc2_app_kit::NSRunningApplication>> {
+        let id = objc2_foundation::NSString::from_str(MUSIC);
+        objc2_app_kit::NSRunningApplication::runningApplicationsWithBundleIdentifier(&id)
+    }
+
+    pub fn music_open() -> bool {
+        objc2::rc::autoreleasepool(|_| music_apps().count() > 0)
+    }
+
+    pub fn quit_music() {
+        objc2::rc::autoreleasepool(|_| {
+            for app in music_apps().iter() {
+                app.terminate();
+            }
+        });
     }
 
     const NX_SYSDEFINED: usize = 14;
